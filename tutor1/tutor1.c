@@ -4,6 +4,23 @@
 #include <string.h>
 #include <stdbool.h>
 
+/* 
+   Simple C compiler example 
+
+   Simplifed grammar
+
+   <program>       ::= <function_decl>
+
+   <function_decl> ::= "int" <identifier> "(" ")" "{" <statement> "}"
+
+   <statement>     ::= "return" <expression> ";"
+
+   <expression>    ::= <integer_literal>
+
+   <identifier>    ::= [a-zA-Z_][a-zA-Z0-9_]*
+    <integer_literal> ::= [0-9]+
+*/
+
 typedef enum {
     TOKEN_EOF,
     TOKEN_INT,
@@ -31,10 +48,64 @@ typedef struct {
     int count;
 } TokenList;
 
+typedef enum {
+    AST_RETURN_STMT,
+    AST_INT_LITERAL,
+    AST_FUNCTION
+} ASTNodeType;
+
+typedef struct ASTNode {
+    ASTNodeType type;
+    union {
+        int int_value;
+
+        struct {
+            struct ASTNode * expr;
+        } return_stmt;
+
+        struct {
+            const char* name;
+            struct ASTNode* body;
+        } function;
+    };
+} ASTNode;
+
+typedef struct {
+    TokenList* list;
+    int pos;
+} ParserContext;
+
+ASTNode* parse_program(ParserContext * parserContext);
+ASTNode* parse_function(ParserContext * parserContext);
+ASTNode * parse_statement(ParserContext* parserContext);
+ASTNode* parse_return_statement(ParserContext * parserContext);
+ASTNode* parse_expression(ParserContext* parserContext);
+
+Token* peek(ParserContext * parserContext);
+Token* advance(ParserContext * parserContext);
+bool match_token(ParserContext* p, TokenType type);
+
+char * my_strdup(const char* s) {
+    size_t len = strlen(s) + 1;
+    char * copy = malloc(len);
+    if (copy) {
+        memcpy(copy, s, len);
+    }
+    return copy;
+}
+
+Token* expect_token(ParserContext * parserContext, TokenType expected);
+
 void init_token_list(TokenList * list) {
     list->capacity = 16;
     list->count = 0;
     list->data = malloc(sizeof(Token) * list->capacity);
+}
+
+void cleanup_token_list(TokenList * tokenList) {
+    for (int i=0;i<tokenList->count;i++) {
+        free((void*)tokenList->data[i].text);
+    }
 }
 
 void add_token(TokenList * list, Token token) {
@@ -222,11 +293,90 @@ void tokenize(const char* code) {
     }
 
     // cleanup (do else where if list returned)
-    for (int i=0;i<tokenList.count;i++) {
-        free((void*)tokenList.data[i].text);
-    }
+    cleanup_token_list(&
+        tokenList);
 
 }
+
+Token * peek(ParserContext * parserContext) {
+    return &parserContext->list->data[parserContext->pos];
+}
+
+Token * advance(ParserContext * parserContext) {
+    Token * token = peek(parserContext);
+    parserContext->pos++;
+    return token;
+}
+
+bool match_token(ParserContext * parserContext, TokenType type) {
+    if (parserContext->list->data[parserContext->pos].type == type) {
+        parserContext->pos++;
+        return true;
+    }
+    return false;
+}
+
+Token* expect_token(ParserContext * parserContext, TokenType expected) {
+    Token * token = peek(parserContext);
+    if (token->type == expected) {
+        return advance(parserContext);
+    }
+
+    printf("unexpected token\n");
+
+
+//    fprintf(stderr, "Parse error: expected token of type %s, but got %s (text: '%.*s')\n",
+//        token_type_name(expected), token->type, token->length, token->text);
+
+    exit(1);    
+}
+
+ASTNode * parse_function(ParserContext* parserContext) {
+    expect_token(parserContext, TOKEN_INT);
+    Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
+    expect_token(parserContext, TOKEN_LPAREN);
+    expect_token(parserContext, TOKEN_RPAREN);
+    expect_token(parserContext, TOKEN_LBRACE);
+    
+    ASTNode* return_stmt = parse_statement(parserContext);
+
+    expect_token(parserContext, TOKEN_RBRACE);
+
+    ASTNode * func = malloc(sizeof(ASTNode));
+    func->type = AST_FUNCTION;
+    func->function.name = my_strdup(name->text);
+    func->function.body = return_stmt;
+    return func;
+}
+
+ASTNode * parse_statement(ParserContext* parserContext) {
+    if (match_token(parserContext, TOKEN_RETURN)) {
+        return parse_return_statement(parserContext);
+    }
+    printf("unsupported statement\n");
+    exit(1);
+}
+
+ASTNode * parse_return_statement(ParserContext* parserContext) {
+    expect_token(parserContext, TOKEN_RETURN);
+    ASTNode * expr = parse_expression(parserContext);
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_RETURN_STMT;
+    node->return_stmt.expr = expr;
+    return node;
+}
+
+ASTNode * parse_expression(ParserContext * parserContext) {
+    Token * tok = expect_token(parserContext, TOKEN_INT_LITERAL);
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_INT_LITERAL;
+    node->int_value = tok->int_value;
+    return node;
+}
+
 
 int main() {
     tokenize(sampleProgram);
