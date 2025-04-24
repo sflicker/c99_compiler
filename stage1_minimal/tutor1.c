@@ -51,7 +51,8 @@ typedef struct {
 typedef enum {
     AST_RETURN_STMT,
     AST_INT_LITERAL,
-    AST_FUNCTION
+    AST_FUNCTION,
+    AST_PROGRAM
 } ASTNodeType;
 
 typedef struct ASTNode {
@@ -67,6 +68,10 @@ typedef struct ASTNode {
             const char* name;
             struct ASTNode* body;
         } function;
+
+        struct {
+            struct ASTNode * function;
+        } program;
     };
 } ASTNode;
 
@@ -238,11 +243,10 @@ void add_punctuator_token(TokenList * tokenList, const char * punctuatorText) {
     add_token(tokenList, token);
 }
 
-void tokenize(const char* code) {
+void tokenize(const char* code, TokenList * tokenList) {
     const char* p = code;
     
-    TokenList tokenList;
-    init_token_list(&tokenList);
+    init_token_list(tokenList);
 
     while(*p) {
         if (isspace(*p)) {
@@ -257,12 +261,12 @@ void tokenize(const char* code) {
             buffer[i] = '\0';
 
             if (is_keyword(buffer)) {
-                add_keyword_token(&tokenList, buffer);
+                add_keyword_token(tokenList, buffer);
 
 //                formatted_output("KEYWORD:", buffer, tokenType);
             }
             else {
-                add_identifier_token(&tokenList, buffer);
+                add_identifier_token(tokenList, buffer);
 
  //               formatted_output("IDENTIFIER:", buffer, tokenType);
             }
@@ -274,32 +278,27 @@ void tokenize(const char* code) {
                 buffer[i++] = *p++;
             }
             buffer[i++] = '\0';
-            add_int_token(&tokenList, buffer);
+            add_int_token(tokenList, buffer);
 //            formatted_output("INTEGER:" , buffer, tokenType);
         }
         else if (is_punctuator(*p)) {
             char buffer[2] = { *p, '\0'};
-            add_punctuator_token(&tokenList, buffer);
+            add_punctuator_token(tokenList, buffer);
 
 //            formatted_output("PUNCTUATOR:", buffer, tokenType);
             p++;
         }
     }
 
-    // output list
-    for (int i=0;i<tokenList.count;i++) {
-        Token token = tokenList.data[i];
-        formatted_output("TOKEN:", token.text, token.type);
-    }
-
-    // cleanup (do else where if list returned)
-    cleanup_token_list(&
-        tokenList);
 
 }
 
 Token * peek(ParserContext * parserContext) {
     return &parserContext->list->data[parserContext->pos];
+}
+
+bool is_next_token(ParserContext * parserContext, TokenType type) {
+    return parserContext->list->data[parserContext->pos].type == type;
 }
 
 Token * advance(ParserContext * parserContext) {
@@ -331,6 +330,15 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
     exit(1);    
 }
 
+ASTNode * parse_program(ParserContext * parserContext) {
+    ASTNode * function = parse_function(parserContext);
+
+    ASTNode * programNode = malloc(sizeof(ASTNode));
+    programNode->type = AST_PROGRAM;
+    programNode->program.function = function;
+    return programNode;
+}
+
 ASTNode * parse_function(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_INT);
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
@@ -350,7 +358,7 @@ ASTNode * parse_function(ParserContext* parserContext) {
 }
 
 ASTNode * parse_statement(ParserContext* parserContext) {
-    if (match_token(parserContext, TOKEN_RETURN)) {
+    if (is_next_token(parserContext, TOKEN_RETURN)) {
         return parse_return_statement(parserContext);
     }
     printf("unsupported statement\n");
@@ -379,5 +387,22 @@ ASTNode * parse_expression(ParserContext * parserContext) {
 
 
 int main() {
-    tokenize(sampleProgram);
+    TokenList tokenList;
+
+    tokenize(sampleProgram, &tokenList);
+
+    // output list
+    for (int i=0;i<tokenList.count;i++) {
+        Token token = tokenList.data[i];
+        formatted_output("TOKEN:", token.text, token.type);
+    }
+
+    ParserContext parserContext;
+    parserContext.list = &tokenList;
+    parserContext.pos = 0;
+
+    ASTNode * program = parse_program(&parserContext);
+
+    cleanup_token_list(&tokenList);
+    
 }                             
