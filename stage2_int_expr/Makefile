@@ -8,5 +8,5 @@ tuto21: $(OBJS)
 tutor2.o: tutor2.c 
 
 clean:
-	rm -f tutor2 $(OBJS)
+	rm -f tutor2 $(OBJS) tutor2.s
 	

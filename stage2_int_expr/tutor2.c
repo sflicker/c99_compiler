@@ -571,11 +571,64 @@ void emit_return_42(FILE * out) {
     fprintf(out, "    syscall\n");
 }
 
+void emit_header(FILE* out) {
+    fprintf(out, "section .text\n");
+    fprintf(out, "global main\n");
+    fprintf(out, "\n");
+
+}
+
+void emit_binary_op(FILE * out, TokenType op) {
+    switch(op) {
+        case TOKEN_PLUS:
+            fprintf(out, "add eax, ecx\n");
+            break;
+        case TOKEN_MINUS:
+            fprintf(out, "sub eax, ecx\n");
+            break;
+        case TOKEN_STAR:
+            fprintf(out, "imul eax, ecx\n");
+            break;
+        case TOKEN_DIV:
+            fprintf(out, "cdq\n");          // sign-extend eax into edx:eax
+            fprintf(out, "idiv ecx\n");
+            break;
+        default:
+            fprintf(stderr, "Unsupported binary operator: %s\n", token_type_name(op));
+    }
+}
+void emit_tree_node(FILE * out, ASTNode * node) {
+    if (!node) return;
+    switch(node->type) {
+        case AST_PROGRAM:
+            emit_header(out);
+            emit_tree_node(out, node->program.function);
+            break;
+        case AST_FUNCTION:
+            fprintf(out, "%s:\n", node->function.name);
+            emit_tree_node(out, node->function.body);
+            break;
+        case AST_RETURN_STMT:
+            emit_tree_node(out, node->return_stmt.expr);
+            fprintf(out, "ret\n");
+            break;
+        case AST_BINARY_OP:
+            emit_tree_node(out, node->binary_op.lhs);       // codegen to eval lhs with result in EAX
+            fprintf(out, "push rax\n");                     // push lhs result
+            emit_tree_node(out, node->binary_op.rhs);       // codegen to eval rhs with result in EAX
+            fprintf(out, "pop rcx\n");                      // pop lhs to ECX
+            emit_binary_op(out, node->binary_op.op);        // emit proper for op
+            break;
+        case AST_INT_LITERAL:
+            fprintf(out, "mov eax, %d\n", node->int_value);
+            break;
+    }
+}
 
 void codegen(ASTNode * program, const char * output_file) {
     FILE * ptr = fopen(output_file, "w");
 
-    emit_return_42(ptr);
+    emit_tree_node(ptr, program);
 
     fclose(ptr);
 }
@@ -598,7 +651,7 @@ int main() {
     ASTNode * program = parse_program(&parserContext);
     print_ast(program, 0);
 
-    codegen(program, "test.s");
+    codegen(program, "tutor2.s");
 
     cleanup_token_list(&tokenList);
     
