@@ -41,7 +41,8 @@
         "cwd": "${workspaceFolder}/stage2_int_expr",
         "MIMode": "gdb",
         "stopAtEntry": false,
-        "preLaunchTask": "build-stage2-int-expr"
+        "preLaunchTask": "build-stage2-int-expr",
+        "args": ["tests/test2.c"]
       }
 
     ]

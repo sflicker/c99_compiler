@@ -27,23 +27,9 @@
 */
 
 
-const char * sampleProgram = "int main() { \n"
-"    return 7 * (2 + 4); \n"
-"}";
-
 // const char * sampleProgram = "int main() { \n"
-// "    return 2 + 4; \n"
+// "    return 7 * (2 + 4); \n"
 // "}";
-
-// const char * sampleProgram = "int main() { \n"
-// "    return (2 + 4); \n"
-// "}";
-
-
-// const char * sampleProgram = "int main() { \n"
-// "    return 7 * 6; \n"
-// "}";
-
 
 typedef enum {
     TOKEN_EOF,
@@ -271,6 +257,7 @@ void add_identifier_token(TokenList * tokenList, const char * id) {
     int idLen = strlen(id);
     char * idCopy = malloc(idLen + 1);
     memcpy(idCopy, id, idLen);
+    idCopy[idLen] = '\0';
     token.text = idCopy;
     token.length = idLen;
     token.int_value = 0;
@@ -283,6 +270,7 @@ void add_int_token(TokenList * tokenList, char * numberText) {
     int numberTextLen = strlen(numberText);
     char * numberTextCopy = malloc(numberTextLen + 1);
     memcpy(numberTextCopy, numberText, numberTextLen);
+    numberTextCopy[numberTextLen] = '\0';
     token.text = numberTextCopy;
     token.length = numberTextLen;
     token.int_value = atoi(numberText);
@@ -296,6 +284,7 @@ void add_punctuator_token(TokenList * tokenList, const char * punctuatorText) {
     int punctuatorLen = 1;
     char * punctuatorCopy = malloc(punctuatorLen + 1);
     memcpy(punctuatorCopy, punctuatorText, punctuatorLen);
+    punctuatorCopy[punctuatorLen] = '\0';
     token.text = punctuatorCopy;
     token.length = punctuatorLen;
     token.int_value = 0;
@@ -313,6 +302,7 @@ void add_operator_token(TokenList * tokenList, const char * operatorText) {
     int operatorLen = get_operator_len(token);
     char * operatorCopy = malloc(operatorLen + 1);
     memcpy(operatorCopy, operatorText, operatorLen);
+    operatorCopy[operatorLen] = '\0';
     token.text = operatorCopy;
     token.length = operatorLen;
     token.int_value = 0;
@@ -358,14 +348,20 @@ void tokenize(const char* code, TokenList * tokenList) {
 //            formatted_output("INTEGER:" , buffer, tokenType);
         }
         else if (is_punctuator(*p)) {
-            char buffer[2] = { *p, '\0'};
+//            char buffer[2] = { *p, '\0'};
+            char * buffer = malloc(2);
+            memcpy(buffer, p, 1);
+            buffer[1] = '\0';
             add_punctuator_token(tokenList, buffer);
 
 //            formatted_output("PUNCTUATOR:", buffer, tokenType);
             p++;
         }
         else if (is_operator(*p)) {
-            char buffer[2] = { *p, '\0'};
+//            char buffer[2] = { *p, '\0'};
+            char * buffer = malloc(2);
+            memcpy(buffer, p, 1);
+            buffer[1] = '\0';
             add_operator_token(tokenList, buffer);
             p++;
         }
@@ -633,10 +629,71 @@ void codegen(ASTNode * program, const char * output_file) {
     fclose(ptr);
 }
 
-int main() {
+const char * read_text_file(const char* filename) {
+    FILE * file = fopen(filename, "r");
+    if (!file) {
+        perror("fopen");
+        exit(1);
+    }
+
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+
+    char * buffer = malloc(filesize + 1);
+    if (!buffer) {
+        perror("malloc");
+        fclose(file);
+        exit(1);
+    }
+
+    size_t read_size = fread(buffer, 1, filesize, file);
+    if (read_size != filesize) {
+        fprintf(stderr, "fread failed\n");
+        fclose(file);
+        free(buffer);
+        exit(1);
+    }
+
+    buffer[filesize] = '\0';
+    fclose(file);
+    return buffer;
+
+}
+
+char* change_extension(const char* source_file, const char* new_ext) {
+    const char* dot = strrchr(source_file, '.'); // find last dot
+    size_t base_length = (dot) ? (size_t)(dot - source_file) : strlen(source_file);
+
+    size_t new_length = base_length + strlen(new_ext);
+    char* out_file = malloc(new_length + 1); // +1 for '\0'
+    if (!out_file) {
+        perror("malloc");
+        exit(1);
+    }
+
+    memcpy(out_file, source_file, base_length);
+    strcpy(out_file + base_length, new_ext);
+
+    return out_file;
+}
+
+int main(int argc, char ** argv) {
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <source file>", argv[0]);
+        return 1;
+    }
+    const char * program_file = argv[1];
+    const char * output_file = change_extension(program_file, ".s");
+
+    const char * sample_program = read_text_file(program_file);
+
     TokenList tokenList;
 
-    tokenize(sampleProgram, &tokenList);
+    printf("Compiling\n\n%s\n\n", sample_program);
+
+    tokenize(sample_program, &tokenList);
 
     // output list
     for (int i=0;i<tokenList.count;i++) {
@@ -651,7 +708,7 @@ int main() {
     ASTNode * program = parse_program(&parserContext);
     print_ast(program, 0);
 
-    codegen(program, "tutor2.s");
+    codegen(program, output_file);
 
     cleanup_token_list(&tokenList);
     
