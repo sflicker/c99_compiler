@@ -11,5 +11,12 @@ test: tutor2
 	./run_all_tests.sh tutor2
 
 clean:
-	rm -f tutor2 $(OBJS) tutor2.s run_tutor2 run_tutor2.o tests/*.s tests/*.o
+	rm -f tutor2 $(OBJS) tests/*.s tests/*.o
+	@for cfile in tests/test*.c; do \
+		base=$${cfile%.c}; \
+		if [ -f "$$base" ]; then \
+			echo "Deleting binary $$base"; \
+			rm -f "$$base"; \
+		fi; \
+	done
 	

@@ -1,6 +1,13 @@
 #! /bin/bash
 
+set -e
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 PROG=$1
+
 echo "Cleaning previous runs..."
 rm -f tests/*.s tests/*.o
 
