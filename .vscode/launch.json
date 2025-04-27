@@ -32,6 +32,17 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage1-minimal"
+      },
+      {
+        "name": "Debug tutor2",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage2_int_expr/tutor2",
+        "cwd": "${workspaceFolder}/stage2_int_expr",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage2-int-expr"
       }
+
     ]
   }

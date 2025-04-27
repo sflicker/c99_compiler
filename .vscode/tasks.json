@@ -20,7 +20,18 @@
         },
         "group": "build",
         "problemMatcher": ["$gcc"]
-      }
+      },
+      {
+        "label": "build-stage2-int-expr",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cwd": "${workspaceFolder}/stage2_int_expr"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
+
     ]
   }
 
