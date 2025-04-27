@@ -22,23 +22,33 @@ done
 
 echo "Running all tests..."
 
-all_passed=true
+total_tests=0
+passed_tests=0
+failed_tests=0
 
 for cfile in tests/test*.c; do
+    total_tests=$((total_tests + 1))
     echo "----------------------------"
     echo "🔍 Running test for $cfile..."
     
     # assuming all tests should have an exit code of 42 to pass for now
     if ./run_test.sh "$cfile" 42 $PROG; then
         echo -e "${GREEN}✅ $cfile passed${NC}"
+        passed_tests=$((passed_tests + 1))
     else
         echo -e "${RED}❌ $cfile failed${NC}"
-        all_passed=false
+        failed_tests=$((failed_tests + 1))
     fi
 
 done
 
-if [ "$all_passed" = true ]; then
+echo "---------------------------------"
+echo "📝 Test Summary:"
+echo -e "${GREEN}✅ Passed: ${passed_tests}${NC}"
+echo -e "${RED}❌ Failed: ${failed_tests}${NC}"
+echo "🧮 Total tests: ${total_tests}"
+
+if [ "$failed_tests" -eq 0 ]; then
     echo -e "${GREEN}🏆 All tests passed!${NC}"
     exit 0
 else
