@@ -31,6 +31,16 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
+      {
+        "label": "build-stage3-equality-expr",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cwd": "${workspaceFolder}/stage3_equality_expr"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
 
     ]
   }

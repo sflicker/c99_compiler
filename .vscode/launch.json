@@ -42,8 +42,19 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage2-int-expr",
-        "args": ["tests/test2.c"]
+        "args": ["tests/test6.c"]
       }
-
+      ,
+      {
+        "name": "Debug tutor3",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage3_equality_expr/tutor3",
+        "cwd": "${workspaceFolder}/stage3_equality_expr",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage3-equality-expr",
+        "args": ["tests/test1.c"]
+      }
     ]
   }
