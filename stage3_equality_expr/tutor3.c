@@ -15,7 +15,13 @@
 
    <statement>     ::= "return" <expression> ";"
 
-   <expression> ::= <term> { ("+" | "-") <term> }*
+   <expression> ::= <equality_expr>
+
+   <equality_expr> ::= <relational_expr> ( ("==" | "!=") <relational_expr> )*
+
+   <relational_expr> ::= <additive_expr> ( ( "<" | "<=" | ">" | ">=") <additive_expr> )*
+
+   <additive_expr> ::= <term> { ("+" | "-") <term> }*
 
    <term>       ::= <factor> { ("*" | "/") <factor> }*
    
@@ -46,6 +52,12 @@ typedef enum {
     TOKEN_MINUS,
     TOKEN_STAR,
     TOKEN_DIV,
+    TOKEN_EQ,
+    TOKEN_NEQ,
+    TOKEN_LE,
+    TOKEN_LT,
+    TOKEN_GE,
+    TOKEN_GT,
     TOKEN_UNKNOWN
 } TokenType;
 
@@ -102,6 +114,8 @@ typedef struct {
     int pos;
 } ParserContext;
 
+const char * token_type_name(TokenType type);
+
 ASTNode* parse_program(ParserContext * parserContext);
 ASTNode* parse_function(ParserContext * parserContext);
 ASTNode * parse_statement(ParserContext* parserContext);
@@ -141,6 +155,21 @@ void add_token(TokenList * list, Token token) {
         list->data = realloc(list->data, sizeof(Token) * list->capacity);
     }
     list->data[list->count++] = token;
+}
+
+void add_token_by_type(TokenList * list, TokenType tokenType) {
+    const char * tokenText = token_type_name(tokenType);
+    int tokenLen = strlen(tokenText);
+    char * tokenCopy = malloc(tokenLen + 1);
+    memcpy(tokenCopy, tokenText, tokenLen);
+    tokenCopy[tokenLen] = '\0';
+
+    Token token;
+    token.type = tokenType;
+    token.text = tokenCopy;
+    token.int_value = 0;
+    token.length = tokenLen;
+    add_token(list, token);
 }
 
 const char *keywords[] = {
@@ -226,6 +255,12 @@ const char * token_type_name(TokenType type) {
         case TOKEN_PLUS: return "PLUS";
         case TOKEN_DIV: return "DIV";
         case TOKEN_MINUS: return "MINUS";
+        case TOKEN_EQ: return "EQ";
+        case TOKEN_NEQ: return "NEQ";
+        case TOKEN_GT: return "GT";
+        case TOKEN_GE: return "GE";
+        case TOKEN_LT: return "LT";
+        case TOKEN_LE: return "LE";
         default: return "UNKNOWN";
     }
 }
@@ -365,6 +400,35 @@ void tokenize(const char* code, TokenList * tokenList) {
             add_operator_token(tokenList, buffer);
             p++;
         }
+        else if (*p == '=' && *(p+1) == '=') {
+            add_token_by_type(tokenList, TOKEN_EQ);
+            p += 2;
+        }
+        else if (*p == '!' && *(p+1) == '=') {
+            add_token_by_type(tokenList, TOKEN_NEQ);
+            p += 2;
+        }
+        else if (*p == '>') {
+            if (*(p+1) == '=') {
+                add_token_by_type(tokenList, TOKEN_GE);
+                p += 2;
+            }
+            else {
+                add_token_by_type(tokenList, TOKEN_GT);
+                p+= 2;
+            }
+        }
+        else if (*p == '<') {
+            if (*(p+1) == '=') {
+                add_token_by_type(tokenList, TOKEN_LE);
+                p += 2;
+            }
+            else {
+                add_token_by_type(tokenList, TOKEN_LT);
+                p+= 2;
+            }
+        }
+
     }
 
     Token eofToken;
@@ -412,6 +476,9 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
     exit(1);    
 }
 
+ASTNode * parse_equality_expression(ParserContext * parserContext);
+ASTNode * parse_relational_expression(ParserContext * parserContext);
+ASTNode * parse_additive_expression(ParserContext * parserContext);
 ASTNode * parse_term(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_factor(ParserContext * parserContext);
@@ -469,10 +536,47 @@ ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
     node->binary_op.op = op;
     node->binary_op.rhs = rhs;
     return node;
+
+    
 }
 
 ASTNode * parse_expression(ParserContext * parserContext) {
+    return parse_equality_expression(parserContext);
+}
 
+ASTNode * parse_equality_expression(ParserContext * parserContext) {
+    ASTNode * root = parse_relational_expression(parserContext);
+
+    while(is_current_token(parserContext, TOKEN_EQ) || is_current_token(parserContext, TOKEN_NEQ)) {
+        ASTNode * lhs = root;
+        Token * op = advance(parserContext);
+        ASTNode * rhs = parse_relational_expression(parserContext);
+        root = create_binary_op(lhs, op->type, rhs);
+    }
+
+    return root;
+}
+
+ASTNode * parse_relational_expression(ParserContext * parserContext) {
+    ASTNode * root = parse_additive_expression(parserContext);
+    
+
+    while(is_current_token(parserContext, TOKEN_GT) || is_current_token(parserContext, TOKEN_GE) 
+            || is_current_token(parserContext, TOKEN_LT) || is_current_token(parserContext, TOKEN_LE)) {
+        ASTNode * lhs = root;
+        Token * op = advance(parserContext);
+        ASTNode * rhs = parse_additive_expression(parserContext);
+        root = create_binary_op(lhs, op->type, rhs);
+    }
+
+    return root;
+
+
+
+    return root;
+}
+
+ASTNode * parse_additive_expression(ParserContext * parserContext) {
     ASTNode * root = parse_term(parserContext);
 
     while(is_current_token(parserContext, TOKEN_PLUS) || is_current_token(parserContext, TOKEN_MINUS)) {
@@ -489,7 +593,9 @@ ASTNode * parse_expression(ParserContext * parserContext) {
     // node->type = AST_INT_LITERAL;
     // node->int_value = tok->int_value;
     return root;
+
 }
+
 
 ASTNode * parse_term(ParserContext * parserContext) {
     ASTNode * root = parse_factor(parserContext);

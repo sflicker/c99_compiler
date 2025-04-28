@@ -54,7 +54,7 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage3-equality-expr",
-        "args": ["tests/test1.c"]
+        "args": ["tests/test_gt_false.c"]
       }
     ]
   }
