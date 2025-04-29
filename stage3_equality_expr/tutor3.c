@@ -695,6 +695,24 @@ void emit_binary_op(FILE * out, TokenType op) {
             fprintf(out, "cdq\n");          // sign-extend eax into edx:eax
             fprintf(out, "idiv ecx\n");
             break;
+        case TOKEN_EQ:
+            fprintf(out, "sete al\n");
+            break;
+        case TOKEN_NEQ:
+            fprintf(out, "setne al\n");
+            break;
+        case TOKEN_GT:
+            fprintf(out, "setg al\n");
+            break;
+        case TOKEN_GE:
+            fprintf(out, "setge al\n");
+            break;
+            case TOKEN_LT:
+            fprintf(out, "setl al\n");
+            break;
+        case TOKEN_LE:
+            fprintf(out, "setle al\n");
+            break;
         default:
             fprintf(stderr, "Unsupported binary operator: %s\n", token_type_name(op));
     }
@@ -724,13 +742,25 @@ void emit_tree_node(FILE * out, ASTNode * node) {
                 fprintf(out, "cdq\n");
                 fprintf(out, "idiv ecx\n");
             }
-            else {
+            else if (node->binary_op.op == TOKEN_PLUS || node->binary_op.op == TOKEN_MINUS || node->binary_op.op == TOKEN_STAR) {
                 emit_tree_node(out, node->binary_op.lhs);       // codegen to eval lhs with result in EAX
                 fprintf(out, "push rax\n");                     // push lhs result
                 emit_tree_node(out, node->binary_op.rhs);       // codegen to eval rhs with result in EAX
                 fprintf(out, "pop rcx\n");                      // pop lhs to ECX
                 emit_binary_op(out, node->binary_op.op);        // emit proper for op
             }
+            else if (node->binary_op.op == TOKEN_EQ || node->binary_op.op == TOKEN_NEQ ||
+                    node->binary_op.op == TOKEN_LT || node->binary_op.op == TOKEN_LE ||
+                    node->binary_op.op == TOKEN_GT || node->binary_op.op == TOKEN_GE) {
+                        emit_tree_node(out, node->binary_op.lhs);
+                        fprintf(out, "push rax\n");
+                        emit_tree_node(out, node->binary_op.rhs);
+                        fprintf(out, "mov rcx, rax\n");
+                        fprintf(out, "pop rax\n");
+                        fprintf(out, "cmp eax, ecx\n");
+                        emit_binary_op(out, node->binary_op.op);
+                        fprintf(out, "movzx eax, al\n");
+                    }
             break;
         case AST_INT_LITERAL:
             fprintf(out, "mov eax, %d\n", node->int_value);
