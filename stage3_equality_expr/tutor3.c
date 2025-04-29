@@ -32,10 +32,7 @@
     <int_literal> ::= [0-9]+
 */
 
-
-// const char * sampleProgram = "int main() { \n"
-// "    return 7 * (2 + 4); \n"
-// "}";
+/* enums and struct declarations */
 
 typedef enum {
     TOKEN_EOF,
@@ -114,7 +111,10 @@ typedef struct {
     int pos;
 } ParserContext;
 
+/* function declarations */
+
 const char * token_type_name(TokenType type);
+Token* expect_token(ParserContext * parserContext, TokenType expected);
 
 ASTNode* parse_program(ParserContext * parserContext);
 ASTNode* parse_function(ParserContext * parserContext);
@@ -126,6 +126,14 @@ Token* peek(ParserContext * parserContext);
 Token* advance(ParserContext * parserContext);
 bool match_token(ParserContext* p, TokenType type);
 
+
+ASTNode * parse_equality_expression(ParserContext * parserContext);
+ASTNode * parse_relational_expression(ParserContext * parserContext);
+ASTNode * parse_additive_expression(ParserContext * parserContext);
+ASTNode * parse_term(ParserContext * parserContext);
+ASTNode * parse_expression(ParserContext * parserContext);
+ASTNode * parse_factor(ParserContext * parserContext);
+
 char * my_strdup(const char* s) {
     size_t len = strlen(s) + 1;
     char * copy = malloc(len);
@@ -135,7 +143,8 @@ char * my_strdup(const char* s) {
     return copy;
 }
 
-Token* expect_token(ParserContext * parserContext, TokenType expected);
+/* Tokenizer */
+
 
 void init_token_list(TokenList * list) {
     list->capacity = 16;
@@ -326,15 +335,10 @@ void add_punctuator_token(TokenList * tokenList, const char * punctuatorText) {
     add_token(tokenList, token);
 }
 
-int get_operator_len(Token token) {
-    // todo need to support both single and double character operators. for now just return 1;
-    return 1;
-}
-
 void add_operator_token(TokenList * tokenList, const char * operatorText) {
     Token token;
     token.type = operator_token(operatorText);
-    int operatorLen = get_operator_len(token);
+    int operatorLen = strlen(operatorText);
     char * operatorCopy = malloc(operatorLen + 1);
     memcpy(operatorCopy, operatorText, operatorLen);
     operatorCopy[operatorLen] = '\0';
@@ -363,13 +367,9 @@ void tokenize(const char* code, TokenList * tokenList) {
 
             if (is_keyword(buffer)) {
                 add_keyword_token(tokenList, buffer);
-
-//                formatted_output("KEYWORD:", buffer, tokenType);
             }
             else {
                 add_identifier_token(tokenList, buffer);
-
- //               formatted_output("IDENTIFIER:", buffer, tokenType);
             }
         }
         else if (isdigit(*p)) {
@@ -380,20 +380,15 @@ void tokenize(const char* code, TokenList * tokenList) {
             }
             buffer[i++] = '\0';
             add_int_token(tokenList, buffer);
-//            formatted_output("INTEGER:" , buffer, tokenType);
         }
         else if (is_punctuator(*p)) {
-//            char buffer[2] = { *p, '\0'};
             char * buffer = malloc(2);
             memcpy(buffer, p, 1);
             buffer[1] = '\0';
             add_punctuator_token(tokenList, buffer);
-
-//            formatted_output("PUNCTUATOR:", buffer, tokenType);
             p++;
         }
         else if (is_operator(*p)) {
-//            char buffer[2] = { *p, '\0'};
             char * buffer = malloc(2);
             memcpy(buffer, p, 1);
             buffer[1] = '\0';
@@ -439,6 +434,8 @@ void tokenize(const char* code, TokenList * tokenList) {
 
 }
 
+/* Parser functions */
+
 Token * peek(ParserContext * parserContext) {
     return &parserContext->list->data[parserContext->pos];
 }
@@ -476,12 +473,6 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
     exit(1);    
 }
 
-ASTNode * parse_equality_expression(ParserContext * parserContext);
-ASTNode * parse_relational_expression(ParserContext * parserContext);
-ASTNode * parse_additive_expression(ParserContext * parserContext);
-ASTNode * parse_term(ParserContext * parserContext);
-ASTNode * parse_expression(ParserContext * parserContext);
-ASTNode * parse_factor(ParserContext * parserContext);
 
 ASTNode * parse_program(ParserContext * parserContext) {
     ASTNode * function = parse_function(parserContext);
@@ -535,9 +526,7 @@ ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
     node->binary_op.lhs = lhs;
     node->binary_op.op = op;
     node->binary_op.rhs = rhs;
-    return node;
-
-    
+    return node;    
 }
 
 ASTNode * parse_expression(ParserContext * parserContext) {
@@ -568,11 +557,6 @@ ASTNode * parse_relational_expression(ParserContext * parserContext) {
         ASTNode * rhs = parse_additive_expression(parserContext);
         root = create_binary_op(lhs, op->type, rhs);
     }
-
-    return root;
-
-
-
     return root;
 }
 
@@ -586,12 +570,6 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
         root = create_binary_op(lhs, op->type, rhs);
     }
 
-
-    // Token * tok = expect_token(parserContext, TOKEN_INT_LITERAL);
-
-    // ASTNode * node = malloc(sizeof(ASTNode));
-    // node->type = AST_INT_LITERAL;
-    // node->int_value = tok->int_value;
     return root;
 
 }
@@ -661,6 +639,8 @@ void print_ast(ASTNode * node, int indent) {
             break;
     }
 }
+
+/* codegen */
 
 void emit_return_42(FILE * out) {
     fprintf(out, "section .text\n");
@@ -775,6 +755,8 @@ void codegen(ASTNode * program, const char * output_file) {
 
     fclose(ptr);
 }
+
+/* main and related */
 
 const char * read_text_file(const char* filename) {
     FILE * file = fopen(filename, "r");

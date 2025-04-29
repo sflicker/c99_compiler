@@ -28,15 +28,21 @@ failed_tests=0
 
 for cfile in tests/test*.c; do
     total_tests=$((total_tests + 1))
+
+    filename=$(basename "$cfile")
+    testname="${filename%%__*}"
+    remainder="${filename#*__}"
+    expected="${remainder%.c}"
+
     echo "----------------------------"
-    echo "🔍 Running test for $cfile..."
+    echo "🔍 Running test for $testname (expecting $expected)..."
     
     # assuming all tests should have an exit code of 42 to pass for now
-    if ./run_test.sh "$cfile" 42 $PROG; then
-        echo -e "${GREEN}✅ $cfile passed${NC}"
+    if ./run_test.sh "$cfile" "$expected" $PROG; then
+        echo -e "${GREEN}✅ $testname passed${NC}"
         passed_tests=$((passed_tests + 1))
     else
-        echo -e "${RED}❌ $cfile failed${NC}"
+        echo -e "${RED}❌ $testname failed${NC}"
         failed_tests=$((failed_tests + 1))
     fi
 
