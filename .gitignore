@@ -1,3 +1,14 @@
 *.o
 *.s
 *.out
+
+mimic99
+
+build/
+
+*.swp
+*.swo
+*.vscode/
+*.DS_Store
+
+
