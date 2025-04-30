@@ -108,13 +108,13 @@ int main(int argc, char ** argv) {
     const char * program_file = argv[1];
     const char * output_file = change_extension(program_file, ".s");
 
-    const char * sample_program = read_text_file(program_file);
+    const char * program_text = read_text_file(program_file);
 
     TokenList tokenList;
 
-    printf("Compiling\n\n%s\n\n", sample_program);
+    printf("Compiling\n\n%s\n\n", program_text);
 
-    tokenize(sample_program, &tokenList);
+    tokenize(program_text, &tokenList);
 
     // output list
     for (int i=0;i<tokenList.count;i++) {

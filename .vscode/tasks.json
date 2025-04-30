@@ -41,7 +41,16 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
-
+      {
+        "label": "build-stage4-unary-expr",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cwd": "${workspaceFolder}/stage4_unary_expr"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
     ]
   }
 

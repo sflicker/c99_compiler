@@ -56,5 +56,17 @@
         "preLaunchTask": "build-stage3-equality-expr",
         "args": ["tests/test_gt_false.c"]
       }
+      ,
+      {
+        "name": "Debug tutor4",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage4_unary_expr/mimic99",
+        "cwd": "${workspaceFolder}/stage4_unary_expr",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage4-unary-expr",
+        "args": ["tests/test_unary_neg__-42.c"]
+      }
     ]
   }
