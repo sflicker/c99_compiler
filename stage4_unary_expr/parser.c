@@ -8,6 +8,36 @@
 #include "ast.h"
 #include "parser.h"
 
+/* 
+   Simple C compiler example 
+
+   Simplifed grammar
+
+   <program>       ::= <function_decl>
+
+   <function_decl> ::= "int" <identifier> "(" ")" "{" <statement> "}"
+
+   <statement>     ::= "return" <expression> ";"
+
+   <expression> ::= <equality_expr>
+
+   <equality_expr> ::= <relational_expr> ( ("==" | "!=") <relational_expr> )*
+
+   <relational_expr> ::= <additive_expr> ( ( "<" | "<=" | ">" | ">=") <additive_expr> )*
+
+   <additive_expr> ::= <term> { ("+" | "-") <term> }*
+
+   <term>       ::= <unary_expr> { ("*" | "/") <unary_expr> }*
+   
+   <unary_expr> := [ "+" | "-" | "!" ] <unary_expr> | <factor>
+
+   <factor>     ::= <int_literal> | "(" <expression> ")"
+
+   <identifier>    ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+    <int_literal> ::= [0-9]+
+*/
+
 Token* expect_token(ParserContext * parserContext, TokenType expected);
 
 Token* peek(ParserContext * parserContext);
@@ -22,6 +52,7 @@ ASTNode * parse_equality_expression(ParserContext * parserContext);
 ASTNode * parse_relational_expression(ParserContext * parserContext);
 ASTNode * parse_additive_expression(ParserContext * parserContext);
 ASTNode * parse_term(ParserContext * parserContext);
+ASTNode * parse_unary_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_factor(ParserContext * parserContext);
 
@@ -187,6 +218,26 @@ ASTNode * parse_term(ParserContext * parserContext) {
     return root;
 }
 
+ASTNode * parse_unary_expression(ParserContext * parserContext) {
+    if (is_current_token(parserContext, TOKEN_PLUS) || is_current_token(parserContext, TOKEN_MINUS) 
+            || is_current_token(parserContext, TOKEN_BANG)) {
+                Token * currentToken = advance(parserContext);
+                TokenType op = currentToken->type;
+
+                ASTNode * expr = parse_unary_expression(parserContext);
+                
+                ASTNode * node = malloc(sizeof(ASTNode));
+                node->type = AST_UNARY_OP;
+                node->unary_op.op = op;
+                node->unary_op.expr = expr;
+                return node;
+            }        
+    else {
+        return parse_factor(parserContext);
+    }
+
+}
+
 ASTNode * parse_factor(ParserContext * parserContext) {
 
     if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
@@ -232,6 +283,10 @@ void print_ast(ASTNode * node, int indent) {
             printf("BinaryOp: %s\n", token_type_name(node->binary_op.op));
             print_ast(node->binary_op.lhs, indent+1);
             print_ast(node->binary_op.rhs, indent+1);
+            break;
+        case AST_UNARY_OP:
+            printf("UnaryOp: %s\n", token_type_name(node->unary_op.op));
+            print_ast(node->unary_op.expr, indent+1);
             break;
         default:
             printf("Unknown AST Node Type\n");

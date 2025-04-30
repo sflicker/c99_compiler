@@ -10,33 +10,7 @@
 #include "token.h"
 #include "tokenizer.h"
 
-/* 
-   Simple C compiler example 
 
-   Simplifed grammar
-
-   <program>       ::= <function_decl>
-
-   <function_decl> ::= "int" <identifier> "(" ")" "{" <statement> "}"
-
-   <statement>     ::= "return" <expression> ";"
-
-   <expression> ::= <equality_expr>
-
-   <equality_expr> ::= <relational_expr> ( ("==" | "!=") <relational_expr> )*
-
-   <relational_expr> ::= <additive_expr> ( ( "<" | "<=" | ">" | ">=") <additive_expr> )*
-
-   <additive_expr> ::= <term> { ("+" | "-") <term> }*
-
-   <term>       ::= <factor> { ("*" | "/") <factor> }*
-   
-   <factor>     ::= <int_literal> | "(" <expression> ")"
-
-   <identifier>    ::= [a-zA-Z_][a-zA-Z0-9_]*
-
-    <int_literal> ::= [0-9]+
-*/
 
 
 

@@ -8,7 +8,8 @@ typedef enum {
     AST_INT_LITERAL,
     AST_FUNCTION,
     AST_PROGRAM,
-    AST_BINARY_OP
+    AST_BINARY_OP,
+    AST_UNARY_OP
 } ASTNodeType;
 
 typedef struct ASTNode {
@@ -34,6 +35,11 @@ typedef struct ASTNode {
             TokenType op;
             struct ASTNode * rhs;
         } binary_op;
+
+        struct {
+            struct ASTNode * expr;
+            TokenType op;
+        } unary_op;
 
     };
 } ASTNode;
