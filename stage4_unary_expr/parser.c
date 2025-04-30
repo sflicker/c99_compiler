@@ -1,0 +1,208 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdbool.h>
+
+#include "token.h"
+#include "ast.h"
+#include "parser.h"
+
+Token* expect_token(ParserContext * parserContext, TokenType expected);
+
+Token* peek(ParserContext * parserContext);
+Token* advance(ParserContext * parserContext);
+bool match_token(ParserContext* p, TokenType type);
+
+ASTNode* parse_function(ParserContext * parserContext);
+ASTNode * parse_statement(ParserContext* parserContext);
+ASTNode* parse_return_statement(ParserContext * parserContext);
+ASTNode* parse_expression(ParserContext* parserContext);
+ASTNode * parse_equality_expression(ParserContext * parserContext);
+ASTNode * parse_relational_expression(ParserContext * parserContext);
+ASTNode * parse_additive_expression(ParserContext * parserContext);
+ASTNode * parse_term(ParserContext * parserContext);
+ASTNode * parse_expression(ParserContext * parserContext);
+ASTNode * parse_factor(ParserContext * parserContext);
+
+char * my_strdup(const char* s) {
+    size_t len = strlen(s) + 1;
+    char * copy = malloc(len);
+    if (copy) {
+        memcpy(copy, s, len);
+    }
+    return copy;
+}
+
+
+Token * peek(ParserContext * parserContext) {
+    return &parserContext->list->data[parserContext->pos];
+}
+
+bool is_current_token(ParserContext * parserContext, TokenType type) {
+    return parserContext->list->data[parserContext->pos].type == type;
+}
+
+Token * advance(ParserContext * parserContext) {
+    Token * token = peek(parserContext);
+    parserContext->pos++;
+    return token;
+}
+
+bool match_token(ParserContext * parserContext, TokenType type) {
+    if (parserContext->list->data[parserContext->pos].type == type) {
+        parserContext->pos++;
+        return true;
+    }
+    return false;
+}
+
+Token* expect_token(ParserContext * parserContext, TokenType expected) {
+    Token * token = peek(parserContext);
+    if (token->type == expected) {
+        return advance(parserContext);
+    }
+
+    printf("unexpected token\n");
+
+
+//    fprintf(stderr, "Parse error: expected token of type %s, but got %s (text: '%.*s')\n",
+//        token_type_name(expected), token->type, token->length, token->text);
+
+    exit(1);    
+}
+
+
+ASTNode * parse_program(ParserContext * parserContext) {
+    ASTNode * function = parse_function(parserContext);
+
+    ASTNode * programNode = malloc(sizeof(ASTNode));
+    programNode->type = AST_PROGRAM;
+    programNode->program.function = function;
+    return programNode;
+}
+
+ASTNode * parse_function(ParserContext* parserContext) {
+    expect_token(parserContext, TOKEN_INT);
+    Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
+    expect_token(parserContext, TOKEN_LPAREN);
+    expect_token(parserContext, TOKEN_RPAREN);
+    expect_token(parserContext, TOKEN_LBRACE);
+    
+    ASTNode* return_stmt = parse_statement(parserContext);
+
+    expect_token(parserContext, TOKEN_RBRACE);
+
+    ASTNode * func = malloc(sizeof(ASTNode));
+    func->type = AST_FUNCTION;
+    func->function.name = my_strdup(name->text);
+    func->function.body = return_stmt;
+    return func;
+}
+
+ASTNode * parse_statement(ParserContext* parserContext) {
+    if (is_current_token(parserContext, TOKEN_RETURN)) {
+        return parse_return_statement(parserContext);
+    }
+    printf("unsupported statement\n");
+    exit(1);
+}
+
+ASTNode * parse_return_statement(ParserContext* parserContext) {
+    expect_token(parserContext, TOKEN_RETURN);
+    ASTNode * expr = parse_expression(parserContext);
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_RETURN_STMT;
+    node->return_stmt.expr = expr;
+    return node;
+}
+
+ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_BINARY_OP;
+    node->binary_op.lhs = lhs;
+    node->binary_op.op = op;
+    node->binary_op.rhs = rhs;
+    return node;    
+}
+
+ASTNode * parse_expression(ParserContext * parserContext) {
+    return parse_equality_expression(parserContext);
+}
+
+ASTNode * parse_equality_expression(ParserContext * parserContext) {
+    ASTNode * root = parse_relational_expression(parserContext);
+
+    while(is_current_token(parserContext, TOKEN_EQ) || is_current_token(parserContext, TOKEN_NEQ)) {
+        ASTNode * lhs = root;
+        Token * op = advance(parserContext);
+        ASTNode * rhs = parse_relational_expression(parserContext);
+        root = create_binary_op(lhs, op->type, rhs);
+    }
+
+    return root;
+}
+
+ASTNode * parse_relational_expression(ParserContext * parserContext) {
+    ASTNode * root = parse_additive_expression(parserContext);
+    
+
+    while(is_current_token(parserContext, TOKEN_GT) || is_current_token(parserContext, TOKEN_GE) 
+            || is_current_token(parserContext, TOKEN_LT) || is_current_token(parserContext, TOKEN_LE)) {
+        ASTNode * lhs = root;
+        Token * op = advance(parserContext);
+        ASTNode * rhs = parse_additive_expression(parserContext);
+        root = create_binary_op(lhs, op->type, rhs);
+    }
+    return root;
+}
+
+ASTNode * parse_additive_expression(ParserContext * parserContext) {
+    ASTNode * root = parse_term(parserContext);
+
+    while(is_current_token(parserContext, TOKEN_PLUS) || is_current_token(parserContext, TOKEN_MINUS)) {
+        ASTNode * lhs = root;
+        Token * op = advance(parserContext);
+        ASTNode * rhs = parse_term(parserContext);
+        root = create_binary_op(lhs, op->type, rhs);
+    }
+
+    return root;
+
+}
+
+
+ASTNode * parse_term(ParserContext * parserContext) {
+    ASTNode * root = parse_factor(parserContext);
+
+    while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV)) {
+        ASTNode * lhs = root;
+        Token * op = advance(parserContext);
+        ASTNode * rhs = parse_factor(parserContext);
+        root = create_binary_op(lhs, op->type, rhs);
+    }
+
+    return root;
+}
+
+ASTNode * parse_factor(ParserContext * parserContext) {
+
+    if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
+        Token * tok = advance(parserContext);
+        ASTNode * node = malloc(sizeof(ASTNode));
+        node->type = AST_INT_LITERAL;
+        node->int_value = tok->int_value;
+        return node;
+    }
+    else if (is_current_token(parserContext, TOKEN_LPAREN)) {
+        expect_token(parserContext, TOKEN_LPAREN);
+        ASTNode * node = parse_expression(parserContext);
+        expect_token(parserContext, TOKEN_RPAREN);
+        return node;
+    }
+
+    return NULL;
+
+}

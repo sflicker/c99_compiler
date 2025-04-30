@@ -1,11 +1,10 @@
 CC = gcc
 CFLAGS = -Wall -g -std=c99
-OBJS = main.o tokenizer.o parser.o emitter.o
+SRC = main.c tokenizer.c parser.c emitter.c
+OBJS = $(SRC:.c=.o)
 
 mimic99: $(OBJS)
-	$(CC) $(CFLAGS) -o mimic99 $(OBJS)
-
-main.o: main.c 
+	$(CC) $(OBJS) $(CFLAGS) -o mimic99
 
 test: mimic99
 	./run_all_tests.sh mimic99
