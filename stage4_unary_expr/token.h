@@ -22,6 +22,7 @@ typedef enum {
     TOKEN_LT,
     TOKEN_GE,
     TOKEN_GT,
+    TOKEN_BANG,
     TOKEN_UNKNOWN
 } TokenType;
 

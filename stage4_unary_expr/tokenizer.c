@@ -43,7 +43,7 @@ bool is_punctuator(char c) {
 }
 
 bool is_operator(char c) {
-    return c == '*' || c == '+' || c == '-' || c == '/';
+    return c == '*' || c == '+' || c == '-' || c == '/' || c == '!';
 }
 
 TokenType get_keyword_token(const char* keyword) {
@@ -79,6 +79,7 @@ TokenType single_char_operator(char operator) {
         case '+': return TOKEN_PLUS;
         case '-': return TOKEN_MINUS;
         case '/': return TOKEN_DIV;
+        case '!': return TOKEN_BANG;
         default : return TOKEN_UNKNOWN;
     }
 }
@@ -111,6 +112,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_GE: return "GE";
         case TOKEN_LT: return "LT";
         case TOKEN_LE: return "LE";
+        case TOKEN_BANG: return "BANG";
         default: return "UNKNOWN";
     }
 }
@@ -237,13 +239,6 @@ void tokenize(const char* code, TokenList * tokenList) {
             add_punctuator_token(tokenList, buffer);
             p++;
         }
-        else if (is_operator(*p)) {
-            char * buffer = malloc(2);
-            memcpy(buffer, p, 1);
-            buffer[1] = '\0';
-            add_operator_token(tokenList, buffer);
-            p++;
-        }
         else if (*p == '=' && *(p+1) == '=') {
             add_token_by_type(tokenList, TOKEN_EQ);
             p += 2;
@@ -271,6 +266,13 @@ void tokenize(const char* code, TokenList * tokenList) {
                 add_token_by_type(tokenList, TOKEN_LT);
                 p+= 2;
             }
+        }
+        else if (is_operator(*p)) {
+            char * buffer = malloc(2);
+            memcpy(buffer, p, 1);
+            buffer[1] = '\0';
+            add_operator_token(tokenList, buffer);
+            p++;
         }
 
     }
