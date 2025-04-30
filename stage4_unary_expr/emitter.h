@@ -3,7 +3,7 @@
 
 #include "ast.h"
 
-void codegen(ASTNode * program, const char * output_file);
+void emit_program(ASTNode * program, const char * output_file);
 
 
 #endif

@@ -206,3 +206,35 @@ ASTNode * parse_factor(ParserContext * parserContext) {
     return NULL;
 
 }
+
+void print_ast(ASTNode * node, int indent) {
+    if(!node) return;
+
+    for (int i=0;i<indent;i++) printf("  ");
+
+    switch(node->type) {
+        case AST_PROGRAM:
+            printf("ProgramDecl:\n");
+            print_ast(node->program.function, 1);
+            break;
+        case AST_FUNCTION:
+            printf("FunctionDecl: %s\n", node->function.name);
+            print_ast(node->function.body, indent+1);
+            break;
+        case AST_RETURN_STMT:
+            printf("ReturnStmt:\n");
+            print_ast(node->return_stmt.expr, indent+1);
+            break;
+        case AST_INT_LITERAL:
+            printf("IntLiteral: %d\n", node->int_value);
+            break;
+        case AST_BINARY_OP:
+            printf("BinaryOp: %s\n", token_type_name(node->binary_op.op));
+            print_ast(node->binary_op.lhs, indent+1);
+            print_ast(node->binary_op.rhs, indent+1);
+            break;
+        default:
+            printf("Unknown AST Node Type\n");
+            break;
+    }
+}

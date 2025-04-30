@@ -101,7 +101,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
     }
 }
 
-void codegen(ASTNode * program, const char * output_file) {
+void emit_program(ASTNode * program, const char * output_file) {
     FILE * ptr = fopen(output_file, "w");
 
     emit_tree_node(ptr, program);

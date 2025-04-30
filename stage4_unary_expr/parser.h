@@ -9,5 +9,6 @@ typedef struct {
 } ParserContext;
 
 ASTNode* parse_program(ParserContext * parserContext);
+void print_ast(ASTNode * node, int indent);
 
 #endif

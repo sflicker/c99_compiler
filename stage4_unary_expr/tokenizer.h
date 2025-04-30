@@ -3,7 +3,7 @@
 
 #include "token.h"
 
-
+void cleanup_token_list(TokenList * tokenList);
 void tokenize(const char* code, TokenList * tokenList);
 
 #endif

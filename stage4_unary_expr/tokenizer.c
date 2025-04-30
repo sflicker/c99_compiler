@@ -282,3 +282,9 @@ void tokenize(const char* code, TokenList * tokenList) {
     add_token(tokenList, eofToken);
 
 }
+
+void cleanup_token_list(TokenList * tokenList) {
+    for (int i=0;i<tokenList->count;i++) {
+        free((void*)tokenList->data[i].text);
+    }
+}
