@@ -50,6 +50,27 @@ void emit_binary_op(FILE * out, TokenType op) {
             fprintf(stderr, "Unsupported binary operator: %s\n", token_type_name(op));
     }
 }
+
+void emit_unary_op(FILE *out, TokenType op) {
+    switch (op) {
+        case TOKEN_MINUS:
+            fprintf(out, "neg eax\n");
+            break;
+        case TOKEN_PLUS:
+            // noop
+            break;
+        case TOKEN_BANG:
+            // !x becomes (x == 0) -> 1 else 0
+            fprintf(out, "cmp eax, 0\n");
+            fprintf(out, "sete al\n");
+            fprintf(out, "movzx eax, al\n");
+            break;
+        default:
+            fprintf(stderr, "Unsupported unary op in emitter\n");
+            exit(1);
+    }
+}
+
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
@@ -94,6 +115,10 @@ void emit_tree_node(FILE * out, ASTNode * node) {
                         emit_binary_op(out, node->binary_op.op);
                         fprintf(out, "movzx eax, al\n");
                     }
+            break;
+        case AST_UNARY_OP:
+            emit_tree_node(out, node->unary_op.expr);  // generate value into eax
+            emit_unary_op(out, node->unary_op.op);
             break;
         case AST_INT_LITERAL:
             fprintf(out, "mov eax, %d\n", node->int_value);
