@@ -4,6 +4,8 @@ SRC=$1
 EXPECTED=$2
 PROG=$3
 
+UNSIGNED_EXPECTED=$(( (EXPECTED + 256) % 256 ))
+
 echo SRC=$SRC
 echo EXPECTED=$EXPECTED
 echo PROG=$PROG
@@ -37,7 +39,7 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-if [ $EXIT_CODE -eq $EXPECTED ]; then
+if [ $EXIT_CODE -eq $UNSIGNED_EXPECTED ]; then
     echo -e "${GREEN}✅ Test: $SRC Passed${NC}"
 else 
     echo -e "${RED}❌ Test: $SRC Failed: expected $EXPECTED, got $EXIT_CODE"
