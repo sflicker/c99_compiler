@@ -17,18 +17,24 @@
 
    <function> ::= "int" <identifier> "(" ")" <block>
 
-   <block> :== "{" { <statement> } "}"
+   <block> ::= "{" { <statement> } "}"
 
-   <statement> :== <return_statement>
+   <statement> ::=  <declaration>
+                    | <assignment>
+                    | <return_statement>
                     | <if_statement>
                     | <block>
                     | <expression_stmt>
 
+   <declaration> ::= "int" <identifier> [ "=" <expression> ] ";"
+
+   <assignment> ::= <identifier> "=" <expression> ";";
+
    <return_statement>     ::= "return" <expression> ";"
 
-   <if_statement> :== "if" "(" <expression> ")" <statement> [ "else" <statement> ]
+   <if_statement> ::= "if" "(" <expression> ")" <statement> [ "else" <statement> ]
 
-   <expression_stmt> :== <expression> ";";
+   <expression_stmt> ::= <expression> ";";
 
    <expression> ::= <equality_expr>
 
@@ -40,7 +46,7 @@
 
    <term>       ::= <unary_expr> [ ("*" | "/") <unary_expr> ]*
    
-   <unary_expr> := [ "+" | "-" | "!" ] <unary_expr> | <primary>
+   <unary_expr> ::= [ "+" | "-" | "!" ] <unary_expr> | <primary>
 
    <primary>     ::= <int_literal> 
                     | <identifier>
@@ -71,6 +77,8 @@ ASTNode * parse_term(ParserContext * parserContext);
 ASTNode * parse_unary_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
+ASTNode*  parse_var_declaration(ParserContext * parserContext);
+ASTNode* parse_assignment(ParserContext * parserContext);
 
 char * my_strdup(const char* s) {
     size_t len = strlen(s) + 1;
@@ -88,6 +96,11 @@ Token * peek(ParserContext * parserContext) {
 
 bool is_current_token(ParserContext * parserContext, TokenType type) {
     return parserContext->list->data[parserContext->pos].type == type;
+}
+
+//TODO need a check so this doesn't cause an out of bounds
+bool is_next_token(ParserContext * parserContext, TokenType type) {
+    return parserContext->list->data[parserContext->pos+1].type == type;
 }
 
 Token * advance(ParserContext * parserContext) {
@@ -162,6 +175,12 @@ ASTNode * parse_block(ParserContext* parserContext) {
 }
 
 ASTNode * parse_statement(ParserContext* parserContext) {
+    if (is_current_token(parserContext, TOKEN_INT)) {
+        return parse_var_declaration(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token(parserContext, TOKEN_ASSIGN)) {
+        return parse_assignment(parserContext);
+    }
     if (is_current_token(parserContext, TOKEN_RETURN)) {
         return parse_return_statement(parserContext);
     }
@@ -303,6 +322,34 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
 
 }
 
+ASTNode*  parse_var_declaration(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_INT);
+    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
+    ASTNode * expr = NULL;
+    if (is_current_token(parserContext, TOKEN_ASSIGN)) {
+        advance(parserContext);
+        expr = parse_expression(parserContext);
+    }
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_VAR_DECL;
+    node->declaration.name = my_strdup(name->text);
+    node->declaration.init_expr = expr;
+    return node;
+}
+
+ASTNode * parse_assignment(ParserContext * parserContext) {
+    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
+    expect_token(parserContext, TOKEN_ASSIGN);
+    ASTNode * expr = parse_expression(parserContext);
+    
+    ASTNode * node =  malloc(sizeof(ASTNode));
+    node->type = AST_ASSIGNMENT;
+    node->assignment.name = my_strdup(name->text);
+    node->assignment.expr = expr;
+    return node;
+}
+
 ASTNode * parse_primary(ParserContext * parserContext) {
 
     if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
@@ -368,6 +415,16 @@ void print_ast(ASTNode * node, int indent) {
         case AST_EXPRESSION_STMT:
             printf("ExpressionStatement\n");
             print_ast(node->expr_stmt.expr, indent+1);
+            break;
+        case AST_VAR_DECL:
+            printf("VariableDeclaration: %s\n", node->declaration.name);
+            if (node->declaration.init_expr) {
+                print_ast(node->declaration.init_expr, indent+1);
+            }
+            break;
+        case AST_ASSIGNMENT:
+            printf("Assignment: %s\n", node->assignment.name);
+            print_ast(node->assignment.expr, indent+1);
             break;
         default:
             printf("Unknown AST Node Type: \n");

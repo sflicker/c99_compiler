@@ -12,7 +12,9 @@ typedef enum {
     AST_BINARY_OP,
     AST_UNARY_OP,
     AST_BLOCK,
-    AST_EXPRESSION_STMT
+    AST_EXPRESSION_STMT,
+    AST_VAR_DECL,
+    AST_ASSIGNMENT
 } ASTNodeType;
 
 typedef struct ASTNode {
@@ -58,6 +60,16 @@ typedef struct ASTNode {
         struct {
             struct ASTNode * expr;
         } expr_stmt;
+
+        struct {
+            char* name;
+            struct ASTNode * init_expr; // NULL if no initializer
+        } declaration;
+
+        struct {
+            char * name;
+            struct ASTNode * expr;
+        } assignment;
 
     };
 } ASTNode;

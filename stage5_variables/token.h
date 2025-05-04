@@ -17,6 +17,7 @@ typedef enum {
     TOKEN_MINUS,
     TOKEN_STAR,
     TOKEN_DIV,
+    TOKEN_ASSIGN,
     TOKEN_EQ,
     TOKEN_NEQ,
     TOKEN_LE,

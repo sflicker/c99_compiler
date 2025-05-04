@@ -43,7 +43,7 @@ bool is_punctuator(char c) {
 }
 
 bool is_operator(char c) {
-    return c == '*' || c == '+' || c == '-' || c == '/' || c == '!';
+    return c == '*' || c == '+' || c == '-' || c == '/' || c == '!' || c == '=' ;
 }
 
 TokenType get_keyword_token(const char* keyword) {
@@ -86,6 +86,7 @@ TokenType single_char_operator(char operator) {
         case '-': return TOKEN_MINUS;
         case '/': return TOKEN_DIV;
         case '!': return TOKEN_BANG;
+        case '=': return TOKEN_ASSIGN;
         default : return TOKEN_UNKNOWN;
     }
 }
@@ -121,6 +122,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_BANG: return "BANG";
         case TOKEN_IF: return "IF";
         case TOKEN_ELSE: return "ELSE";
+        case TOKEN_ASSIGN: return "ASSIGN";
         default: return "UNKNOWN";
     }
 }
