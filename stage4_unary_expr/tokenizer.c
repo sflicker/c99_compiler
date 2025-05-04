@@ -8,7 +8,7 @@
 #include "tokenizer.h"
 
 const char *keywords[] = {
-    "int", "return"
+    "int", "return", "if", "else"
 };
 
 const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);

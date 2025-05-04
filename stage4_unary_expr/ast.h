@@ -9,7 +9,8 @@ typedef enum {
     AST_FUNCTION,
     AST_PROGRAM,
     AST_BINARY_OP,
-    AST_UNARY_OP
+    AST_UNARY_OP,
+    AST_BLOCK
 } ASTNodeType;
 
 typedef struct ASTNode {
@@ -40,6 +41,17 @@ typedef struct ASTNode {
             struct ASTNode * expr;
             TokenType op;
         } unary_op;
+
+        struct {
+            struct ASTNode ** statements;
+            int count;
+        } block;
+
+        struct {
+            struct ASTNode * cond;
+            struct ASTNode * then_branch;
+            struct ASTNode * else_branch;
+        } if_stmt;
 
     };
 } ASTNode;

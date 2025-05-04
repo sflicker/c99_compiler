@@ -2,9 +2,10 @@
 #define TOKEN_H
 
 typedef enum {
-    TOKEN_EOF,
     TOKEN_INT,
     TOKEN_RETURN,
+    TOKEN_IF,
+    TOKEN_ELSE,
     TOKEN_IDENTIFIER,
     TOKEN_INT_LITERAL,
     TOKEN_LPAREN,
@@ -23,6 +24,7 @@ typedef enum {
     TOKEN_GE,
     TOKEN_GT,
     TOKEN_BANG,
+    TOKEN_EOF,
     TOKEN_UNKNOWN
 } TokenType;
 

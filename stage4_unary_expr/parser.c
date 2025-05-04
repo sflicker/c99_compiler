@@ -17,7 +17,16 @@
 
    <function_decl> ::= "int" <identifier> "(" ")" "{" <statement> "}"
 
-   <statement>     ::= "return" <expression> ";"
+   <statement> :== <return_statement>
+                    | <block>
+                    | <if_statement>
+                    | <expression_stmt>
+
+   <block> :== "{" { <statement> } "}"
+
+   <if_statement> :== "if" "("" <expression> ")" <statement> [ 'else' <statement> ]
+
+   <return_statement>     ::= "return" <expression> ";"
 
    <expression> ::= <equality_expr>
 
