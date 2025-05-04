@@ -6,6 +6,10 @@
 #include "emitter.h"
 #include "token.h"
 
+void emit_tree_node(FILE * out, ASTNode * node);
+
+static int label_id = 0;
+
 void emit_header(FILE* out) {
     fprintf(out, "section .text\n");
     fprintf(out, "global main\n");
@@ -71,6 +75,27 @@ void emit_unary_op(FILE *out, TokenType op) {
     }
 }
 
+void emit_if_statement(FILE * out, ASTNode * node) {
+    int id = label_id++;
+    // eval condition
+    emit_tree_node(out, node->if_stmt.cond);
+    // compare result with 0
+    fprintf(out, "cmp eax, 0\n");
+
+    if (node->if_stmt.else_statement) {
+        fprintf(out, "je .Lelse%d\n", id);  // jump to else if false
+        emit_tree_node(out, node->if_stmt.then_statement);
+        fprintf(out, "jmp .Lend%d\n", id);  // jump to end over else
+        fprintf(out, ".Lelse%d\n", id);
+        emit_tree_node(out, node->if_stmt.else_statement);
+    }
+    else {
+        fprintf(out, "je .Lend%d\n", id);  // skip over if false
+        emit_tree_node(out, node->if_stmt.then_statement);
+    }
+    fprintf(out, ".Lend%d:\n", id);
+}
+
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
@@ -85,6 +110,17 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_RETURN_STMT:
             emit_tree_node(out, node->return_stmt.expr);
             fprintf(out, "ret\n");
+            break;
+        case AST_EXPRESSION_STMT:
+            emit_tree_node(out, node->expr_stmt.expr);
+            break;
+        case AST_BLOCK:
+            for (int i=0;i<node->block.count;i++) {
+                emit_tree_node(out, node->block.statements[i]);
+            }
+            break;
+        case AST_IF_STMT:
+            emit_if_statement(out, node);
             break;
         case AST_BINARY_OP:
             if (node->binary_op.op == TOKEN_DIV) {

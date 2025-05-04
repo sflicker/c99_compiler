@@ -53,6 +53,12 @@ TokenType get_keyword_token(const char* keyword) {
     else if (strcmp(keyword, "return") == 0) {
         return TOKEN_RETURN;
     }
+    else if (strcmp(keyword, "if") == 0) {
+        return TOKEN_IF;
+    }
+    else if (strcmp(keyword, "else") == 0) {
+        return TOKEN_ELSE;
+    }
     else {
         return TOKEN_UNKNOWN;
     }
@@ -113,6 +119,8 @@ const char * token_type_name(TokenType type) {
         case TOKEN_LT: return "LT";
         case TOKEN_LE: return "LE";
         case TOKEN_BANG: return "BANG";
+        case TOKEN_IF: return "IF";
+        case TOKEN_ELSE: return "ELSE";
         default: return "UNKNOWN";
     }
 }

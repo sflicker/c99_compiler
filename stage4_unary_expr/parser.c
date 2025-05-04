@@ -13,34 +13,38 @@
 
    Simplifed grammar
 
-   <program>       ::= <function_decl>
+   <program>       ::= <function>
 
-   <function_decl> ::= "int" <identifier> "(" ")" "{" <statement> "}"
-
-   <statement> :== <return_statement>
-                    | <block>
-                    | <if_statement>
-                    | <expression_stmt>
+   <function> ::= "int" <identifier> "(" ")" <block>
 
    <block> :== "{" { <statement> } "}"
 
-   <if_statement> :== "if" "("" <expression> ")" <statement> [ 'else' <statement> ]
+   <statement> :== <return_statement>
+                    | <if_statement>
+                    | <block>
+                    | <expression_stmt>
 
    <return_statement>     ::= "return" <expression> ";"
 
+   <if_statement> :== "if" "(" <expression> ")" <statement> [ "else" <statement> ]
+
+   <expression_stmt> :== <expression> ";";
+
    <expression> ::= <equality_expr>
 
-   <equality_expr> ::= <relational_expr> ( ("==" | "!=") <relational_expr> )*
+   <equality_expr> ::= <relational_expr> [ ("==" | "!=") <relational_expr> ]*
 
-   <relational_expr> ::= <additive_expr> ( ( "<" | "<=" | ">" | ">=") <additive_expr> )*
+   <relational_expr> ::= <additive_expr> [ ( "<" | "<=" | ">" | ">=") <additive_expr> ]*
 
-   <additive_expr> ::= <term> { ("+" | "-") <term> }*
+   <additive_expr> ::= <term> [ ("+" | "-") <term> ]*
 
-   <term>       ::= <unary_expr> { ("*" | "/") <unary_expr> }*
+   <term>       ::= <unary_expr> [ ("*" | "/") <unary_expr> ]*
    
-   <unary_expr> := [ "+" | "-" | "!" ] <unary_expr> | <factor>
+   <unary_expr> := [ "+" | "-" | "!" ] <unary_expr> | <primary>
 
-   <factor>     ::= <int_literal> | "(" <expression> ")"
+   <primary>     ::= <int_literal> 
+                    | <identifier>
+                    | "(" <expression> ")"
 
    <identifier>    ::= [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -56,6 +60,9 @@ bool match_token(ParserContext* p, TokenType type);
 ASTNode* parse_function(ParserContext * parserContext);
 ASTNode * parse_statement(ParserContext* parserContext);
 ASTNode* parse_return_statement(ParserContext * parserContext);
+ASTNode * parse_block(ParserContext* parserContext);
+ASTNode * parse_if_statement(ParserContext * parserContext);
+ASTNode * parse_expression_statement(ParserContext * parserContext);
 ASTNode* parse_expression(ParserContext* parserContext);
 ASTNode * parse_equality_expression(ParserContext * parserContext);
 ASTNode * parse_relational_expression(ParserContext * parserContext);
@@ -63,7 +70,7 @@ ASTNode * parse_additive_expression(ParserContext * parserContext);
 ASTNode * parse_term(ParserContext * parserContext);
 ASTNode * parse_unary_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
-ASTNode * parse_factor(ParserContext * parserContext);
+ASTNode * parse_primary(ParserContext * parserContext);
 
 char * my_strdup(const char* s) {
     size_t len = strlen(s) + 1;
@@ -127,25 +134,75 @@ ASTNode * parse_function(ParserContext* parserContext) {
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
     expect_token(parserContext, TOKEN_LPAREN);
     expect_token(parserContext, TOKEN_RPAREN);
-    expect_token(parserContext, TOKEN_LBRACE);
+//    expect_token(parserContext, TOKEN_LBRACE);
     
-    ASTNode* return_stmt = parse_statement(parserContext);
+    ASTNode* function_block = parse_block(parserContext);
 
-    expect_token(parserContext, TOKEN_RBRACE);
+//    expect_token(parserContext, TOKEN_RBRACE);
 
     ASTNode * func = malloc(sizeof(ASTNode));
     func->type = AST_FUNCTION;
     func->function.name = my_strdup(name->text);
-    func->function.body = return_stmt;
+    func->function.body = function_block;
     return func;
+}
+
+ASTNode * parse_block(ParserContext* parserContext) {
+    expect_token(parserContext, TOKEN_LBRACE);
+    ASTNode * statement = parse_statement(parserContext);
+    expect_token(parserContext, TOKEN_RBRACE);
+
+    ASTNode * blockNode = malloc(sizeof(ASTNode));
+
+    blockNode->type = AST_BLOCK;
+    blockNode->block.statements = malloc(sizeof(ASTNode*));
+    blockNode->block.statements[0] = statement;
+    blockNode->block.count = 1;
+    return blockNode;
 }
 
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_RETURN)) {
         return parse_return_statement(parserContext);
     }
-    printf("unsupported statement\n");
-    exit(1);
+    if (is_current_token(parserContext, TOKEN_LBRACE)) {
+        return parse_block(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_IF)) {
+        return parse_if_statement(parserContext);
+    }
+    return parse_expression_statement(parserContext);
+}
+
+ASTNode * parse_if_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_IF);
+    expect_token(parserContext, TOKEN_LPAREN);
+    ASTNode * condExpression = parse_expression(parserContext);
+    expect_token(parserContext, TOKEN_RPAREN);
+    ASTNode * then_statement = parse_statement(parserContext);
+    ASTNode * else_statement = NULL;
+    if (is_current_token(parserContext, TOKEN_ELSE)) {
+        advance(parserContext);
+        else_statement = parse_statement(parserContext);
+    }
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_IF_STMT;
+    node->if_stmt.cond = condExpression;
+    node->if_stmt.then_statement = then_statement;
+    node->if_stmt.else_statement = else_statement;
+    return node;
+
+}
+
+ASTNode * parse_expression_statement(ParserContext * parserContext) {
+    ASTNode * expr = parse_expression(parserContext);
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_EXPRESSION_STMT;
+    node->expr_stmt.expr = expr;
+    return node;
 }
 
 ASTNode * parse_return_statement(ParserContext* parserContext) {
@@ -188,7 +245,6 @@ ASTNode * parse_equality_expression(ParserContext * parserContext) {
 ASTNode * parse_relational_expression(ParserContext * parserContext) {
     ASTNode * root = parse_additive_expression(parserContext);
     
-
     while(is_current_token(parserContext, TOKEN_GT) || is_current_token(parserContext, TOKEN_GE) 
             || is_current_token(parserContext, TOKEN_LT) || is_current_token(parserContext, TOKEN_LE)) {
         ASTNode * lhs = root;
@@ -220,7 +276,7 @@ ASTNode * parse_term(ParserContext * parserContext) {
     while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV)) {
         ASTNode * lhs = root;
         Token * op = advance(parserContext);
-        ASTNode * rhs = parse_factor(parserContext);
+        ASTNode * rhs = parse_unary_expression(parserContext);
         root = create_binary_op(lhs, op->type, rhs);
     }
 
@@ -242,12 +298,12 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
                 return node;
             }        
     else {
-        return parse_factor(parserContext);
+        return parse_primary(parserContext);
     }
 
 }
 
-ASTNode * parse_factor(ParserContext * parserContext) {
+ASTNode * parse_primary(ParserContext * parserContext) {
 
     if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
         Token * tok = advance(parserContext);
@@ -297,8 +353,24 @@ void print_ast(ASTNode * node, int indent) {
             printf("UnaryOp: %s\n", token_type_name(node->unary_op.op));
             print_ast(node->unary_op.expr, indent+1);
             break;
+        case AST_IF_STMT:
+            printf("IfStmt: \n");
+            print_ast(node->if_stmt.cond, indent+1);
+            print_ast(node->if_stmt.then_statement, indent+1);
+            print_ast(node->if_stmt.else_statement, indent+1);
+            break;
+        case AST_BLOCK:
+            printf("Block\n");
+            for (int i=0;i<node->block.count;i++) {
+                print_ast(node->block.statements[i], indent+1);
+            }
+            break;
+        case AST_EXPRESSION_STMT:
+            printf("ExpressionStatement\n");
+            print_ast(node->expr_stmt.expr, indent+1);
+            break;
         default:
-            printf("Unknown AST Node Type\n");
+            printf("Unknown AST Node Type: \n");
             break;
     }
 }

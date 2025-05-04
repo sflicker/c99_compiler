@@ -5,12 +5,14 @@
 
 typedef enum {
     AST_RETURN_STMT,
+    AST_IF_STMT,
     AST_INT_LITERAL,
     AST_FUNCTION,
     AST_PROGRAM,
     AST_BINARY_OP,
     AST_UNARY_OP,
-    AST_BLOCK
+    AST_BLOCK,
+    AST_EXPRESSION_STMT
 } ASTNodeType;
 
 typedef struct ASTNode {
@@ -49,9 +51,13 @@ typedef struct ASTNode {
 
         struct {
             struct ASTNode * cond;
-            struct ASTNode * then_branch;
-            struct ASTNode * else_branch;
+            struct ASTNode * then_statement;
+            struct ASTNode * else_statement;
         } if_stmt;
+
+        struct {
+            struct ASTNode * expr;
+        } expr_stmt;
 
     };
 } ASTNode;
