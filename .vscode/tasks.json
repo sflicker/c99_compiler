@@ -51,6 +51,16 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
+      {
+        "label": "build-stage5-variables",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cwd": "${workspaceFolder}/stage5_variables"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
     ]
   }
 

@@ -68,5 +68,17 @@
         "preLaunchTask": "build-stage4-unary-expr",
         "args": ["tests/test_basic_if__42.c"]
       }
+      ,
+      {
+        "name": "Debug tutor5",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage5_variables/mimic99",
+        "cwd": "${workspaceFolder}/stage5_variables",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage5-variables",
+        "args": ["tests/test_basic_if__42.c"]
+      }
     ]
   }
