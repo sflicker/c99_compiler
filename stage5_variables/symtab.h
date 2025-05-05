@@ -6,16 +6,11 @@ typedef struct {
     int offset;
 } Symbol;
 
-#define MAX_SYMBOLS 128
 
-typedef struct {
-    Symbol symbols[MAX_SYMBOLS];
-    int count;
-    int next_offset;
-} SymbolTable;
 
-void init_symbol_table(SymbolTable* symbolTable);
-int add_symbol(SymbolTable* table, const char * name);
-int lookup_symbol(SymbolTable * table, const char * name);
+void init_symbol_table();
+int add_symbol(const char * name);
+int lookup_symbol(const char * name);
+int get_symbol_total_space();
 
 #endif

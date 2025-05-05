@@ -97,54 +97,61 @@ void emit_if_statement(FILE * out, ASTNode * node) {
     fprintf(out, ".Lend%d:\n", id);
 }
 
-void populate_symbol_table(ASTNode * node, SymbolTable *symbolTable) {
+void populate_symbol_table(ASTNode * node) {
     if (!node) {
         return;
     }
 
     switch(node->type) {
+        case AST_PROGRAM:
+            populate_symbol_table(node->program.function);
+            break;
+        case AST_FUNCTION:
+            populate_symbol_table(node->function.body);
+            break;
+        
         case AST_BLOCK:
             for (int i=0;i<node->block.count;i++) {
-                populate_symbol_table(node->block.statements[i], symbolTable);
+                populate_symbol_table(node->block.statements[i]);
             }
             break;
         case AST_VAR_DECL:
-            add_symbol(symbolTable, node->declaration.name);
+            add_symbol(node->declaration.name);
             if (node->declaration.init_expr) {
-                populate_symbol_table(node->declaration.init_expr, symbolTable);
+                populate_symbol_table(node->declaration.init_expr);
             }
             break;
         case AST_ASSIGNMENT:
-            populate_symbol_table(node->assignment.expr, symbolTable);
+            populate_symbol_table(node->assignment.expr);
             break;
 
         case AST_RETURN_STMT:
-            populate_symbol_table(node->return_stmt.expr, symbolTable);
+            populate_symbol_table(node->return_stmt.expr);
             break;
 
         case AST_IF_STMT:
-            populate_symbol_table(node->if_stmt.cond, symbolTable);
-            populate_symbol_table(node->if_stmt.then_statement, symbolTable);
+            populate_symbol_table(node->if_stmt.cond);
+            populate_symbol_table(node->if_stmt.then_statement);
             if (node->if_stmt.else_statement) {
-                populate_symbol_table(node->if_stmt.else_statement, symbolTable);
+                populate_symbol_table(node->if_stmt.else_statement);
             }
             break;
 
         case AST_EXPRESSION_STMT:
-            populate_symbol_table(node->expr_stmt.expr, symbolTable);
+            populate_symbol_table(node->expr_stmt.expr);
             break;
 
         case AST_BINARY_OP:
-            populate_symbol_table(node->binary_op.lhs, symbolTable);
-            populate_symbol_table(node->binary_op.rhs, symbolTable);
+            populate_symbol_table(node->binary_op.lhs);
+            populate_symbol_table(node->binary_op.rhs);
             break;
 
         case AST_UNARY_OP:
-            populate_symbol_table(node->unary_op.expr, symbolTable);
+            populate_symbol_table(node->unary_op.expr);
             break;
 
         case AST_VAR_EXPR:
-            add_symbol(symbolTable, node->var_expression.name);
+            add_symbol(node->var_expression.name);
             break;
 
         default:
@@ -152,13 +159,9 @@ void populate_symbol_table(ASTNode * node, SymbolTable *symbolTable) {
     }
 }
 
-SymbolTable * currentSymbolTable = NULL;
-
 void emit_function(FILE * out, ASTNode * node) {
-    SymbolTable * prevSymbolTable = currentSymbolTable;
-    SymbolTable * symbolTable = malloc(sizeof(symbolTable));
-    init_symbol_table(symbolTable);
-    populate_symbol_table(node, symbolTable);
+
+
 
     // create label for function
     fprintf(out, "%s:\n", node->function.name);
@@ -166,7 +169,7 @@ void emit_function(FILE * out, ASTNode * node) {
     fprintf(out, "push rbp\n");
     fprintf(out,  "mov rbp, rsp\n");
 
-    int local_space = -symbolTable->next_offset;
+    int local_space = get_symbol_total_space();
     if (local_space > 0) {
         fprintf(out, "sub rsp, %d\n", local_space);
     }
@@ -176,12 +179,10 @@ void emit_function(FILE * out, ASTNode * node) {
     fprintf(out, "pop rbp\n");
     fprintf(out, "ret\n");
 
-    currentSymbolTable = prevSymbolTable;
-    free(symbolTable);
 }
 
 void emit_var_declaration(FILE *out, ASTNode * node) {
-    int offset = add_symbol(currentSymbolTable, node->declaration.name);
+    int offset = add_symbol(node->declaration.name);
     if (node->declaration.init_expr) {
         emit_tree_node(out, node->declaration.init_expr);
         fprintf(out, "mov [rbp%d], eax\n", offset);
@@ -190,7 +191,7 @@ void emit_var_declaration(FILE *out, ASTNode * node) {
 
 void emit_assignment(FILE * out, ASTNode* node) {
     emit_tree_node(out, node->assignment.expr);
-    int offset = lookup_symbol(currentSymbolTable, node->assignment.name);
+    int offset = lookup_symbol(node->assignment.name);
     fprintf(out, "mov [rbp%d], eax\n", offset);
 }
 
@@ -263,7 +264,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             fprintf(out, "mov eax, %d\n", node->int_value);
             break;
         case AST_VAR_EXPR:
-            int offset = lookup_symbol(currentSymbolTable, node->var_expression.name);
+            int offset = lookup_symbol(node->var_expression.name);
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             break;
     }
@@ -271,7 +272,8 @@ void emit_tree_node(FILE * out, ASTNode * node) {
 
 void emit_program(ASTNode * program, const char * output_file) {
     FILE * ptr = fopen(output_file, "w");
-
+    init_symbol_table();
+    populate_symbol_table(program);
     emit_tree_node(ptr, program);
 
     fclose(ptr);
