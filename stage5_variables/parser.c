@@ -153,15 +153,25 @@ ASTNode * parse_function(ParserContext* parserContext) {
 
 ASTNode * parse_block(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_LBRACE);
-    ASTNode * statement = parse_statement(parserContext);
-    expect_token(parserContext, TOKEN_RBRACE);
 
     ASTNode * blockNode = malloc(sizeof(ASTNode));
-
     blockNode->type = AST_BLOCK;
-    blockNode->block.statements = malloc(sizeof(ASTNode*));
-    blockNode->block.statements[0] = statement;
-    blockNode->block.count = 1;
+    blockNode->block.count = 0;
+    blockNode->block.capacity = 4;
+    blockNode->block.statements = malloc(sizeof(ASTNode*) * blockNode->block.capacity);
+
+    while(!is_current_token(parserContext, TOKEN_RBRACE)) {
+        ASTNode * statement = parse_statement(parserContext);
+        if (blockNode->block.count >= blockNode->block.capacity) {
+            blockNode->block.capacity *= 2;
+            blockNode->block.statements = realloc(
+                blockNode->block.statements, sizeof(ASTNode*) * blockNode->block.capacity);
+        }
+        blockNode->block.statements[blockNode->block.count++] = statement;
+    }
+        
+    expect_token(parserContext, TOKEN_RBRACE);
+
     return blockNode;
 }
 
@@ -321,6 +331,7 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
         advance(parserContext);
         expr = parse_expression(parserContext);
     }
+    expect_token(parserContext, TOKEN_SEMICOLON);
 
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_VAR_DECL;
@@ -354,6 +365,13 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         expect_token(parserContext, TOKEN_LPAREN);
         ASTNode * node = parse_expression(parserContext);
         expect_token(parserContext, TOKEN_RPAREN);
+        return node;
+    }
+    else if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
+        Token * tok = advance(parserContext);
+        ASTNode * node = malloc(sizeof(ASTNode));
+        node->type = AST_VAR_EXPR;
+        node->var_expression.name = my_strdup(tok->text);
         return node;
     }
 
@@ -417,8 +435,11 @@ void print_ast(ASTNode * node, int indent) {
             printf("Assignment: %s\n", node->assignment.name);
             print_ast(node->assignment.expr, indent+1);
             break;
+        case AST_VAR_EXPR:
+            printf("VariableExpression: %s\n", node->var_expression.name);
+            break;
         default:
-            printf("Unknown AST Node Type: \n");
+            printf("Unknown AST Node Type: %d\n", node->type);
             break;
     }
 }

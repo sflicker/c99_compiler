@@ -143,6 +143,10 @@ void populate_symbol_table(ASTNode * node, SymbolTable *symbolTable) {
             populate_symbol_table(node->unary_op.expr, symbolTable);
             break;
 
+        case AST_VAR_EXPR:
+            add_symbol(symbolTable, node->var_expression.name);
+            break;
+
         default:
             break;
     }
@@ -152,7 +156,7 @@ SymbolTable * currentSymbolTable = NULL;
 
 void emit_function(FILE * out, ASTNode * node) {
     SymbolTable * prevSymbolTable = currentSymbolTable;
-    SymbolTable * symbolTable = calloc(sizeof(symbolTable), 0);
+    SymbolTable * symbolTable = malloc(sizeof(symbolTable));
     init_symbol_table(symbolTable);
     populate_symbol_table(node, symbolTable);
 
@@ -257,6 +261,10 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_INT_LITERAL:
             fprintf(out, "mov eax, %d\n", node->int_value);
+            break;
+        case AST_VAR_EXPR:
+            int offset = lookup_symbol(currentSymbolTable, node->var_expression.name);
+            fprintf(out, "mov eax, [rbp%d]\n", offset);
             break;
     }
 }

@@ -14,6 +14,7 @@ typedef enum {
     AST_BLOCK,
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
+    AST_VAR_EXPR,
     AST_ASSIGNMENT
 } ASTNodeType;
 
@@ -49,6 +50,7 @@ typedef struct ASTNode {
         struct {
             struct ASTNode ** statements;
             int count;
+            int capacity;
         } block;
 
         struct {
@@ -70,6 +72,10 @@ typedef struct ASTNode {
             char * name;
             struct ASTNode * expr;
         } assignment;
+
+        struct {
+            char * name;
+        } var_expression;
 
     };
 } ASTNode;
