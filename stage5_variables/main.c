@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "util.h"
 #include "ast.h"
 #include "emitter.h"
 #include "parser.h"

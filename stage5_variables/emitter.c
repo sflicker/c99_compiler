@@ -5,6 +5,7 @@
 
 #include "emitter.h"
 #include "token.h"
+#include "symtab.h"
 
 void emit_tree_node(FILE * out, ASTNode * node);
 
@@ -96,6 +97,99 @@ void emit_if_statement(FILE * out, ASTNode * node) {
     fprintf(out, ".Lend%d:\n", id);
 }
 
+void populate_symbol_table(ASTNode * node, SymbolTable *symbolTable) {
+    if (!node) {
+        return;
+    }
+
+    switch(node->type) {
+        case AST_BLOCK:
+            for (int i=0;i<node->block.count;i++) {
+                populate_symbol_table(node->block.statements[i], symbolTable);
+            }
+            break;
+        case AST_VAR_DECL:
+            add_symbol(symbolTable, node->declaration.name);
+            if (node->declaration.init_expr) {
+                populate_symbol_table(node->declaration.init_expr, symbolTable);
+            }
+            break;
+        case AST_ASSIGNMENT:
+            populate_symbol_table(node->assignment.expr, symbolTable);
+            break;
+
+        case AST_RETURN_STMT:
+            populate_symbol_table(node->return_stmt.expr, symbolTable);
+            break;
+
+        case AST_IF_STMT:
+            populate_symbol_table(node->if_stmt.cond, symbolTable);
+            populate_symbol_table(node->if_stmt.then_statement, symbolTable);
+            if (node->if_stmt.else_statement) {
+                populate_symbol_table(node->if_stmt.else_statement, symbolTable);
+            }
+            break;
+
+        case AST_EXPRESSION_STMT:
+            populate_symbol_table(node->expr_stmt.expr, symbolTable);
+            break;
+
+        case AST_BINARY_OP:
+            populate_symbol_table(node->binary_op.lhs, symbolTable);
+            populate_symbol_table(node->binary_op.rhs, symbolTable);
+            break;
+
+        case AST_UNARY_OP:
+            populate_symbol_table(node->unary_op.expr, symbolTable);
+            break;
+
+        default:
+            break;
+    }
+}
+
+SymbolTable * currentSymbolTable = NULL;
+
+void emit_function(FILE * out, ASTNode * node) {
+    SymbolTable * prevSymbolTable = currentSymbolTable;
+    SymbolTable * symbolTable = calloc(sizeof(symbolTable), 0);
+    init_symbol_table(symbolTable);
+    populate_symbol_table(node, symbolTable);
+
+    // create label for function
+    fprintf(out, "%s:\n", node->function.name);
+
+    fprintf(out, "push rbp\n");
+    fprintf(out,  "mov rbp, rsp\n");
+
+    int local_space = -symbolTable->next_offset;
+    if (local_space > 0) {
+        fprintf(out, "sub rsp, %d\n", local_space);
+    }
+    
+    emit_tree_node(out, node->function.body);
+
+    fprintf(out, "pop rbp\n");
+    fprintf(out, "ret\n");
+
+    currentSymbolTable = prevSymbolTable;
+    free(symbolTable);
+}
+
+void emit_var_declaration(FILE *out, ASTNode * node) {
+    int offset = add_symbol(currentSymbolTable, node->declaration.name);
+    if (node->declaration.init_expr) {
+        emit_tree_node(out, node->declaration.init_expr);
+        fprintf(out, "mov [rbp%d], eax\n", offset);
+    }
+}
+
+void emit_assignment(FILE * out, ASTNode* node) {
+    emit_tree_node(out, node->assignment.expr);
+    int offset = lookup_symbol(currentSymbolTable, node->assignment.name);
+    fprintf(out, "mov [rbp%d], eax\n", offset);
+}
+
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
@@ -104,12 +198,17 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             emit_tree_node(out, node->program.function);
             break;
         case AST_FUNCTION:
-            fprintf(out, "%s:\n", node->function.name);
-            emit_tree_node(out, node->function.body);
+            emit_function(out, node);
+            break;
+        case AST_VAR_DECL:
+            emit_var_declaration(out, node);
+            break;
+        case AST_ASSIGNMENT: 
+            emit_assignment(out, node);
             break;
         case AST_RETURN_STMT:
             emit_tree_node(out, node->return_stmt.expr);
-            fprintf(out, "ret\n");
+//            fprintf(out, "ret\n");
             break;
         case AST_EXPRESSION_STMT:
             emit_tree_node(out, node->expr_stmt.expr);

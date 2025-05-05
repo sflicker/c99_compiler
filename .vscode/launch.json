@@ -78,7 +78,7 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage5-variables",
-        "args": ["tests/test_declare_a__42.c"]
+        "args": ["tests/test_return__42.c"]
       }
     ]
   }

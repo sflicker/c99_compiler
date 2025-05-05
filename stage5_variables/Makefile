@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -g -std=c99
-SRC = main.c tokenizer.c parser.c emitter.c
+SRC = main.c tokenizer.c parser.c emitter.c symtab.c util.c
 OBJS = $(SRC:.c=.o)
 
 mimic99: $(OBJS)

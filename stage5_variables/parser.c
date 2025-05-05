@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "util.h"
 #include "token.h"
 #include "ast.h"
 #include "parser.h"
@@ -79,16 +80,6 @@ ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
 ASTNode*  parse_var_declaration(ParserContext * parserContext);
 ASTNode* parse_assignment(ParserContext * parserContext);
-
-char * my_strdup(const char* s) {
-    size_t len = strlen(s) + 1;
-    char * copy = malloc(len);
-    if (copy) {
-        memcpy(copy, s, len);
-    }
-    return copy;
-}
-
 
 Token * peek(ParserContext * parserContext) {
     return &parserContext->list->data[parserContext->pos];
