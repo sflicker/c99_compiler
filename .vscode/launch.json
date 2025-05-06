@@ -90,7 +90,7 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage6-while-statement",
-        "args": ["tests/test_declare_a__42.c"]
+        "args": ["tests/test_while_loop__42.c"]
       }
     ]
   }

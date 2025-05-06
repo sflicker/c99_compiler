@@ -24,6 +24,7 @@
                     | <assignment>
                     | <return_statement>
                     | <if_statement>
+                    | <while_statement>
                     | <block>
                     | <expression_stmt>
 
@@ -34,6 +35,8 @@
    <return_statement>     ::= "return" <expression> ";"
 
    <if_statement> ::= "if" "(" <expression> ")" <statement> [ "else" <statement> ]
+
+   <while_statement> ::= "while" "(" <expression> ")" <statement> 
 
    <expression_stmt> ::= <expression> ";";
 
@@ -80,6 +83,7 @@ ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
 ASTNode*  parse_var_declaration(ParserContext * parserContext);
 ASTNode* parse_assignment(ParserContext * parserContext);
+ASTNode* parse_while_statement(ParserContext * parserContext);
 
 Token * peek(ParserContext * parserContext) {
     return &parserContext->list->data[parserContext->pos];
@@ -191,6 +195,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_IF)) {
         return parse_if_statement(parserContext);
     }
+    if (is_current_token(parserContext, TOKEN_WHILE)) {
+        return parse_while_statement(parserContext);
+    }
     return parse_expression_statement(parserContext);
 }
 
@@ -211,6 +218,21 @@ ASTNode * parse_if_statement(ParserContext * parserContext) {
     node->if_stmt.cond = condExpression;
     node->if_stmt.then_statement = then_statement;
     node->if_stmt.else_statement = else_statement;
+    return node;
+
+}
+
+ASTNode * parse_while_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_WHILE);
+    expect_token(parserContext, TOKEN_LPAREN);
+    ASTNode * condExpression = parse_expression(parserContext);
+    expect_token(parserContext, TOKEN_RPAREN);
+    ASTNode * body_statement = parse_statement(parserContext);
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_WHILE_STMT;
+    node->while_stmt.cond = condExpression;
+    node->while_stmt.body = body_statement;
     return node;
 
 }
@@ -414,6 +436,11 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->if_stmt.cond, indent+1);
             print_ast(node->if_stmt.then_statement, indent+1);
             print_ast(node->if_stmt.else_statement, indent+1);
+            break;
+        case AST_WHILE_STMT:
+            printf("WhileStmt:\n");
+            print_ast(node->while_stmt.cond, indent+1);
+            print_ast(node->while_stmt.body, indent+1);
             break;
         case AST_BLOCK:
             printf("Block\n");

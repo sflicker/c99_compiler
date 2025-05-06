@@ -8,7 +8,7 @@
 #include "tokenizer.h"
 
 const char *keywords[] = {
-    "int", "return", "if", "else"
+    "int", "return", "if", "else", "while"
 };
 
 const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
@@ -102,6 +102,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_EOF: return "EOF";
         case TOKEN_INT: return "INT";
         case TOKEN_RETURN: return "RETURN";
+        case TOKEN_WHILE: return "WHILE";
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
         case TOKEN_INT_LITERAL: return "LITERAL_INT";
         case TOKEN_LPAREN: return "LPAREN";
