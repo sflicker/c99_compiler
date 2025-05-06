@@ -71,6 +71,16 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
+      {
+        "label": "build-stage7-for-statement",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cwd": "${workspaceFolder}/stage7_for_statement"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
     ]
   }
 

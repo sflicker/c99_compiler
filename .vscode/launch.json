@@ -92,5 +92,17 @@
         "preLaunchTask": "build-stage6-while-statement",
         "args": ["tests/test_while_loop__42.c"]
       }
+      ,
+      {
+        "name": "Debug stage7",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage7_for_statement/mimic99",
+        "cwd": "${workspaceFolder}/stage7_for_statement",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage7-for-statement",
+        "args": ["tests/test_for_loop__55.c"]
+      }
     ]
   }
