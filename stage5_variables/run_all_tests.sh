@@ -14,7 +14,7 @@ rm -f tests/*.s tests/*.o
 
 for bin in tests/test*.c; do
     base="${cfile%.*}"
-    if [ =f "$base" ]; then
+    if [ -f "$base" ]; then
         echo "Deleting binary $base"
         rm -f "$base"
     fi
@@ -22,12 +22,14 @@ done
 
 echo "Running all tests..."
 
-total_tests=0
-passed_tests=0
-failed_tests=0
+TOTAL_TESTS=0
+PASSED_TESTS=0
+FAILED_TOTAL=0
+FAILED_TESTS=()
+FAILURES=0
 
 for cfile in tests/test*.c; do
-    total_tests=$((total_tests + 1))
+    TOTAL_TESTS=$((TOTAL_TESTS + 1))
 
     filename=$(basename "$cfile")
     testname="${filename%%__*}"
@@ -38,26 +40,53 @@ for cfile in tests/test*.c; do
     echo "🔍 Running test for $testname (expecting $expected)..."
     
     # assuming all tests should have an exit code of 42 to pass for now
-    if ./run_test.sh "$cfile" "$expected" $PROG; then
+    OUTPUT=$(./run_test.sh "$cfile" "$expected" $PROG)
+    STATUS=$?
+
+    echo "STATUS: $STATUS"
+
+    if [ "$STATUS" -eq 0 ]; then
         echo -e "${GREEN}✅ $testname passed${NC}"
-        passed_tests=$((passed_tests + 1))
-    else
+        PASSED_TESTS=$((PASSED_TESTS + 1))
+    elif [ "$STATUS" -eq 99 ]; then
+        REASON="compiler crash"
+        FAILED_TOTAL=$((FAILED_TOTAL + 1))
+    elif [ "$STATUS" -eq 98 ]; then
+        REASON="assembler failure"
+        FAILED_TOTAL=$((FAILED_TOTAL + 1))
+    elif [ "$STATUS" -eq 97 ]; then
+        REASON="linker failure"
+        FAILED_TOTAL=$((FAILED_TOTAL + 1))
+    elif [ $STATUS -eq 1 ]; then
         echo -e "${RED}❌ $testname failed${NC}"
-        failed_tests=$((failed_tests + 1))
+        FAILED_TOTAL=$((FAILED_TOTAL_total + 1))
+        REASON="expected: $expected, got: $ACTUAL"
     fi
+
+    FAILED_TESTS+=("$basename ($REASON}")
 
 done
 
 echo "---------------------------------"
 echo "📝 Test Summary:"
-echo -e "${GREEN}✅ Passed: ${passed_tests}${NC}"
-echo -e "${RED}❌ Failed: ${failed_tests}${NC}"
-echo "🧮 Total tests: ${total_tests}"
+echo -e "${GREEN}✅ Passed: ${PASSED_TESTS}${NC}"
+echo -e "${RED}❌ Failed: ${FAILED_TESTS}${NC}"
+echo "🧮 Total tests: ${TOTAL_TESTS}"
 
-if [ "$failed_tests" -eq 0 ]; then
+if [ "$FAILED_TOTAL" -eq 0 ]; then
     echo -e "${GREEN}🏆 All tests passed!${NC}"
     exit 0
 else
     echo -e "${RED}🔥 Some tests failed.${NC}"
     exit 1
 fi
+
+if [ "$FAILURES" -ne 0 ]; then
+    echo "Failed tests."
+    for T in "${FAILED_TESTS[@]}"; do
+        echo " - $T"
+    done
+    exit 1
+fi
+
+exit 0

@@ -20,20 +20,32 @@ echo EXE_FILE=$EXE_FILE
 
 set -e
 
-./$PROG $SRC
+# compile C to ASM
+echo "Compile..."
+if ! ./$PROG "$SRC"; then
+    echo "Compiler crash or error."
+    exit 99
+fi
 
-echo "linking..."
-nasm -f elf64 $ASM_FILE -o $OBJ_FILE
-gcc -no-pie -o $EXE_FILE $OBJ_FILE
+echo "Assemble..."
+if ! nasm -f elf64 "$ASM_FILE" -o "$OBJ_FILE"; then
+    echo "Assembler failure."
+    exit 98
+fi
 
-echo "executing compiled file..."
+echo "Linking..."    
+if ! gcc -no-pie -o "$EXE_FILE" "$OBJ_FILE"; then
+    echo "Linking failure."
+    exit 97
+fi
+
+echo "executing compiled file $EXE_FILE ..."
 set +e
 ./"$EXE_FILE"
 EXIT_CODE=$?
 set -e
-echo "finished running compiled file"
 
-echo "Program '$EXE_FILE' exited with code $EXIT_CODE"
+echo "Program $EXE_FILE exited with code $EXIT_CODE"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -41,6 +53,7 @@ NC='\033[0m'
 
 if [ $EXIT_CODE -eq $UNSIGNED_EXPECTED ]; then
     echo -e "${GREEN}✅ Test: $SRC Passed${NC}"
+    exit 0
 else 
     echo -e "${RED}❌ Test: $SRC Failed: expected $EXPECTED, got $EXIT_CODE"
     exit 1

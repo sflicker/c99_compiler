@@ -171,12 +171,14 @@ void emit_function(FILE * out, ASTNode * node) {
 
     int local_space = get_symbol_total_space();
     if (local_space > 0) {
+        //local_space = 16; //TODO may need to round the original local space to a 16 boundary
         fprintf(out, "sub rsp, %d\n", local_space);
     }
     
     emit_tree_node(out, node->function.body);
 
-    fprintf(out, "pop rbp\n");
+//    fprintf(out, "pop rbp\n");
+    fprintf(out, "leave\n");
     fprintf(out, "ret\n");
 
 }
