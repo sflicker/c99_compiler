@@ -366,6 +366,7 @@ ASTNode * parse_assignment(ParserContext * parserContext) {
     Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     expect_token(parserContext, TOKEN_ASSIGN);
     ASTNode * expr = parse_expression(parserContext);
+    expect_token(parserContext, TOKEN_SEMICOLON);
     
     ASTNode * node =  malloc(sizeof(ASTNode));
     node->type = AST_ASSIGNMENT;

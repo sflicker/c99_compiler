@@ -59,6 +59,9 @@ TokenType get_keyword_token(const char* keyword) {
     else if (strcmp(keyword, "else") == 0) {
         return TOKEN_ELSE;
     }
+    else if (strcmp(keyword, "while") == 0) {
+        return TOKEN_WHILE;
+    }
     else {
         return TOKEN_UNKNOWN;
     }

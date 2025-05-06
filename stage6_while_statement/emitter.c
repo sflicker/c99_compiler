@@ -103,6 +103,22 @@ void emit_if_statement(FILE * out, ASTNode * node) {
 //    fprintf(out, ".Lend%d:\n", id);
 }
 
+void emit_while_statement(FILE* out, ASTNode * node) {
+    int id = label_id++;
+    // start label
+    emit_label(out, "while_start", id);
+    // eval cond
+    emit_tree_node(out, node->while_stmt.cond);
+    // cmp to zero
+    fprintf(out, "cmp eax, 0\n");
+    // jmp to end if condition not met
+    fprintf(out, "je .Lwhile_end%d\n", id);
+    emit_tree_node(out, node->while_stmt.body);
+    // jmp to start
+    fprintf(out, "jmp .Lwhile_start%d\n", id);
+    emit_label(out, "while_end", id); 
+}
+
 void populate_symbol_table(ASTNode * node) {
     if (!node) {
         return;
@@ -233,6 +249,9 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_IF_STMT:
             emit_if_statement(out, node);
+            break;
+        case AST_WHILE_STMT:
+            emit_while_statement(out, node);
             break;
         case AST_BINARY_OP:
             if (node->binary_op.op == TOKEN_DIV) {
