@@ -80,5 +80,17 @@
         "preLaunchTask": "build-stage5-variables",
         "args": ["tests/test_declare_a__42.c"]
       }
+      ,
+      {
+        "name": "Debug stage6",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage6_while_statement/mimic99",
+        "cwd": "${workspaceFolder}/stage6_while_statement",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage6-while-statement",
+        "args": ["tests/test_declare_a__42.c"]
+      }
     ]
   }
