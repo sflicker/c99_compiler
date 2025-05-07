@@ -8,7 +8,7 @@
 #include "tokenizer.h"
 
 const char *keywords[] = {
-    "int", "return", "if", "else", "while"
+    "int", "return", "if", "else", "while", "for"
 };
 
 const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
@@ -62,6 +62,9 @@ TokenType get_keyword_token(const char* keyword) {
     else if (strcmp(keyword, "while") == 0) {
         return TOKEN_WHILE;
     }
+    else if (strcmp(keyword, "for") == 0) {
+        return TOKEN_FOR;
+    }
     else {
         return TOKEN_UNKNOWN;
     }
@@ -106,6 +109,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_INT: return "INT";
         case TOKEN_RETURN: return "RETURN";
         case TOKEN_WHILE: return "WHILE";
+        case TOKEN_FOR: return "FOR";
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
         case TOKEN_INT_LITERAL: return "LITERAL_INT";
         case TOKEN_LPAREN: return "LPAREN";
@@ -127,6 +131,10 @@ const char * token_type_name(TokenType type) {
         case TOKEN_IF: return "IF";
         case TOKEN_ELSE: return "ELSE";
         case TOKEN_ASSIGN: return "ASSIGN";
+        case TOKEN_INCREMENT: return "INCREMENT";
+        case TOKEN_DECREMENT: return "DECREMENT";
+        case TOKEN_PLUS_EQUAL: return "PLUSEQUAL";
+        case TOKEN_MINUS_EQUAL: return "MINUSEQUAL";
         default: return "UNKNOWN";
     }
 }
@@ -280,6 +288,22 @@ void tokenize(const char* code, TokenList * tokenList) {
                 add_token_by_type(tokenList, TOKEN_LT);
                 p+= 2;
             }
+        }
+        else if (*p == '+' && *(p+1) == '+') {
+            add_token_by_type(tokenList, TOKEN_INCREMENT);
+            p+=2;
+        }
+        else if (*p == '-' && *(p+1) == '-') {
+            add_token_by_type(tokenList, TOKEN_DECREMENT);
+            p+=2;
+        }
+        else if (*p == '+' && *(p+1) == '=') {
+            add_token_by_type(tokenList, TOKEN_PLUS_EQUAL);
+            p+=2;
+        }
+        else if (*p == '-' && *(p+1) == '=') {
+            add_token_by_type(tokenList, TOKEN_MINUS_EQUAL);
+            p+=2;
         }
         else if (is_operator(*p)) {
             char * buffer = malloc(2);

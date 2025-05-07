@@ -25,6 +25,7 @@
                     | <return_statement>
                     | <if_statement>
                     | <while_statement>
+                    | <for_statement>
                     | <block>
                     | <expression_stmt>
 
@@ -37,6 +38,8 @@
    <if_statement> ::= "if" "(" <expression> ")" <statement> [ "else" <statement> ]
 
    <while_statement> ::= "while" "(" <expression> ")" <statement> 
+
+   <for_statement> ::= "for" "(" [init_expr] ";" [cond_expr] ";" [update_expr] ")" statement
 
    <expression_stmt> ::= <expression> ";";
 
@@ -84,6 +87,7 @@ ASTNode * parse_primary(ParserContext * parserContext);
 ASTNode*  parse_var_declaration(ParserContext * parserContext);
 ASTNode* parse_assignment(ParserContext * parserContext);
 ASTNode* parse_while_statement(ParserContext * parserContext);
+ASTNode * parse_for_statement(ParserContext * parserContext);
 
 Token * peek(ParserContext * parserContext) {
     return &parserContext->list->data[parserContext->pos];
@@ -198,6 +202,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_WHILE)) {
         return parse_while_statement(parserContext);
     }
+    if (is_current_token(parserContext, TOKEN_FOR)) {
+        return parse_for_statement(parserContext);
+    }
     return parse_expression_statement(parserContext);
 }
 
@@ -235,6 +242,50 @@ ASTNode * parse_while_statement(ParserContext * parserContext) {
     node->while_stmt.body = body_statement;
     return node;
 
+}
+
+ASTNode * parse_for_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_FOR);
+    expect_token(parserContext, TOKEN_LPAREN);
+
+    ASTNode * init_expr = NULL;
+    ASTNode * cond_expr = NULL;
+    ASTNode * update_expr = NULL;
+
+    if (!is_current_token(parserContext, TOKEN_SEMICOLON)) {
+        init_expr = parse_expression_statement(parserContext);
+    }
+    else {
+        expect_token(parserContext, TOKEN_SEMICOLON);
+    }
+
+    if (!is_current_token(parserContext, TOKEN_SEMICOLON)) {
+        cond_expr = parse_expression_statement(parserContext);
+    }
+    else {
+        expect_token(parserContext, TOKEN_SEMICOLON);
+    }
+
+    if (!is_current_token(parserContext, TOKEN_SEMICOLON)) {
+        init_expr = parse_expression(parserContext);
+    }
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    if (!is_current_token(parserContext, TOKEN_RPAREN)) {
+        update_expr = parse_expression(parserContext);
+    }
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    ASTNode * body = parse_statement(parserContext);
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_FOR_STMT;
+    node->for_stmt.init_expr = init_expr;
+    node->for_stmt.cond_expr = cond_expr;
+    node->for_stmt.update_expr = update_expr;
+    node->for_stmt.body = body;
+
+    return node;
 }
 
 ASTNode * parse_expression_statement(ParserContext * parserContext) {
@@ -442,6 +493,19 @@ void print_ast(ASTNode * node, int indent) {
             printf("WhileStmt:\n");
             print_ast(node->while_stmt.cond, indent+1);
             print_ast(node->while_stmt.body, indent+1);
+            break;
+        case AST_FOR_STMT:
+            printf("ForStmt:\n");
+            if (node->for_stmt.init_expr) {
+                print_ast(node->for_stmt.init_expr, indent+1);
+            }
+            if (node->for_stmt.cond_expr) {
+                print_ast(node->for_stmt.cond_expr, indent+1);
+            }
+            if (node->for_stmt.update_expr) {
+                print_ast(node->for_stmt.update_expr, indent+1);
+            }
+            print_ast(node->for_stmt.body, indent+1);
             break;
         case AST_BLOCK:
             printf("Block\n");

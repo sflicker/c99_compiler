@@ -7,6 +7,7 @@ typedef enum {
     AST_RETURN_STMT,
     AST_IF_STMT,
     AST_WHILE_STMT,
+    AST_FOR_STMT,
     AST_INT_LITERAL,
     AST_FUNCTION,
     AST_PROGRAM,
@@ -64,6 +65,13 @@ typedef struct ASTNode {
             struct ASTNode * cond;
             struct ASTNode * body;
         } while_stmt;
+
+        struct {
+            struct ASTNode * init_expr;
+            struct ASTNode * cond_expr;
+            struct ASTNode * update_expr;
+            struct ASTNode * body;
+        } for_stmt;
 
         struct {
             struct ASTNode * expr;
