@@ -433,7 +433,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
 
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
         expect_token(parserContext, TOKEN_ASSIGN);
-        ASTNode * expr = parse_assignment_expression(parserContext);
+        ASTNode * expr = parse_expression(parserContext);
         
         ASTNode * node =  malloc(sizeof(ASTNode));
         node->type = AST_ASSIGNMENT;
@@ -444,7 +444,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
     else if (is_current_token(parserContext, TOKEN_PLUS_EQUAL)) {
         expect_token(parserContext, TOKEN_PLUS_EQUAL);
 
-        ASTNode * rhs = parse_assignment_expression(parserContext);
+        ASTNode * rhs = parse_expression(parserContext);
         ASTNode * node =  malloc(sizeof(ASTNode));
         node->type = AST_COMPOUND_ADD_ASSIGN;
         node->assignment.name = my_strdup(name->text);
@@ -453,7 +453,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
     }
     else if (is_current_token(parserContext, TOKEN_MINUS_EQUAL)) {
             expect_token(parserContext, TOKEN_MINUS_EQUAL); 
-            ASTNode * rhs = parse_assignment_expression(parserContext);
+            ASTNode * rhs = parse_expression(parserContext);
             ASTNode * node =  malloc(sizeof(ASTNode));
             node->type = AST_COMPOUND_SUB_ASSIGN;
             node->assignment.name = my_strdup(name->text);
