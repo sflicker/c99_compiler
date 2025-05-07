@@ -14,3 +14,8 @@ char * my_strdup(const char* s) {
     }
     return copy;
 }
+
+void error(const char * message) {
+    fprintf(stderr, "%s\n", message);
+    exit(1);
+}
