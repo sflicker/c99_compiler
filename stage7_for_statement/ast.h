@@ -17,7 +17,9 @@ typedef enum {
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
     AST_VAR_EXPR,
-    AST_ASSIGNMENT
+    AST_ASSIGNMENT,
+    AST_COMPOUND_ADD_ASSIGN,
+    AST_COMPOUND_SUB_ASSIGN
 } ASTNodeType;
 
 typedef struct ASTNode {

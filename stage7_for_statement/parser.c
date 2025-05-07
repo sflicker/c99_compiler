@@ -21,7 +21,7 @@
    <block> ::= "{" { <statement> } "}"
 
    <statement> ::=  <declaration>
-                    | <assignment>
+                    | <assignment_statement>
                     | <return_statement>
                     | <if_statement>
                     | <while_statement>
@@ -31,7 +31,11 @@
 
    <declaration> ::= "int" <identifier> [ "=" <expression> ] ";"
 
-   <assignment> ::= <identifier> "=" <expression> ";";
+   <assignment_statement> ::= <assignment_expression> ";";
+
+   <assignment_expression> ::= <identifier> "=" <expression>
+                               | <identifier> '+=' <expression> 
+                               | <identifier> '-=' <expression>
 
    <return_statement>     ::= "return" <expression> ";"
 
@@ -85,7 +89,7 @@ ASTNode * parse_unary_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
 ASTNode*  parse_var_declaration(ParserContext * parserContext);
-ASTNode* parse_assignment(ParserContext * parserContext);
+ASTNode* parse_assignment_statement(ParserContext * parserContext);
 ASTNode* parse_while_statement(ParserContext * parserContext);
 ASTNode * parse_for_statement(ParserContext * parserContext);
 
@@ -183,12 +187,18 @@ ASTNode * parse_block(ParserContext* parserContext) {
     return blockNode;
 }
 
+bool is_next_token_assignment(ParserContext * parserContext) {
+    return is_next_token(parserContext, TOKEN_ASSIGN) || 
+        is_next_token(parserContext, TOKEN_PLUS_EQUAL) || 
+        is_next_token(parserContext, TOKEN_MINUS_EQUAL);
+}
+
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_INT)) {
         return parse_var_declaration(parserContext);
     }
-    if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token(parserContext, TOKEN_ASSIGN)) {
-        return parse_assignment(parserContext);
+    if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token_assignment(parserContext)){
+        return parse_assignment_statement(parserContext);
     }
     if (is_current_token(parserContext, TOKEN_RETURN)) {
         return parse_return_statement(parserContext);
@@ -413,16 +423,57 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
     return node;
 }
 
-ASTNode * parse_assignment(ParserContext * parserContext) {
+ASTNode * parse_assignment_expression(ParserContext * parserContext) {
     Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
-    expect_token(parserContext, TOKEN_ASSIGN);
-    ASTNode * expr = parse_expression(parserContext);
+    
+    // if not an assignment fallback to expressio
+    if (!name) {
+        return parse_expression(parserContext);
+    }
+
+    if (is_current_token(parserContext, TOKEN_ASSIGN)) {
+        expect_token(parserContext, TOKEN_ASSIGN);
+        ASTNode * expr = parse_assignment_expression(parserContext);
+        
+        ASTNode * node =  malloc(sizeof(ASTNode));
+        node->type = AST_ASSIGNMENT;
+        node->assignment.name = my_strdup(name->text);
+        node->assignment.expr = expr;
+        return node;
+    }
+    else if (is_current_token(parserContext, TOKEN_PLUS_EQUAL)) {
+        expect_token(parserContext, TOKEN_PLUS_EQUAL);
+
+        ASTNode * rhs = parse_assignment_expression(parserContext);
+        ASTNode * node =  malloc(sizeof(ASTNode));
+        node->type = AST_COMPOUND_ADD_ASSIGN;
+        node->assignment.name = my_strdup(name->text);
+        node->assignment.expr = rhs;
+        return node;
+    }
+    else if (is_current_token(parserContext, TOKEN_MINUS_EQUAL)) {
+            expect_token(parserContext, TOKEN_MINUS_EQUAL); 
+            ASTNode * rhs = parse_assignment_expression(parserContext);
+            ASTNode * node =  malloc(sizeof(ASTNode));
+            node->type = AST_COMPOUND_SUB_ASSIGN;
+            node->assignment.name = my_strdup(name->text);
+            node->assignment.expr = rhs;
+            return node;    
+    }
+    else {
+        error("Expected assignment operator");
+    }
+}
+
+
+ASTNode * parse_assignment_statement(ParserContext * parserContext) {
+    
+    ASTNode *expr = parse_assignment_expression(parserContext);
     expect_token(parserContext, TOKEN_SEMICOLON);
     
     ASTNode * node =  malloc(sizeof(ASTNode));
-    node->type = AST_ASSIGNMENT;
-    node->assignment.name = my_strdup(name->text);
-    node->assignment.expr = expr;
+    node->type = AST_EXPRESSION_STMT;
+    node->expr_stmt.expr = expr;
     return node;
 }
 
