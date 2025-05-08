@@ -19,7 +19,11 @@ typedef enum {
     AST_VAR_EXPR,
     AST_ASSIGNMENT,
     AST_COMPOUND_ADD_ASSIGN,
-    AST_COMPOUND_SUB_ASSIGN
+    AST_COMPOUND_SUB_ASSIGN,
+    AST_UNARY_POST_INC,
+    AST_UNARY_POST_DEC,
+    AST_UNARY_PRE_INC,
+    AST_UNARY_PRE_DEC
 } ASTNodeType;
 
 typedef struct ASTNode {
@@ -50,6 +54,10 @@ typedef struct ASTNode {
             struct ASTNode * expr;
             TokenType op;
         } unary_op;
+
+        struct {
+            struct ASTNode * operand;
+        } unary_expr;
 
         struct {
             struct ASTNode ** statements;

@@ -98,8 +98,7 @@ int main(int argc, char ** argv) {
     }
 
     ParserContext parserContext;
-    parserContext.list = &tokenList;
-    parserContext.pos = 0;
+    initialize_parser(&parserContext, &tokenList);
 
     ASTNode * program = parse_program(&parserContext);
     print_ast(program, 0);

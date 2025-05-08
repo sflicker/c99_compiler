@@ -33,7 +33,7 @@
 
    <assignment_statement> ::= <assignment_expression> ";";
 
-   <assignment_expression> ::= <identifier> "=" <expression>
+   <assignment_expression> ::=   <identifier> "=" <expression>
                                | <identifier> '+=' <expression> 
                                | <identifier> '-=' <expression>
 
@@ -45,7 +45,7 @@
 
    <for_statement> ::= "for" "(" [init_expr] ";" [cond_expr] ";" [update_expr] ")" statement
 
-   <expression_stmt> ::= <expression> ";";
+   <expression_stmt> ::= <expression> ";"
 
    <expression> ::= <equality_expr>
 
@@ -57,7 +57,9 @@
 
    <term>       ::= <unary_expr> [ ("*" | "/") <unary_expr> ]*
    
-   <unary_expr> ::= [ "+" | "-" | "!" ] <unary_expr> | <primary>
+   <unary_expr> ::= [ "+" | "-" | "!" | "++"" | "--"" ] <unary_expr> | <primary>
+
+   <postfix_expr> ::= <primary> [ "++" | "--" ]?
 
    <primary>     ::= <int_literal> 
                     | <identifier>
@@ -67,6 +69,9 @@
 
     <int_literal> ::= [0-9]+
 */
+
+char currentTokenInfo[128];
+char nextTokenInfo[128];
 
 Token* expect_token(ParserContext * parserContext, TokenType expected);
 
@@ -86,12 +91,34 @@ ASTNode * parse_relational_expression(ParserContext * parserContext);
 ASTNode * parse_additive_expression(ParserContext * parserContext);
 ASTNode * parse_term(ParserContext * parserContext);
 ASTNode * parse_unary_expression(ParserContext * parserContext);
+ASTNode * parse_postfix_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
 ASTNode*  parse_var_declaration(ParserContext * parserContext);
 ASTNode* parse_assignment_statement(ParserContext * parserContext);
 ASTNode* parse_while_statement(ParserContext * parserContext);
 ASTNode * parse_for_statement(ParserContext * parserContext);
+
+void update_current_token_info(ParserContext* parserContext);
+
+void initialize_parser(ParserContext * parserContext, TokenList * tokenList) {
+    parserContext->list = tokenList;
+    parserContext->pos = 0;
+    update_current_token_info(parserContext);
+}
+
+void update_current_token_info(ParserContext* parserContext) {
+    Token currentToken = parserContext->list->data[parserContext->pos];
+    snprintf(currentTokenInfo, sizeof(currentTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
+        parserContext->pos,
+        token_type_name(currentToken.type), currentToken.text ? currentToken.text : "(null)");
+
+    Token nextToken = parserContext->list->data[parserContext->pos+1];
+        snprintf(nextTokenInfo, sizeof(nextTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
+            parserContext->pos+1,
+            token_type_name(nextToken.type), nextToken.text ? nextToken.text : "(null)");
+    
+}
 
 Token * peek(ParserContext * parserContext) {
     return &parserContext->list->data[parserContext->pos];
@@ -109,12 +136,13 @@ bool is_next_token(ParserContext * parserContext, TokenType type) {
 Token * advance(ParserContext * parserContext) {
     Token * token = peek(parserContext);
     parserContext->pos++;
+    update_current_token_info(parserContext);
     return token;
 }
 
 bool match_token(ParserContext * parserContext, TokenType type) {
     if (parserContext->list->data[parserContext->pos].type == type) {
-        parserContext->pos++;
+        advance(parserContext);
         return true;
     }
     return false;
@@ -386,22 +414,34 @@ ASTNode * parse_term(ParserContext * parserContext) {
     return root;
 }
 
+ASTNode * create_unary_node(TokenType op, ASTNode * operand) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_UNARY_OP;
+    node->unary_op.op = op;
+    node->unary_op.expr = operand;
+    return node;
+}
+
 ASTNode * parse_unary_expression(ParserContext * parserContext) {
-    if (is_current_token(parserContext, TOKEN_PLUS) || is_current_token(parserContext, TOKEN_MINUS) 
-            || is_current_token(parserContext, TOKEN_BANG)) {
+    if (is_current_token(parserContext, TOKEN_PLUS) 
+     || is_current_token(parserContext, TOKEN_MINUS) 
+     || is_current_token(parserContext, TOKEN_BANG)
+     || is_current_token(parserContext, TOKEN_INCREMENT) 
+     || is_current_token(parserContext, TOKEN_DECREMENT)) {
                 Token * currentToken = advance(parserContext);
                 TokenType op = currentToken->type;
 
                 ASTNode * expr = parse_unary_expression(parserContext);
-                
-                ASTNode * node = malloc(sizeof(ASTNode));
-                node->type = AST_UNARY_OP;
-                node->unary_op.op = op;
-                node->unary_op.expr = expr;
+                ASTNode * node = create_unary_node(op, expr);
+                // ASTNode * node = malloc(sizeof(ASTNode));
+                // node->type = AST_UNARY_OP;
+                // node->unary_op.op = op;
+                // node->unary_op.expr = expr;
                 return node;
             }        
     else {
-        return parse_primary(parserContext);
+//        return parse_primary(parserContext);
+        return parse_postfix_expression(parserContext);
     }
 
 }
@@ -460,9 +500,8 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
             node->assignment.expr = rhs;
             return node;    
     }
-    else {
-        error("Expected assignment operator");
-    }
+    error("Expected assignment operator");
+    return NULL;  // should never reach because error exits. this is to remove a warning
 }
 
 
@@ -475,6 +514,23 @@ ASTNode * parse_assignment_statement(ParserContext * parserContext) {
     node->type = AST_EXPRESSION_STMT;
     node->expr_stmt.expr = expr;
     return node;
+}
+
+ASTNode * parse_postfix_expression(ParserContext * parserContext) {
+    ASTNode * primary = parse_primary(parserContext);
+
+    if (is_current_token(parserContext, TOKEN_INCREMENT)) {
+        expect_token(parserContext, TOKEN_INCREMENT);
+
+        return create_unary_node(TOKEN_INCREMENT, primary);
+    }
+    if (is_current_token(parserContext, TOKEN_DECREMENT)) {
+        expect_token(parserContext, TOKEN_DECREMENT);
+
+        return create_unary_node(TOKEN_DECREMENT, primary);
+    }
+
+    return primary;
 }
 
 ASTNode * parse_primary(ParserContext * parserContext) {
@@ -576,6 +632,14 @@ void print_ast(ASTNode * node, int indent) {
             break;
         case AST_ASSIGNMENT:
             printf("Assignment: %s\n", node->assignment.name);
+            print_ast(node->assignment.expr, indent+1);
+            break;
+        case AST_COMPOUND_ADD_ASSIGN:
+            printf("AddAssign: %s\n", node->assignment.name);
+            print_ast(node->assignment.expr, indent+1);
+            break;
+        case AST_COMPOUND_SUB_ASSIGN:
+            printf("SubAssign: %s\n", node->assignment.name);
             print_ast(node->assignment.expr, indent+1);
             break;
         case AST_VAR_EXPR:

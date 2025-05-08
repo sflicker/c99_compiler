@@ -74,6 +74,14 @@ void emit_unary_op(FILE *out, TokenType op) {
             fprintf(out, "sete al\n");
             fprintf(out, "movzx eax, al\n");
             break;
+        case TOKEN_INCREMENT:
+            fprintf(out, "mov ecx, eax\n");
+            fprintf(out, "add eax, 1\n");
+            break;
+        case TOKEN_DECREMENT:
+            fprintf(out, "mov ecx, eax\n");
+            fprintf(out, "sub eax, 1\n");
+            break;
         default:
             fprintf(stderr, "Unsupported unary op in emitter\n");
             exit(1);
@@ -144,9 +152,11 @@ void populate_symbol_table(ASTNode * node) {
             }
             break;
         case AST_ASSIGNMENT:
+        case AST_COMPOUND_ADD_ASSIGN:
+        case AST_COMPOUND_SUB_ASSIGN:
+            add_symbol(node->assignment.name);
             populate_symbol_table(node->assignment.expr);
             break;
-
         case AST_RETURN_STMT:
             populate_symbol_table(node->return_stmt.expr);
             break;
@@ -219,6 +229,25 @@ void emit_assignment(FILE * out, ASTNode* node) {
     fprintf(out, "mov [rbp%d], eax\n", offset);
 }
 
+void emit_add_assignment(FILE *out, ASTNode * node) {
+    int offset = lookup_symbol(node->assignment.name);
+    fprintf(out, "mov eax, [rbp%d]\n", offset);
+    fprintf(out, "push rax\n");
+    emit_tree_node(out, node->assignment.expr);
+    fprintf(out, "pop rcx\n");
+    fprintf(out, "add eax, ecx\n");
+    fprintf(out, "mov [rbp%d], eax\n", offset);
+}
+
+void emit_sub_assignment(FILE *out, ASTNode * node) {
+    int offset = lookup_symbol(node->assignment.name);
+    emit_tree_node(out, node->assignment.expr);
+    fprintf(out, "mov ecx, eax\n");
+    fprintf(out, "mov eax, [rbp%d]\n", offset);
+    fprintf(out, "sub eax, ecx\n");
+    fprintf(out, "mov [rbp%d], eax\n", offset);
+}
+
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
@@ -234,6 +263,12 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_ASSIGNMENT: 
             emit_assignment(out, node);
+            break;
+        case AST_COMPOUND_ADD_ASSIGN:
+            emit_add_assignment(out, node);
+            break;
+        case AST_COMPOUND_SUB_ASSIGN:
+            emit_sub_assignment(out, node);
             break;
         case AST_RETURN_STMT:
             emit_tree_node(out, node->return_stmt.expr);
@@ -294,6 +329,22 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             int offset = lookup_symbol(node->var_expression.name);
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             break;
+        case AST_FOR_STMT:
+            // TODO
+            break;
+        case AST_UNARY_POST_INC:
+            // TODO
+            break;
+        case AST_UNARY_POST_DEC:
+            // TODO
+            break;
+        case AST_UNARY_PRE_INC:
+            // TODO
+            break;
+        case AST_UNARY_PRE_DEC:
+            // TODO
+            break;
+
     }
 }
 
