@@ -107,17 +107,26 @@ void initialize_parser(ParserContext * parserContext, TokenList * tokenList) {
     update_current_token_info(parserContext);
 }
 
-void update_current_token_info(ParserContext* parserContext) {
-    Token currentToken = parserContext->list->data[parserContext->pos];
-    snprintf(currentTokenInfo, sizeof(currentTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
-        parserContext->pos,
-        token_type_name(currentToken.type), currentToken.text ? currentToken.text : "(null)");
+void update_current_token_info(ParserContext* ctx) {
+    Token * currentToken = (ctx->pos < ctx->list->count) ? &ctx->list->data[ctx->pos] : NULL;
+    if (currentToken != NULL) {
+        snprintf(currentTokenInfo, sizeof(currentTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
+            ctx->pos,
+            token_type_name(currentToken->type), currentToken->text ? currentToken->text : "(null)");
+    }
+    else {
+        snprintf(currentTokenInfo, sizeof(currentTokenInfo), "(NULL)\n");
+    }
 
-    Token nextToken = parserContext->list->data[parserContext->pos+1];
+    Token * nextToken = (ctx->pos+1 < ctx->list->count) ? &ctx->list->data[ctx->pos+1] : NULL;
+    if (nextToken != NULL) {
         snprintf(nextTokenInfo, sizeof(nextTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
-            parserContext->pos+1,
-            token_type_name(nextToken.type), nextToken.text ? nextToken.text : "(null)");
-    
+            ctx->pos+1,
+            token_type_name(nextToken->type), nextToken->text ? nextToken->text : "(null)");
+    }
+    else {
+        snprintf(nextTokenInfo, sizeof(nextTokenInfo), "(NULL)\n");
+    }
 }
 
 Token * peek(ParserContext * parserContext) {
