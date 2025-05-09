@@ -300,7 +300,12 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
     ASTNode * update_expr = NULL;
 
     if (!is_current_token(parserContext, TOKEN_SEMICOLON)) {
-        init_expr = parse_expression_statement(parserContext);
+        if (is_current_token(parserContext, TOKEN_INT)) {
+            init_expr = parse_var_declaration(parserContext);
+        }
+        else {
+            init_expr = parse_expression_statement(parserContext);
+        }
     }
     else {
         expect_token(parserContext, TOKEN_SEMICOLON);
@@ -313,15 +318,15 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
         expect_token(parserContext, TOKEN_SEMICOLON);
     }
 
-    if (!is_current_token(parserContext, TOKEN_SEMICOLON)) {
-        init_expr = parse_expression(parserContext);
-    }
-    expect_token(parserContext, TOKEN_SEMICOLON);
+    // if (!is_current_token(parserContext, TOKEN_SEMICOLON)) {
+    //     init_expr = parse_expression(parserContext);
+    // }
+    // expect_token(parserContext, TOKEN_SEMICOLON);
 
     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
         update_expr = parse_expression(parserContext);
     }
-    expect_token(parserContext, TOKEN_SEMICOLON);
+    expect_token(parserContext, TOKEN_RPAREN);
 
     ASTNode * body = parse_statement(parserContext);
 

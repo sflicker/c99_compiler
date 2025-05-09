@@ -255,13 +255,6 @@ void tokenize(const char* code, TokenList * tokenList) {
             buffer[i++] = '\0';
             add_int_token(tokenList, buffer);
         }
-        else if (is_punctuator(*p)) {
-            char * buffer = malloc(2);
-            memcpy(buffer, p, 1);
-            buffer[1] = '\0';
-            add_punctuator_token(tokenList, buffer);
-            p++;
-        }
         else if (*p == '=' && *(p+1) == '=') {
             add_token_by_type(tokenList, TOKEN_EQ);
             p += 2;
@@ -277,7 +270,7 @@ void tokenize(const char* code, TokenList * tokenList) {
             }
             else {
                 add_token_by_type(tokenList, TOKEN_GT);
-                p+= 2;
+                p++;
             }
         }
         else if (*p == '<') {
@@ -287,7 +280,7 @@ void tokenize(const char* code, TokenList * tokenList) {
             }
             else {
                 add_token_by_type(tokenList, TOKEN_LT);
-                p+= 2;
+                p++;
             }
         }
         else if (*p == '+' && *(p+1) == '+') {
@@ -305,6 +298,13 @@ void tokenize(const char* code, TokenList * tokenList) {
         else if (*p == '-' && *(p+1) == '=') {
             add_token_by_type(tokenList, TOKEN_MINUS_EQUAL);
             p+=2;
+        }
+        else if (is_punctuator(*p)) {
+            char * buffer = malloc(2);
+            memcpy(buffer, p, 1);
+            buffer[1] = '\0';
+            add_punctuator_token(tokenList, buffer);
+            p++;
         }
         else if (is_operator(*p)) {
             char * buffer = malloc(2);

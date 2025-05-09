@@ -22,6 +22,10 @@ void emit_label(FILE * out, const char * prefix, int num) {
     fprintf(out, ".L%s%d:\n", prefix, num);
 }
 
+void emit_jump(FILE * out, const char * op, const char * prefix, int num) {
+    fprintf(out, "%s .L%s%d\n", op, prefix, num);
+}
+
 void emit_binary_op(FILE * out, TokenType op) {
     switch(op) {
         case TOKEN_PLUS:
@@ -279,6 +283,30 @@ void emit_sub_assignment(FILE *out, ASTNode * node) {
     fprintf(out, "mov [rbp%d], eax\n", offset);
 }
 
+void emit_for_statement(FILE * out, ASTNode * node) {
+    int label_start = label_id++;
+    int label_cond = label_id++;
+    int label_end = label_id++;
+
+    if (node->for_stmt.init_expr) {
+        emit_tree_node(out, node->for_stmt.init_expr);
+    }
+
+    emit_jump(out, "jmp", "cond", label_cond);
+
+    emit_label(out, "start", label_start);
+    emit_tree_node(out, node->for_stmt.body);
+    emit_tree_node(out, node->for_stmt.update_expr);
+    emit_label(out, "cond", label_cond);
+    emit_tree_node(out, node->for_stmt.cond_expr);
+    fprintf(out, "cmp eax, 0\n");
+
+    emit_jump(out, "je", "end", label_end);
+    emit_jump(out, "jmp", "start", label_start);
+    emit_label(out, "end", label_end);
+}
+
+
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
@@ -366,7 +394,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             break;
         case AST_FOR_STMT:
-            // TODO
+            emit_for_statement(out, node);
             break;
 
     }
