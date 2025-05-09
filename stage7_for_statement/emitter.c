@@ -26,39 +26,93 @@ void emit_jump(FILE * out, const char * op, const char * prefix, int num) {
     fprintf(out, "%s .L%s%d\n", op, prefix, num);
 }
 
-void emit_binary_op(FILE * out, TokenType op) {
-    switch(op) {
-        case TOKEN_PLUS:
-            fprintf(out, "add eax, ecx\n");
-            break;
-        case TOKEN_MINUS:
-            fprintf(out, "sub eax, ecx\n");
-            break;
-        case TOKEN_STAR:
-            fprintf(out, "imul eax, ecx\n");
-            break;
-        case TOKEN_DIV:
-            fprintf(out, "cdq\n");          // sign-extend eax into edx:eax
-            fprintf(out, "idiv ecx\n");
-            break;
-        case TOKEN_EQ:
+void emit_binary_comparison(FILE * out, ASTNode * node) {
+    // eval left-hand side -> result in eax -> push results onto the stack
+    emit_tree_node(out, node->binary.lhs);
+    fprintf(out, "push rax\n");
+
+    // eval right-hand side -> reult in eax
+
+    emit_tree_node(out, node->binary.rhs);
+
+    // restore lhs into rcx
+    fprintf(out, "pop rcx\n");
+    fprintf(out, "mov ecx, ecx\n");   // zero upper bits
+
+    // compare rcx (lhs) with eax (rhs), cmp rcx, eax means rcx - eax
+    fprintf(out, "cmp ecx, eax\n");
+
+    // emit proper setX based on operator type
+    switch (node->type) {
+        case AST_EQUAL:
             fprintf(out, "sete al\n");
             break;
-        case TOKEN_NEQ:
+
+        case AST_NOT_EQUAL:
             fprintf(out, "setne al\n");
             break;
-        case TOKEN_GT:
-            fprintf(out, "setg al\n");
-            break;
-        case TOKEN_GE:
-            fprintf(out, "setge al\n");
-            break;
-            case TOKEN_LT:
+
+        case AST_LESS_THAN:
             fprintf(out, "setl al\n");
             break;
-        case TOKEN_LE:
+
+        case AST_LESS_EQUAL:
             fprintf(out, "setle al\n");
             break;
+
+        case AST_GREATER_THAN:
+            fprintf(out, "setg al\n");
+            break;
+
+        case AST_GREATER_EQUAL:
+            fprintf(out, "setge al\n");
+            break;
+
+        default:
+            fprintf(stderr, "Unsupported comparison type in codegen.\n");
+            exit(1);
+
+    }
+
+    // zero-extend result to full eax
+    fprintf(out, "movzx eax, al\n");
+
+}
+
+
+void emit_binary_op(FILE * out, ASTNodeType op) {
+    switch(op) {
+        case AST_ADD:
+            fprintf(out, "add eax, ecx\n");
+            break;
+        case AST_SUB:
+            fprintf(out, "sub eax, ecx\n");
+            break;
+        case AST_MUL:
+            fprintf(out, "imul eax, ecx\n");
+            break;
+        // case TOKEN_DIV:
+        //     fprintf(out, "cdq\n");          // sign-extend eax into edx:eax
+        //     fprintf(out, "idiv ecx\n");
+        //     break;
+        // case TOKEN_EQ:
+        //     fprintf(out, "sete al\n");
+        //     break;
+        // case TOKEN_NEQ:
+        //     fprintf(out, "setne al\n");
+        //     break;
+        // case TOKEN_GT:
+        //     fprintf(out, "setg al\n");
+        //     break;
+        // case TOKEN_GE:
+        //     fprintf(out, "setge al\n");
+        //     break;
+        // case TOKEN_LT:
+        //     fprintf(out, "setl al\n");
+        //     break;
+        // case TOKEN_LE:
+        //     fprintf(out, "setle al\n");
+        //     break;
         default:
             fprintf(stderr, "Unsupported binary operator: %s\n", token_type_name(op));
     }
@@ -203,10 +257,10 @@ void populate_symbol_table(ASTNode * node) {
             populate_symbol_table(node->expr_stmt.expr);
             break;
 
-        case AST_BINARY_OP:
-            populate_symbol_table(node->binary_op.lhs);
-            populate_symbol_table(node->binary_op.rhs);
-            break;
+        // case AST_BINARY:
+        //     populate_symbol_table(node->binary_op.lhs);
+        //     populate_symbol_table(node->binary_op.rhs);
+        //     break;
 
         case AST_UNARY_POST_INC:
         case AST_UNARY_POST_DEC:
@@ -347,36 +401,48 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_WHILE_STMT:
             emit_while_statement(out, node);
             break;
-        case AST_BINARY_OP:
-            if (node->binary_op.op == TOKEN_DIV) {
-                emit_tree_node(out, node->binary_op.lhs);       // codegen to eval lhs with result in EAX
-                fprintf(out, "push rax\n");                     // push lhs result
-                emit_tree_node(out, node->binary_op.rhs);       // codegen to eval rhs with result in EAX
-                fprintf(out, "mov ecx, eax\n");                 // move denominator to ecx
-                fprintf(out, "pop rax\n");                      // restore numerator to eax
-                fprintf(out, "cdq\n");
-                fprintf(out, "idiv ecx\n");
-            }
-            else if (node->binary_op.op == TOKEN_PLUS || node->binary_op.op == TOKEN_MINUS || node->binary_op.op == TOKEN_STAR) {
-                emit_tree_node(out, node->binary_op.lhs);       // codegen to eval lhs with result in EAX
-                fprintf(out, "push rax\n");                     // push lhs result
-                emit_tree_node(out, node->binary_op.rhs);       // codegen to eval rhs with result in EAX
-                fprintf(out, "pop rcx\n");                      // pop lhs to ECX
-                emit_binary_op(out, node->binary_op.op);        // emit proper for op
-            }
-            else if (node->binary_op.op == TOKEN_EQ || node->binary_op.op == TOKEN_NEQ ||
-                    node->binary_op.op == TOKEN_LT || node->binary_op.op == TOKEN_LE ||
-                    node->binary_op.op == TOKEN_GT || node->binary_op.op == TOKEN_GE) {
-                        emit_tree_node(out, node->binary_op.lhs);
-                        fprintf(out, "push rax\n");
-                        emit_tree_node(out, node->binary_op.rhs);
-                        fprintf(out, "mov rcx, rax\n");
-                        fprintf(out, "pop rax\n");
-                        fprintf(out, "cmp eax, ecx\n");
-                        emit_binary_op(out, node->binary_op.op);
-                        fprintf(out, "movzx eax, al\n");
-                    }
+        case AST_DIV: {
+            emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+            fprintf(out, "push rax\n");                     // push lhs result
+            emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+            fprintf(out, "mov ecx, eax\n");                 // move denominator to ecx
+            fprintf(out, "pop rax\n");                      // restore numerator to eax
+            fprintf(out, "cdq\n");
+            fprintf(out, "idiv ecx\n");
             break;
+        }
+        case AST_ADD:
+        case AST_SUB:
+        case AST_MUL:
+            emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+            fprintf(out, "push rax\n");                     // push lhs result
+            emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+            fprintf(out, "pop rcx\n");                      // pop lhs to ECX
+            emit_binary_op(out, node->type);        // emit proper for op
+        break;
+            // else if (node->binary_op.op == TOKEN_EQ || node->binary_op.op == TOKEN_NEQ ||
+            //         node->binary_op.op == TOKEN_LT || node->binary_op.op == TOKEN_LE ||
+            //         node->binary_op.op == TOKEN_GT || node->binary_op.op == TOKEN_GE) {
+            //             emit_tree_node(out, node->binary_op.lhs);
+            //             fprintf(out, "push rax\n");
+            //             emit_tree_node(out, node->binary_op.rhs);
+            //             fprintf(out, "mov rcx, rax\n");
+            //             fprintf(out, "pop rax\n");
+            //             fprintf(out, "cmp eax, ecx\n");
+            //             emit_binary_op(out, node->binary_op.op);
+            //             fprintf(out, "movzx eax, al\n");
+            //         }
+            // break;
+
+        case AST_EQUAL:
+        case AST_NOT_EQUAL:
+        case AST_LESS_EQUAL:
+        case AST_LESS_THAN:
+        case AST_GREATER_EQUAL:
+        case AST_GREATER_THAN:
+            emit_binary_comparison(out, node);
+            break;
+
         case AST_UNARY_POST_INC:
         case AST_UNARY_POST_DEC:
         case AST_UNARY_PRE_INC:
@@ -386,6 +452,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_UNARY_PLUS:
             emit_unary(out, node);
             break;
+
         case AST_INT_LITERAL:
             fprintf(out, "mov eax, %d\n", node->int_value);
             break;

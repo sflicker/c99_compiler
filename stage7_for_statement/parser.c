@@ -163,7 +163,7 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
         return advance(parserContext);
     }
 
-    printf("unexpected token\n");
+    printf("unexpected token: expected: %s, actual: %s\n", token_type_name(expected), token_type_name(token->type));
 
 
 //    fprintf(stderr, "Parse error: expected token of type %s, but got %s (text: '%.*s')\n",
@@ -172,6 +172,23 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
     exit(1);    
 }
 
+ASTNodeType binary_op_token_to_ast_type(TokenType tok) {
+    switch (tok) {
+        case TOKEN_PLUS: return AST_ADD;
+        case TOKEN_MINUS: return AST_SUB;
+        case TOKEN_STAR: return AST_MUL;
+        case TOKEN_DIV: return AST_DIV;
+        case TOKEN_EQ: return AST_EQUAL;
+        case TOKEN_NEQ: return AST_NOT_EQUAL;
+        case TOKEN_LT: return AST_LESS_THAN;
+        case TOKEN_LE: return AST_LESS_EQUAL;
+        case TOKEN_GT: return AST_GREATER_THAN;
+        case TOKEN_GE: return AST_GREATER_EQUAL;
+        default:
+            fprintf(stderr, "Unknown binary operator in expression");
+            exit(1);
+    }
+}
 
 ASTNode * parse_program(ParserContext * parserContext) {
     ASTNode * function = parse_function(parserContext);
@@ -362,11 +379,12 @@ ASTNode * parse_return_statement(ParserContext* parserContext) {
 }
 
 ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
+    ASTNodeType nodeType = binary_op_token_to_ast_type(op);
     ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_BINARY_OP;
-    node->binary_op.lhs = lhs;
-    node->binary_op.op = op;
-    node->binary_op.rhs = rhs;
+    node->type = nodeType;
+    node->binary.lhs = lhs;
+//    node->binary_op.op = op;
+    node->binary.rhs = rhs;
     return node;    
 }
 
@@ -435,7 +453,7 @@ ASTNode * create_unary_node(ASTNodeType op, ASTNode * operand) {
     return node;
 }
 
-ASTNodeType unary_op_to_prefix_node(TokenType tokenType) {
+ASTNodeType unary_op_token_to_ast_type(TokenType tokenType) {
     switch(tokenType) {
         case TOKEN_MINUS: return AST_UNARY_NEGATE; break;
         case TOKEN_PLUS: return AST_UNARY_PLUS; break;
@@ -459,7 +477,7 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
                 Token * currentToken = advance(parserContext);
 
                 ASTNode * operand = parse_unary_expression(parserContext);
-                ASTNode * node = create_unary_node(unary_op_to_prefix_node(currentToken->type), operand);
+                ASTNode * node = create_unary_node(unary_op_token_to_ast_type(currentToken->type), operand);
 
                 return node;
             }        
@@ -604,11 +622,57 @@ void print_ast(ASTNode * node, int indent) {
         case AST_INT_LITERAL:
             printf("IntLiteral: %d\n", node->int_value);
             break;
-        case AST_BINARY_OP:
-            printf("BinaryOp: %s\n", token_type_name(node->binary_op.op));
-            print_ast(node->binary_op.lhs, indent+1);
-            print_ast(node->binary_op.rhs, indent+1);
+        case AST_ADD:
+            printf("Binary: %s\n", "ADD");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
             break;
+        case AST_SUB:
+            printf("Binary: %s\n", "SUB");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_MUL:
+            printf("Binary: %s\n", "MULTIPLY");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_DIV:
+            printf("Binary: %s\n", "DIVIDE");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_EQUAL:
+            printf("Binary: %s\n", "EQUAL");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_NOT_EQUAL:
+            printf("Binary: %s\n", "NOTEQUAL");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_LESS_THAN:
+            printf("Binary: %s\n", "LESSTHAN");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_LESS_EQUAL:
+            printf("Binary: %s\n", "LESSEQUAL");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_GREATER_THAN:
+            printf("Binary: %s\n", "GREATERTHAN");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_GREATER_EQUAL:
+            printf("Binary: %s\n", "GREATEREQUAL");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+
         case AST_UNARY_NEGATE:
             printf("Unary: %s\n", "NEGATE");
             print_ast(node->unary.operand, indent+1);
