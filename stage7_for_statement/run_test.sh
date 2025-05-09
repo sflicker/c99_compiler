@@ -41,8 +41,14 @@ fi
 
 echo "executing compiled file $EXE_FILE ..."
 set +e
-./"$EXE_FILE"
+timeout 2s ./"$EXE_FILE"
 EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 124 ]; then
+    echo -e "${RED}⏱ Timeout: $EXE_FILE exceeded time limit${NC}"
+    exit 96
+fi
+
 set -e
 
 echo "Program $EXE_FILE exited with code $EXIT_CODE"
@@ -50,6 +56,8 @@ echo "Program $EXE_FILE exited with code $EXIT_CODE"
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
+
+
 
 if [ $EXIT_CODE -eq $UNSIGNED_EXPECTED ]; then
     echo -e "${GREEN}✅ Test: $SRC Passed${NC}"

@@ -60,6 +60,10 @@ for cfile in tests/test*.c; do
         echo -e "${RED}💥 $testname: linker failure${NC}"
         FAILED_TOTAL=$((FAILED_TOTAL + 1))
         FAILED_TESTS+=("$testname (Linker Failure)")
+    elif [ "$STATUS" -eq 96 ]; then
+        echo -e "${RED}⏱ $testname: timed out ${NC}"
+        FAILED_TOTAL=$((FAILED_TOTAL + 1))
+        FAILED_TESTS+=("$testname (timeout)")
     elif [ $STATUS -eq 1 ]; then
         echo -e "${RED}❌ $testname failed${NC}"
         FAILED_TOTAL=$((FAILED_TOTAL + 1))
