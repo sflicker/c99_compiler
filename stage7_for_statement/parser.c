@@ -423,12 +423,26 @@ ASTNode * parse_term(ParserContext * parserContext) {
     return root;
 }
 
-ASTNode * create_unary_node(TokenType op, ASTNode * operand) {
+ASTNode * create_unary_node(ASTNodeType op, ASTNode * operand) {
     ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_UNARY_OP;
-    node->unary_op.op = op;
-    node->unary_op.expr = operand;
+    node->type = op;
+    node->unary.operand = operand;
     return node;
+}
+
+ASTNodeType unary_op_to_prefix_node(TokenType tokenType) {
+    switch(tokenType) {
+        case TOKEN_MINUS: return AST_UNARY_NEGATE; break;
+        case TOKEN_PLUS: return AST_UNARY_PLUS; break;
+        case TOKEN_BANG: return AST_UNARY_NOT; break;
+        case TOKEN_INCREMENT: return AST_UNARY_PRE_INC; break;
+        case TOKEN_DECREMENT: return AST_UNARY_PRE_DEC; break;
+        default:
+            error("Unable to determine prefix operator type");
+            return 0; 
+        break;
+    
+    }
 }
 
 ASTNode * parse_unary_expression(ParserContext * parserContext) {
@@ -438,18 +452,13 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
      || is_current_token(parserContext, TOKEN_INCREMENT) 
      || is_current_token(parserContext, TOKEN_DECREMENT)) {
                 Token * currentToken = advance(parserContext);
-                TokenType op = currentToken->type;
 
-                ASTNode * expr = parse_unary_expression(parserContext);
-                ASTNode * node = create_unary_node(op, expr);
-                // ASTNode * node = malloc(sizeof(ASTNode));
-                // node->type = AST_UNARY_OP;
-                // node->unary_op.op = op;
-                // node->unary_op.expr = expr;
+                ASTNode * operand = parse_unary_expression(parserContext);
+                ASTNode * node = create_unary_node(unary_op_to_prefix_node(currentToken->type), operand);
+
                 return node;
             }        
     else {
-//        return parse_primary(parserContext);
         return parse_postfix_expression(parserContext);
     }
 
@@ -531,12 +540,12 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_INCREMENT)) {
         expect_token(parserContext, TOKEN_INCREMENT);
 
-        return create_unary_node(TOKEN_INCREMENT, primary);
+        return create_unary_node(AST_UNARY_POST_INC, primary);
     }
     if (is_current_token(parserContext, TOKEN_DECREMENT)) {
         expect_token(parserContext, TOKEN_DECREMENT);
 
-        return create_unary_node(TOKEN_DECREMENT, primary);
+        return create_unary_node(AST_UNARY_POST_DEC, primary);
     }
 
     return primary;
@@ -595,9 +604,33 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->binary_op.lhs, indent+1);
             print_ast(node->binary_op.rhs, indent+1);
             break;
-        case AST_UNARY_OP:
-            printf("UnaryOp: %s\n", token_type_name(node->unary_op.op));
-            print_ast(node->unary_op.expr, indent+1);
+        case AST_UNARY_NEGATE:
+            printf("Unary: %s\n", "NEGATE");
+            print_ast(node->unary.operand, indent+1);
+            break;
+        case AST_UNARY_NOT:
+            printf("Unary: %s\n", "NOT");
+            print_ast(node->unary.operand, indent+1);
+            break;
+        case AST_UNARY_PLUS:
+            printf("Unary: %s\n", "PLUS");
+            print_ast(node->unary.operand, indent+1);
+            break;
+        case AST_UNARY_PRE_INC:
+            printf("Unary: %s\n", "PREFIX_INC");
+            print_ast(node->unary.operand, indent+1);
+            break;
+        case AST_UNARY_PRE_DEC:
+            printf("Unary: %s\n", "PREFIX_DEC");
+            print_ast(node->unary.operand, indent+1);
+            break;
+        case AST_UNARY_POST_INC:
+            printf("Unary: %s\n", "POSTFIX_INC");
+            print_ast(node->unary.operand, indent+1);
+            break;
+        case AST_UNARY_POST_DEC:
+            printf("Unary: %s\n", "POSTFIX_DEC");
+            print_ast(node->unary.operand, indent+1);
             break;
         case AST_IF_STMT:
             printf("IfStmt: \n");

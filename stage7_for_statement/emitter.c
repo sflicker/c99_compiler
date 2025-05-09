@@ -60,28 +60,54 @@ void emit_binary_op(FILE * out, TokenType op) {
     }
 }
 
-void emit_unary_op(FILE *out, TokenType op) {
-    switch (op) {
-        case TOKEN_MINUS:
+void emit_unary(FILE *out, ASTNode * node) {
+    switch (node->type) {
+        case AST_UNARY_NEGATE:
+            emit_tree_node(out, node->unary.operand);
             fprintf(out, "neg eax\n");
             break;
-        case TOKEN_PLUS:
+        case AST_UNARY_PLUS:
             // noop
             break;
-        case TOKEN_BANG:
+        case AST_UNARY_NOT:
             // !x becomes (x == 0) -> 1 else 0
+            emit_tree_node(out, node->unary.operand);
             fprintf(out, "cmp eax, 0\n");
             fprintf(out, "sete al\n");
             fprintf(out, "movzx eax, al\n");
             break;
-        case TOKEN_INCREMENT:
+        case AST_UNARY_PRE_INC: {
+            int offset = lookup_symbol(node->unary.operand->var_expression.name);
+            fprintf(out, "mov eax, [rbp%d]\n", offset);            
+            fprintf(out, "add eax, 1\n");
+            fprintf(out, "mov [rbp%d], eax\n", offset);
+            break;
+        }
+        case AST_UNARY_PRE_DEC: {
+            int offset = lookup_symbol(node->unary.operand->var_expression.name);
+            fprintf(out, "mov eax, [rbp%d]\n", offset);            
+            fprintf(out, "sub eax, 1\n");
+            fprintf(out, "mov [rbp%d], eax\n", offset);
+        break;
+        }
+        case AST_UNARY_POST_INC: {
+            int offset = lookup_symbol(node->unary.operand->var_expression.name);
+            fprintf(out, "mov eax, [rbp%d]\n", offset);
             fprintf(out, "mov ecx, eax\n");
             fprintf(out, "add eax, 1\n");
+            fprintf(out, "mov [rbp%d], eax\n", offset);
+            fprintf(out, "mov eax, ecx\n");
             break;
-        case TOKEN_DECREMENT:
+        }
+        case AST_UNARY_POST_DEC: {
+            int offset = lookup_symbol(node->unary.operand->var_expression.name);
+            fprintf(out, "mov eax, [rbp%d]\n", offset);
             fprintf(out, "mov ecx, eax\n");
             fprintf(out, "sub eax, 1\n");
+            fprintf(out, "mov [rbp%d], eax\n", offset);
+            fprintf(out, "mov eax, ecx\n");
             break;
+        }
         default:
             fprintf(stderr, "Unsupported unary op in emitter\n");
             exit(1);
@@ -178,10 +204,15 @@ void populate_symbol_table(ASTNode * node) {
             populate_symbol_table(node->binary_op.rhs);
             break;
 
-        case AST_UNARY_OP:
-            populate_symbol_table(node->unary_op.expr);
+        case AST_UNARY_POST_INC:
+        case AST_UNARY_POST_DEC:
+        case AST_UNARY_PRE_INC:
+        case AST_UNARY_PRE_DEC:
+        case AST_UNARY_NEGATE:
+        case AST_UNARY_NOT:
+        case AST_UNARY_PLUS:
+            populate_symbol_table(node->unary.operand);
             break;
-
         case AST_VAR_EXPR:
             add_symbol(node->var_expression.name);
             break;
@@ -318,9 +349,14 @@ void emit_tree_node(FILE * out, ASTNode * node) {
                         fprintf(out, "movzx eax, al\n");
                     }
             break;
-        case AST_UNARY_OP:
-            emit_tree_node(out, node->unary_op.expr);  // generate value into eax
-            emit_unary_op(out, node->unary_op.op);
+        case AST_UNARY_POST_INC:
+        case AST_UNARY_POST_DEC:
+        case AST_UNARY_PRE_INC:
+        case AST_UNARY_PRE_DEC:
+        case AST_UNARY_NEGATE:
+        case AST_UNARY_NOT:
+        case AST_UNARY_PLUS:
+            emit_unary(out, node);
             break;
         case AST_INT_LITERAL:
             fprintf(out, "mov eax, %d\n", node->int_value);
@@ -330,18 +366,6 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             break;
         case AST_FOR_STMT:
-            // TODO
-            break;
-        case AST_UNARY_POST_INC:
-            // TODO
-            break;
-        case AST_UNARY_POST_DEC:
-            // TODO
-            break;
-        case AST_UNARY_PRE_INC:
-            // TODO
-            break;
-        case AST_UNARY_PRE_DEC:
             // TODO
             break;
 
