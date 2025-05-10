@@ -104,5 +104,17 @@
         "preLaunchTask": "build-stage7-for-statement",
         "args": ["tests/test_for__55.c"]
       }
+      ,
+      {
+        "name": "Debug stage8",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage8_block_scope/mimic99",
+        "cwd": "${workspaceFolder}/stage8_block_scope",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage8-block-scope",
+        "args": ["tests/test_logical_and__1.c"]
+      }
     ]
   }

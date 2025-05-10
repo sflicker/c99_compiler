@@ -81,6 +81,16 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
+      {
+        "label": "build-stage8-block-scope",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cwd": "${workspaceFolder}/stage8_block_scope"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
     ]
   }
 
