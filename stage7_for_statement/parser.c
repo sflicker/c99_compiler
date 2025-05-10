@@ -98,6 +98,7 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext);
 ASTNode* parse_assignment_statement(ParserContext * parserContext);
 ASTNode* parse_while_statement(ParserContext * parserContext);
 ASTNode * parse_for_statement(ParserContext * parserContext);
+ASTNode * parse_assignment_expression(ParserContext * parserContext);
 
 void update_current_token_info(ParserContext* parserContext);
 
@@ -163,7 +164,7 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
         return advance(parserContext);
     }
 
-    printf("unexpected token: expected: %s, actual: %s\n", token_type_name(expected), token_type_name(token->type));
+    printf("unexpected token at POS: %d, expected: %s, actual: %s\n", parserContext->pos, token_type_name(expected), token_type_name(token->type));
 
 
 //    fprintf(stderr, "Parse error: expected token of type %s, but got %s (text: '%.*s')\n",
@@ -320,6 +321,10 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
         if (is_current_token(parserContext, TOKEN_INT)) {
             init_expr = parse_var_declaration(parserContext);
         }
+        else if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
+            init_expr = parse_assignment_expression(parserContext);
+            expect_token(parserContext, TOKEN_SEMICOLON);
+        }
         else {
             init_expr = parse_expression_statement(parserContext);
         }
@@ -341,7 +346,12 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
     // expect_token(parserContext, TOKEN_SEMICOLON);
 
     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-        update_expr = parse_expression(parserContext);
+        if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token(parserContext, TOKEN_ASSIGN)) {
+            update_expr = parse_assignment_expression(parserContext);
+        }
+        else {
+            update_expr = parse_expression(parserContext);
+        }
     }
     expect_token(parserContext, TOKEN_RPAREN);
 

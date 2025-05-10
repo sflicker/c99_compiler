@@ -275,6 +275,17 @@ void populate_symbol_table(ASTNode * node) {
             add_symbol(node->var_expression.name);
             break;
 
+        case AST_WHILE_STMT:
+            populate_symbol_table(node->while_stmt.cond);
+            populate_symbol_table(node->while_stmt.body);
+
+        case AST_FOR_STMT:
+            populate_symbol_table(node->for_stmt.init_expr);
+            populate_symbol_table(node->for_stmt.cond_expr);
+            populate_symbol_table(node->for_stmt.update_expr);
+            populate_symbol_table(node->for_stmt.body);
+            break;
+
         default:
             break;
     }
@@ -342,21 +353,34 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     int label_cond = label_id++;
     int label_end = label_id++;
 
+    // initializer
     if (node->for_stmt.init_expr) {
         emit_tree_node(out, node->for_stmt.init_expr);
     }
 
+    // jump to condition check
     emit_jump(out, "jmp", "cond", label_cond);
 
+    // loop body start
     emit_label(out, "start", label_start);
     emit_tree_node(out, node->for_stmt.body);
-    emit_tree_node(out, node->for_stmt.update_expr);
-    emit_label(out, "cond", label_cond);
-    emit_tree_node(out, node->for_stmt.cond_expr);
-    fprintf(out, "cmp eax, 0\n");
 
-    emit_jump(out, "je", "end", label_end);
+    // update expression
+    if (node->for_stmt.update_expr) {
+        emit_tree_node(out, node->for_stmt.update_expr);
+    }
+
+    // loop condition
+    emit_label(out, "cond", label_cond);
+    if (node->for_stmt.cond_expr) {
+        emit_tree_node(out, node->for_stmt.cond_expr);
+        fprintf(out, "cmp eax, 0\n");
+        emit_jump(out, "je", "end", label_end);     // exit if false
+    }
+
     emit_jump(out, "jmp", "start", label_start);
+    
+    // end label
     emit_label(out, "end", label_end);
 }
 

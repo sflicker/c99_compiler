@@ -102,7 +102,7 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage7-for-statement",
-        "args": ["tests/test_basic_for__55.c"]
+        "args": ["tests/test_for__55.c"]
       }
     ]
   }
