@@ -26,6 +26,51 @@ void emit_jump(FILE * out, const char * op, const char * prefix, int num) {
     fprintf(out, "%s .L%s%d\n", op, prefix, num);
 }
 
+void emit_logical_and(FILE * out, ASTNode * node) {
+    int label_false = label_id++;
+    int label_end = label_id++;
+
+    //lhs 
+    emit_tree_node(out, node->binary.lhs);
+    fprintf(out, "cmp eax, 0\n");
+    emit_jump(out, "je", "false", label_false);
+
+    //rhs
+    emit_tree_node(out, node->binary.rhs);
+    fprintf(out, "cmp eax, 0\n");
+    emit_jump(out, "je", "false", label_false);
+
+    // both true
+    fprintf(out, "mov eax, 1\n");
+    emit_jump(out, "jmp", "end", label_end);
+
+    emit_label(out, "false", label_false);
+    fprintf(out, "mov eax, 0\n");
+
+    emit_label(out, "end", label_end);
+}
+
+void emit_logical_or(FILE* out, ASTNode* node) {
+    int label_true = label_id++;
+    int label_end = label_id++;
+
+    // lhs
+    emit_tree_node(out, node->binary.lhs);
+    fprintf(out, "cmp eax, 0\n");
+    emit_jump(out, "jne", "true", label_true);
+
+    // rhs
+    emit_tree_node(out, node->binary.rhs);
+    fprintf(out, "cmp eax, 0\n");
+    emit_jump(out, "jne", "true", label_true);
+
+    emit_label(out, "true", label_true);
+    fprintf(out, "mov eax, 1\n");
+
+    emit_label(out, "end", label_end);
+}
+
+
 void emit_binary_comparison(FILE * out, ASTNode * node) {
     // eval left-hand side -> result in eax -> push results onto the stack
     emit_tree_node(out, node->binary.lhs);
@@ -475,6 +520,14 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_UNARY_NOT:
         case AST_UNARY_PLUS:
             emit_unary(out, node);
+            break;
+
+        case AST_LOGICAL_AND:
+            emit_logical_and(out, node);
+            break;
+
+        case AST_LOGICAL_OR:
+            emit_logical_or(out, node);
             break;
 
         case AST_INT_LITERAL:
