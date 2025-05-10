@@ -426,7 +426,7 @@ ASTNode * parse_logical_or(ParserContext * parserContext) {
 ASTNode * parse_logical_and(ParserContext * parserContext) {
     ASTNode * lhs = parse_equality_expression(parserContext);
 
-    while (match_token(parserContext, TOKEN_LOGICAL_OR)) {
+    while (match_token(parserContext, TOKEN_LOGICAL_AND)) {
         ASTNode * rhs = parse_equality_expression(parserContext);
         ASTNode * node = malloc(sizeof(ASTNode));
 
@@ -694,27 +694,37 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->binary.rhs, indent+1);
             break;
         case AST_NOT_EQUAL:
-            printf("Binary: %s\n", "NOTEQUAL");
+            printf("Binary: %s\n", "NOT_EQUAL");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_LOGICAL_AND:
+            printf("Binary: %s\n", "LOGICIAL_AND");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
+            break;
+        case AST_LOGICAL_OR:
+            printf("Binary: %s\n", "LOGICIAL_OR");
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
         case AST_LESS_THAN:
-            printf("Binary: %s\n", "LESSTHAN");
+            printf("Binary: %s\n", "LESS_THAN");
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
         case AST_LESS_EQUAL:
-            printf("Binary: %s\n", "LESSEQUAL");
+            printf("Binary: %s\n", "LESS_EQUAL");
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
         case AST_GREATER_THAN:
-            printf("Binary: %s\n", "GREATERTHAN");
+            printf("Binary: %s\n", "GREATER_THAN");
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
         case AST_GREATER_EQUAL:
-            printf("Binary: %s\n", "GREATEREQUAL");
+            printf("Binary: %s\n", "GREATER_EQUAL");
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
