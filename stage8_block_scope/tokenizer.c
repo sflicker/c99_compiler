@@ -124,6 +124,8 @@ const char * token_type_name(TokenType type) {
         case TOKEN_MINUS: return "MINUS";
         case TOKEN_EQ: return "EQ";
         case TOKEN_NEQ: return "NEQ";
+        case TOKEN_LOGICAL_AND: return "LOGICAL_AND";
+        case TOKEN_LOGICAL_OR: return "LOGICAL_OR";
         case TOKEN_GT: return "GT";
         case TOKEN_GE: return "GE";
         case TOKEN_LT: return "LT";
@@ -297,6 +299,14 @@ void tokenize(const char* code, TokenList * tokenList) {
         }
         else if (*p == '-' && *(p+1) == '=') {
             add_token_by_type(tokenList, TOKEN_MINUS_EQUAL);
+            p+=2;
+        }
+        else if (*p == '&' && *(p+1) == '&') {
+            add_token_by_type(tokenList, TOKEN_LOGICAL_AND);
+            p+=2;
+        }
+        else if (*p == '|' && *(p+1) == '|') {
+            add_token_by_type(tokenList, TOKEN_LOGICAL_OR);
             p+=2;
         }
         else if (is_punctuator(*p)) {

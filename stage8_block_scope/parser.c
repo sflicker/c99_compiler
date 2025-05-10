@@ -47,7 +47,11 @@
 
    <expression_stmt> ::= <expression> ";"
 
-   <expression> ::= <equality_expr>
+   <expression> ::= <logical_or_expr>
+   
+   <logical_or_expr> ::= <logical_and_expr> { '||' <logical_and_expr> }*
+
+   <logical_and_expr> ::= <equality_expr> { "&&" <equality_expr> }*
 
    <equality_expr> ::= <relational_expr> [ ("==" | "!=") <relational_expr> ]*
 
@@ -99,6 +103,8 @@ ASTNode* parse_assignment_statement(ParserContext * parserContext);
 ASTNode* parse_while_statement(ParserContext * parserContext);
 ASTNode * parse_for_statement(ParserContext * parserContext);
 ASTNode * parse_assignment_expression(ParserContext * parserContext);
+ASTNode * parse_logical_or(ParserContext * parserContext);
+ASTNode * parse_logical_and(ParserContext * parserContext);
 
 void update_current_token_info(ParserContext* parserContext);
 
@@ -399,7 +405,37 @@ ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
 }
 
 ASTNode * parse_expression(ParserContext * parserContext) {
-    return parse_equality_expression(parserContext);
+    return parse_logical_or(parserContext);
+}
+
+ASTNode * parse_logical_or(ParserContext * parserContext) {
+    ASTNode * lhs = parse_logical_and(parserContext);
+
+    while (match_token(parserContext, TOKEN_LOGICAL_OR)) {
+        ASTNode * rhs = parse_logical_and(parserContext);
+        ASTNode * node = malloc(sizeof(ASTNode));
+
+        node->type = AST_LOGICAL_OR;
+        node->binary.lhs = lhs;
+        node->binary.rhs = rhs;
+        lhs = node;
+    }
+    return lhs;
+}
+
+ASTNode * parse_logical_and(ParserContext * parserContext) {
+    ASTNode * lhs = parse_equality_expression(parserContext);
+
+    while (match_token(parserContext, TOKEN_LOGICAL_OR)) {
+        ASTNode * rhs = parse_equality_expression(parserContext);
+        ASTNode * node = malloc(sizeof(ASTNode));
+
+        node->type = AST_LOGICAL_AND;
+        node->binary.lhs = lhs;
+        node->binary.rhs = rhs;
+        lhs = node;
+    }
+    return lhs;
 }
 
 ASTNode * parse_equality_expression(ParserContext * parserContext) {

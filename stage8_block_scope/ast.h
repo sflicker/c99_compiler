@@ -33,6 +33,8 @@ typedef enum {
     AST_DIV,
     AST_EQUAL,
     AST_NOT_EQUAL,
+    AST_LOGICAL_AND,
+    AST_LOGICAL_OR,
     AST_LESS_THAN,
     AST_LESS_EQUAL,
     AST_GREATER_THAN,
