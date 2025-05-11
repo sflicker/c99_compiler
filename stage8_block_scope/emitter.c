@@ -283,7 +283,7 @@ void populate_symbol_table(ASTNode * node) {
         case AST_ASSIGNMENT:
         case AST_COMPOUND_ADD_ASSIGN:
         case AST_COMPOUND_SUB_ASSIGN:
-            add_symbol(node->assignment.name);
+//            add_symbol(node->assignment.name);  
             populate_symbol_table(node->assignment.expr);
             break;
         case AST_RETURN_STMT:
@@ -338,7 +338,9 @@ void populate_symbol_table(ASTNode * node) {
 
 void emit_function(FILE * out, ASTNode * node) {
 
-
+    set_current_offset(0);
+    enter_scope();
+//    populate_symbol_table(node);
 
     // create label for function
     fprintf(out, "%s:\n", node->function.name);
@@ -358,11 +360,14 @@ void emit_function(FILE * out, ASTNode * node) {
     fprintf(out, "leave\n");
     fprintf(out, "ret\n");
 
+    exit_scope();
+    set_current_offset(0);
 }
 
 void emit_var_declaration(FILE *out, ASTNode * node) {
-    int offset = add_symbol(node->declaration.name);
+    //add_symbol(node->declaration.name);
     if (node->declaration.init_expr) {
+        int offset = lookup_symbol(node->declaration.name);
         emit_tree_node(out, node->declaration.init_expr);
         fprintf(out, "mov [rbp%d], eax\n", offset);
     }
@@ -546,8 +551,10 @@ void emit_tree_node(FILE * out, ASTNode * node) {
 
 void emit_program(ASTNode * program, const char * output_file) {
     FILE * ptr = fopen(output_file, "w");
-    init_symbol_table();
-    populate_symbol_table(program);
+
+    // init_symbol_table();
+    // populate_symbol_table(program);
+    
     emit_tree_node(ptr, program);
 
     fclose(ptr);
