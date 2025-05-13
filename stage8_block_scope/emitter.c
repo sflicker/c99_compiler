@@ -340,7 +340,9 @@ void emit_function(FILE * out, ASTNode * node) {
 
     set_current_offset(0);
     enter_scope();
+
 //    populate_symbol_table(node);
+// TODO NEED TO CALCULATE THE SPACE USED BY VARS IN THIS FUNCTION INCLUDING BLOCKS
 
     // create label for function
     fprintf(out, "%s:\n", node->function.name);
@@ -365,7 +367,7 @@ void emit_function(FILE * out, ASTNode * node) {
 }
 
 void emit_var_declaration(FILE *out, ASTNode * node) {
-    //add_symbol(node->declaration.name);
+    add_symbol(node->declaration.name);
     if (node->declaration.init_expr) {
         int offset = lookup_symbol(node->declaration.name);
         emit_tree_node(out, node->declaration.init_expr);

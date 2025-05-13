@@ -128,11 +128,16 @@ int lookup_symbol(const char* name) {
 }
 
 int get_symbol_total_space() {
-    int count=0;
-    for (Scope * scope = current_scope; scope != NULL; scope = scope->parent) {
-        for (Symbol * sym = scope->symbols; sym != NULL; sym = sym->next) {
-            count++;
-        }
-    }
-    return count * 4;
-}
+
+    // TODO COULD MAKE THIS TAKE A PARAMETER THAN SCAN THE TREE BELOW FOR NOW JUST RETURN 64
+
+    return 64;
+
+//     int count=0;
+//     for (Scope * scope = current_scope; scope != NULL; scope = scope->parent) {
+//         for (Symbol * sym = scope->symbols; sym != NULL; sym = sym->next) {
+//             count++;
+//         }
+//     }
+//     return count * 4;
+ }

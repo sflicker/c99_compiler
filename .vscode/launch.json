@@ -114,7 +114,7 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage8-block-scope",
-        "args": ["tests/test_logical_and__1.c"]
+        "args": ["tests/test_declare_a__42.c"]
       }
     ]
   }
