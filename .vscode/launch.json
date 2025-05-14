@@ -116,5 +116,17 @@
         "preLaunchTask": "build-stage8-block-scope",
         "args": ["tests/test_block_scope__2.c"]
       }
+            ,
+      {
+        "name": "Debug stage9",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage9_assert_n_functions/mimic99",
+        "cwd": "${workspaceFolder}/stage9_assert_n_functions",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage9-assert-and-functions",
+        "args": ["tests/test_block_scope__2.c"]
+      }
     ]
   }

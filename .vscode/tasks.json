@@ -91,6 +91,16 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
+            {
+        "label": "build-stage9-assert-and-functions",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cwd": "${workspaceFolder}/stage9_assert_and_functions"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
     ]
   }
 
