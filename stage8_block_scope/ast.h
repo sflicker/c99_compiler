@@ -11,8 +11,6 @@ typedef enum {
     AST_INT_LITERAL,
     AST_FUNCTION,
     AST_PROGRAM,
-//    AST_BINARY_OP,
-//    AST_UNARY_OP,
     AST_BLOCK,
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
@@ -61,7 +59,6 @@ typedef struct ASTNode {
 
         struct {
             struct ASTNode * lhs;
-//            TokenType op;
             struct ASTNode * rhs;
         } binary;
 

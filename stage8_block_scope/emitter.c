@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -15,7 +16,6 @@ void emit_header(FILE* out) {
     fprintf(out, "section .text\n");
     fprintf(out, "global main\n");
     fprintf(out, "\n");
-
 }
 
 void emit_label(FILE * out, const char * prefix, int num) {
@@ -217,6 +217,8 @@ void emit_unary(FILE *out, ASTNode * node) {
     }
 }
 
+
+
 void emit_if_statement(FILE * out, ASTNode * node) {
     int id = label_id++;
     // eval condition
@@ -229,7 +231,6 @@ void emit_if_statement(FILE * out, ASTNode * node) {
         emit_tree_node(out, node->if_stmt.then_statement);
         fprintf(out, "jmp .Lend%d\n", id);  // jump to end over else
         emit_label(out, "else", id);
-//        fprintf(out, ".Lelse%d:\n", id);
         emit_tree_node(out, node->if_stmt.else_statement);
     }
     else {
@@ -237,7 +238,6 @@ void emit_if_statement(FILE * out, ASTNode * node) {
         emit_tree_node(out, node->if_stmt.then_statement);
     }
     emit_label(out, "end", id);
-//    fprintf(out, ".Lend%d:\n", id);
 }
 
 void emit_while_statement(FILE* out, ASTNode * node) {
@@ -302,11 +302,6 @@ void populate_symbol_table(ASTNode * node) {
             populate_symbol_table(node->expr_stmt.expr);
             break;
 
-        // case AST_BINARY:
-        //     populate_symbol_table(node->binary_op.lhs);
-        //     populate_symbol_table(node->binary_op.rhs);
-        //     break;
-
         case AST_UNARY_POST_INC:
         case AST_UNARY_POST_DEC:
         case AST_UNARY_PRE_INC:
@@ -336,6 +331,21 @@ void populate_symbol_table(ASTNode * node) {
     }
 }
 
+void emit_block(FILE * out, ASTNode * node, bool enterNewScope) {
+
+    if (enterNewScope) {
+        enter_scope();
+    }
+
+    for (int i=0;i<node->block.count;i++) {
+        emit_tree_node(out, node->block.statements[i]);
+    }
+
+    if (enterNewScope) {
+        exit_scope();
+    }
+}
+
 void emit_function(FILE * out, ASTNode * node) {
 
     set_current_offset(0);
@@ -356,7 +366,7 @@ void emit_function(FILE * out, ASTNode * node) {
         fprintf(out, "sub rsp, %d\n", local_space);
     }
     
-    emit_tree_node(out, node->function.body);
+    emit_block(out, node->function.body, false);
 
 //    fprintf(out, "pop rbp\n");
     fprintf(out, "leave\n");
@@ -405,6 +415,8 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     int label_cond = label_id++;
     int label_end = label_id++;
 
+    enter_scope();
+
     // initializer
     if (node->for_stmt.init_expr) {
         emit_tree_node(out, node->for_stmt.init_expr);
@@ -415,7 +427,7 @@ void emit_for_statement(FILE * out, ASTNode * node) {
 
     // loop body start
     emit_label(out, "start", label_start);
-    emit_tree_node(out, node->for_stmt.body);
+    emit_block(out, node->for_stmt.body, false);
 
     // update expression
     if (node->for_stmt.update_expr) {
@@ -434,6 +446,8 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     
     // end label
     emit_label(out, "end", label_end);
+
+    exit_scope();
 }
 
 
@@ -467,9 +481,10 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             emit_tree_node(out, node->expr_stmt.expr);
             break;
         case AST_BLOCK:
-            for (int i=0;i<node->block.count;i++) {
-                emit_tree_node(out, node->block.statements[i]);
-            }
+            emit_block(out, node, true);
+//            for (int i=0;i<node->block.count;i++) {
+//                emit_tree_node(out, node->block.statements[i]);
+//            }
             break;
         case AST_IF_STMT:
             emit_if_statement(out, node);
