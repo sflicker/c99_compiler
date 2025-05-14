@@ -36,7 +36,8 @@ typedef enum {
     AST_LESS_THAN,
     AST_LESS_EQUAL,
     AST_GREATER_THAN,
-    AST_GREATER_EQUAL
+    AST_GREATER_EQUAL,
+    AST_ASSERT_STATEMENT
 } ASTNodeType;
 
 typedef struct ASTNode {

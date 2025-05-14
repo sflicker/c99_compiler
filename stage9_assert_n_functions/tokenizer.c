@@ -9,7 +9,7 @@
 
 
 const char *keywords[] = {
-    "int", "return", "if", "else", "while", "for"
+    "int", "return", "if", "else", "while", "for", "assert"
 };
 
 const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
@@ -66,6 +66,9 @@ TokenType get_keyword_token(const char* keyword) {
     else if (strcmp(keyword, "for") == 0) {
         return TOKEN_FOR;
     }
+    else if (strcmp(keyword, "assert") == 0) {
+        return TOKEN_ASSERT;
+    }
     else {
         return TOKEN_UNKNOWN;
     }
@@ -111,6 +114,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_RETURN: return "RETURN";
         case TOKEN_WHILE: return "WHILE";
         case TOKEN_FOR: return "FOR";
+        case TOKEN_ASSERT: return "ASSERT";
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
         case TOKEN_INT_LITERAL: return "LITERAL_INT";
         case TOKEN_LPAREN: return "LPAREN";

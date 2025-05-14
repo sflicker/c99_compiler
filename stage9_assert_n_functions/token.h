@@ -8,6 +8,7 @@ typedef enum {
     TOKEN_ELSE,
     TOKEN_WHILE,
     TOKEN_FOR,
+    TOKEN_ASSERT,
     TOKEN_IDENTIFIER,
     TOKEN_INT_LITERAL,
     TOKEN_LPAREN,

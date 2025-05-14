@@ -28,6 +28,9 @@
                     | <for_statement>
                     | <block>
                     | <expression_stmt>
+                    | <assert_statement>
+
+    <assert_statement> ::= "assert" "(" <expression> ")" ";"
 
    <declaration> ::= "int" <identifier> [ "=" <expression> ] ";"
 
@@ -105,6 +108,7 @@ ASTNode * parse_for_statement(ParserContext * parserContext);
 ASTNode * parse_assignment_expression(ParserContext * parserContext);
 ASTNode * parse_logical_or(ParserContext * parserContext);
 ASTNode * parse_logical_and(ParserContext * parserContext);
+ASTNode * parse_assert_statement(ParserContext * parserContext);
 
 void update_current_token_info(ParserContext* parserContext);
 
@@ -224,6 +228,21 @@ ASTNode * parse_function(ParserContext* parserContext) {
     return func;
 }
 
+ASTNode * parse_assert_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_ASSERT);
+    expect_token(parserContext, TOKEN_LPAREN);
+
+    ASTNode * expr = parse_expression(parserContext);
+
+    expect_token(parserContext, TOKEN_RPAREN);
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_ASSERT_STATEMENT;
+    node->expr_stmt.expr = expr;
+    return node;
+}
+
 ASTNode * parse_block(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_LBRACE);
 
@@ -275,6 +294,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     }
     if (is_current_token(parserContext, TOKEN_FOR)) {
         return parse_for_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_ASSERT)) {
+        return parse_assert_statement(parserContext);
     }
     return parse_expression_statement(parserContext);
 }
@@ -789,6 +811,10 @@ void print_ast(ASTNode * node, int indent) {
             break;
         case AST_EXPRESSION_STMT:
             printf("ExpressionStatement\n");
+            print_ast(node->expr_stmt.expr, indent+1);
+            break;
+        case AST_ASSERT_STATEMENT:
+            printf("AssertStatement\n");
             print_ast(node->expr_stmt.expr, indent+1);
             break;
         case AST_VAR_DECL:

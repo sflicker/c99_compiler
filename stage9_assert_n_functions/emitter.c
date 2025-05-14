@@ -18,12 +18,45 @@ void emit_header(FILE* out) {
     fprintf(out, "\n");
 }
 
+void emit_trailer(FILE* out) {
+    fprintf(out, "\n");
+    fprintf(out, "section .rodata\n");
+    fprintf(out, "assert_fail_msg: db \"Assertion failed!\", 10\n");
+}
+
 void emit_label(FILE * out, const char * prefix, int num) {
     fprintf(out, ".L%s%d:\n", prefix, num);
 }
 
 void emit_jump(FILE * out, const char * op, const char * prefix, int num) {
     fprintf(out, "%s .L%s%d\n", op, prefix, num);
+}
+
+void emit_assert_statement(FILE * out, ASTNode * node) {
+    int label_pass = label_id++;
+
+    // evaluate expression
+    emit_tree_node(out, node->expr_stmt.expr);
+
+    // compare result in eax with 0
+    fprintf(out, "cmp eax, 0\n");
+    emit_jump(out, "jne", "assert_pass", label_pass);
+
+    // assert failed
+    // print message
+    fprintf(out, "mov rax, 1\n");
+    fprintf(out, "mov rdi, 1\n");
+    fprintf(out, "lea rsi, [rel assert_fail_msg]\n");
+    fprintf(out, "mov rdx, 17\n");
+    fprintf(out, "syscall\n");
+
+    // exit
+    fprintf(out, "mov rax, 60\n");
+    fprintf(out, "mov rdi, 1\n");
+    fprintf(out, "syscall\n");
+
+    emit_label(out, "assert_pass", label_pass);
+
 }
 
 void emit_logical_and(FILE * out, ASTNode * node) {
@@ -457,6 +490,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_PROGRAM:
             emit_header(out);
             emit_tree_node(out, node->program.function);
+            emit_trailer(out);
             break;
         case AST_FUNCTION:
             emit_function(out, node);
@@ -479,6 +513,9 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_EXPRESSION_STMT:
             emit_tree_node(out, node->expr_stmt.expr);
+            break;
+        case AST_ASSERT_STATEMENT:
+            emit_assert_statement(out, node);
             break;
         case AST_BLOCK:
             emit_block(out, node, true);
