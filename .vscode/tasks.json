@@ -96,7 +96,7 @@
         "type": "shell",
         "command": "make",
         "options": {
-          "cwd": "${workspaceFolder}/stage9_assert_and_functions"
+          "cwd": "${workspaceFolder}/stage9_assert_n_functions"
         },
         "group": "build",
         "problemMatcher": ["$gcc"]

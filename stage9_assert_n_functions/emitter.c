@@ -213,21 +213,21 @@ void emit_unary(FILE *out, ASTNode * node) {
             fprintf(out, "movzx eax, al\n");
             break;
         case AST_UNARY_PRE_INC: {
-            int offset = lookup_symbol(node->unary.operand->var_expression.name);
+            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             fprintf(out, "mov eax, [rbp%d]\n", offset);            
             fprintf(out, "add eax, 1\n");
             fprintf(out, "mov [rbp%d], eax\n", offset);
             break;
         }
         case AST_UNARY_PRE_DEC: {
-            int offset = lookup_symbol(node->unary.operand->var_expression.name);
+            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             fprintf(out, "mov eax, [rbp%d]\n", offset);            
             fprintf(out, "sub eax, 1\n");
             fprintf(out, "mov [rbp%d], eax\n", offset);
         break;
         }
         case AST_UNARY_POST_INC: {
-            int offset = lookup_symbol(node->unary.operand->var_expression.name);
+            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             fprintf(out, "mov ecx, eax\n");
             fprintf(out, "add eax, 1\n");
@@ -236,7 +236,7 @@ void emit_unary(FILE *out, ASTNode * node) {
             break;
         }
         case AST_UNARY_POST_DEC: {
-            int offset = lookup_symbol(node->unary.operand->var_expression.name);
+            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             fprintf(out, "mov ecx, eax\n");
             fprintf(out, "sub eax, 1\n");
@@ -295,9 +295,13 @@ void populate_symbol_table(ASTNode * node) {
     }
 
     switch(node->type) {
-        case AST_PROGRAM:
-            populate_symbol_table(node->program.function);
+        case AST_TRANSLATION_UNIT:
+        {   
+            for (int i=0;i<node->translation_unit.count;i++) {
+                populate_symbol_table(node->translation_unit.functions[i]);
+            }
             break;
+        }
         case AST_FUNCTION:
             populate_symbol_table(node->function.body);
             break;
@@ -308,9 +312,9 @@ void populate_symbol_table(ASTNode * node) {
             }
             break;
         case AST_VAR_DECL:
-            add_symbol(node->declaration.name);
-            if (node->declaration.init_expr) {
-                populate_symbol_table(node->declaration.init_expr);
+            add_symbol(node->var_decl.name);
+            if (node->var_decl.init_expr) {
+                populate_symbol_table(node->var_decl.init_expr);
             }
             break;
         case AST_ASSIGNMENT:
@@ -345,7 +349,7 @@ void populate_symbol_table(ASTNode * node) {
             populate_symbol_table(node->unary.operand);
             break;
         case AST_VAR_EXPR:
-            add_symbol(node->var_expression.name);
+            add_symbol(node->var_expr.name);
             break;
 
         case AST_WHILE_STMT:
@@ -410,10 +414,10 @@ void emit_function(FILE * out, ASTNode * node) {
 }
 
 void emit_var_declaration(FILE *out, ASTNode * node) {
-    add_symbol(node->declaration.name);
-    if (node->declaration.init_expr) {
-        int offset = lookup_symbol(node->declaration.name);
-        emit_tree_node(out, node->declaration.init_expr);
+    add_symbol(node->var_decl.name);
+    if (node->var_decl.init_expr) {
+        int offset = lookup_symbol(node->var_decl.name);
+        emit_tree_node(out, node->var_decl.init_expr);
         fprintf(out, "mov [rbp%d], eax\n", offset);
     }
 }
@@ -487,11 +491,15 @@ void emit_for_statement(FILE * out, ASTNode * node) {
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
-        case AST_PROGRAM:
+        case AST_TRANSLATION_UNIT:
+        {
             emit_header(out);
-            emit_tree_node(out, node->program.function);
+            for (int i=0;i<node->translation_unit.count;i++) {
+                emit_tree_node(out, node->translation_unit.functions[i]);
+            }
             emit_trailer(out);
             break;
+        }
         case AST_FUNCTION:
             emit_function(out, node);
             break;
@@ -593,7 +601,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             fprintf(out, "mov eax, %d\n", node->int_value);
             break;
         case AST_VAR_EXPR:
-            int offset = lookup_symbol(node->var_expression.name);
+            int offset = lookup_symbol(node->var_expr.name);
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             break;
         case AST_FOR_STMT:
@@ -603,13 +611,13 @@ void emit_tree_node(FILE * out, ASTNode * node) {
     }
 }
 
-void emit_program(ASTNode * program, const char * output_file) {
+void emit_translation_unit(ASTNode * translation_unit, const char * output_file) {
     FILE * ptr = fopen(output_file, "w");
 
     // init_symbol_table();
     // populate_symbol_table(program);
     
-    emit_tree_node(ptr, program);
+    emit_tree_node(ptr, translation_unit);
 
     fclose(ptr);
 }

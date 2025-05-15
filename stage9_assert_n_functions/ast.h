@@ -10,7 +10,7 @@ typedef enum {
     AST_FOR_STMT,
     AST_INT_LITERAL,
     AST_FUNCTION,
-    AST_PROGRAM,
+    AST_TRANSLATION_UNIT,
     AST_BLOCK,
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
@@ -46,17 +46,21 @@ typedef struct ASTNode {
         int int_value;
 
         struct {
-            struct ASTNode * expr;
-        } return_stmt;
+            struct ASTNode ** functions;
+            int count;
+        } translation_unit;
 
         struct {
             const char* name;
+            struct ASTNode** params;
+            int num_params;
             struct ASTNode* body;
+            bool declaration_only;
         } function;
 
         struct {
-            struct ASTNode * function;
-        } program;
+            struct ASTNode * expr;
+        } return_stmt;
 
         struct {
             struct ASTNode * lhs;
@@ -96,18 +100,18 @@ typedef struct ASTNode {
         } expr_stmt;
 
         struct {
-            char* name;
+            const char* name;
             struct ASTNode * init_expr; // NULL if no initializer
-        } declaration;
+        } var_decl;
 
         struct {
-            char * name;
+            const char * name;
             struct ASTNode * expr;
         } assignment;
 
         struct {
-            char * name;
-        } var_expression;
+            const char * name;
+        } var_expr;
 
     };
 } ASTNode;

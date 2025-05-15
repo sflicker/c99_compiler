@@ -100,10 +100,10 @@ int main(int argc, char ** argv) {
     ParserContext parserContext;
     initialize_parser(&parserContext, &tokenList);
 
-    ASTNode * program = parse_program(&parserContext);
-    print_ast(program, 0);
+    ASTNode * translation_unit = parse_translation_unit(&parserContext);
+    print_ast(translation_unit, 0);
 
-    emit_program(program, output_file);
+    emit_translation_unit(translation_unit, output_file);
 
     cleanup_token_list(&tokenList);
     

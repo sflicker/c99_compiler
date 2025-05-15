@@ -23,6 +23,7 @@ typedef enum {
     TOKEN_ASSIGN,
     TOKEN_LOGICAL_AND,
     TOKEN_LOGICAL_OR,
+    TOKEN_COMMA,
     TOKEN_EQ,
     TOKEN_NEQ,
     TOKEN_LE,

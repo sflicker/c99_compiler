@@ -40,7 +40,7 @@ bool is_keyword(const char * word) {
 }
 
 bool is_punctuator(char c) {
-    return c == '{' || c == '}' || c == '(' || c == ')' || c == ';';
+    return c == '{' || c == '}' || c == '(' || c == ')' || c == ';' || c == ',';
 }
 
 bool is_operator(char c) {
@@ -81,6 +81,8 @@ TokenType punctuator_token(char punctuator) {
         case '(': return TOKEN_LPAREN;
         case ')': return TOKEN_RPAREN;
         case ';': return TOKEN_SEMICOLON;
+        case ',': return TOKEN_COMMA;
+        
         // case '+': return TOKEN_PLUS;
         // case '-': return TOKEN_MINUS;
         // case '*': return TOKEN_STAR;
@@ -130,6 +132,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_NEQ: return "NEQ";
         case TOKEN_LOGICAL_AND: return "LOGICAL_AND";
         case TOKEN_LOGICAL_OR: return "LOGICAL_OR";
+        case TOKEN_COMMA: return "COMMA";
         case TOKEN_GT: return "GT";
         case TOKEN_GE: return "GE";
         case TOKEN_LT: return "LT";

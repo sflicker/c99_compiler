@@ -14,7 +14,7 @@
 
    Simplifed grammar
 
-   <program>       ::= <function>
+   <translation-unit>       ::= <function>
 
    <function> ::= "int" <identifier> "(" ")" <block>
 
@@ -86,13 +86,14 @@ Token* peek(ParserContext * parserContext);
 Token* advance(ParserContext * parserContext);
 bool match_token(ParserContext* p, TokenType type);
 
-ASTNode* parse_function(ParserContext * parserContext);
+ASTNode * parse_external_declaration(ParserContext * parserContext);
+ASTNode * parse_function(ParserContext * parserContext);
 ASTNode * parse_statement(ParserContext* parserContext);
-ASTNode* parse_return_statement(ParserContext * parserContext);
+ASTNode * parse_return_statement(ParserContext * parserContext);
 ASTNode * parse_block(ParserContext* parserContext);
 ASTNode * parse_if_statement(ParserContext * parserContext);
 ASTNode * parse_expression_statement(ParserContext * parserContext);
-ASTNode* parse_expression(ParserContext* parserContext);
+ASTNode * parse_expression(ParserContext* parserContext);
 ASTNode * parse_equality_expression(ParserContext * parserContext);
 ASTNode * parse_relational_expression(ParserContext * parserContext);
 ASTNode * parse_additive_expression(ParserContext * parserContext);
@@ -101,9 +102,9 @@ ASTNode * parse_unary_expression(ParserContext * parserContext);
 ASTNode * parse_postfix_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
-ASTNode*  parse_var_declaration(ParserContext * parserContext);
-ASTNode* parse_assignment_statement(ParserContext * parserContext);
-ASTNode* parse_while_statement(ParserContext * parserContext);
+ASTNode *  parse_var_declaration(ParserContext * parserContext);
+ASTNode * parse_assignment_statement(ParserContext * parserContext);
+ASTNode * parse_while_statement(ParserContext * parserContext);
 ASTNode * parse_for_statement(ParserContext * parserContext);
 ASTNode * parse_assignment_expression(ParserContext * parserContext);
 ASTNode * parse_logical_or(ParserContext * parserContext);
@@ -201,23 +202,79 @@ ASTNodeType binary_op_token_to_ast_type(TokenType tok) {
     }
 }
 
-ASTNode * parse_program(ParserContext * parserContext) {
-    ASTNode * function = parse_function(parserContext);
+ASTNode* parse_translation_unit(ParserContext * parserContext) {
+    ASTNode** functions = NULL;
+    int capacity = 8;
+    int count = 0;
+    functions = malloc(sizeof(ASTNode*) * capacity);
 
-    ASTNode * programNode = malloc(sizeof(ASTNode));
-    programNode->type = AST_PROGRAM;
-    programNode->program.function = function;
-    return programNode;
+    while (!is_current_token(parserContext, TOKEN_EOF)) {
+        // currently only supporting functions as topmost. will need to add file level variables.
+        ASTNode * function = parse_external_declaration(parserContext);
+        if (count >= capacity) {
+            capacity *= 2;
+            functions = realloc(functions, sizeof(ASTNode*) * capacity);
+        }
+        functions[count++] = function;
+    }
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_TRANSLATION_UNIT;
+    node->translation_unit.functions = functions;
+    node->translation_unit.count = count;
+    return node;
+}
+
+void append_params(ASTNode*** params_ptr, int * count_ptr, int* capacity_ptr, ASTNode* param) {
+    if (*params_ptr == NULL) {
+        *capacity_ptr = 4;
+        *params_ptr = malloc(sizeof(ASTNode*) * (*capacity_ptr));   
+    } else {
+        *capacity_ptr *= 2;
+        *params_ptr = realloc(*params_ptr, sizeof(ASTNode*) * (*capacity_ptr));
+    }
+
+    (*params_ptr)[(*count_ptr)++] = param;
+}
+
+ASTNode * parse_external_declaration(ParserContext * parserContext) {
+        // expect_token(parserContext, TOKEN_INT);
+        // Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
+
+        return parse_function(parserContext);
 }
 
 ASTNode * parse_function(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_INT);
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
     expect_token(parserContext, TOKEN_LPAREN);
+    ASTNode** params = NULL;
+    int param_count = 0;
+    int param_capacity = 0;
+
+    if (!is_current_token(parserContext, TOKEN_RPAREN)) {
+        do {
+            expect_token(parserContext, TOKEN_INT);
+            Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
+            ASTNode * param = malloc(sizeof(ASTNode));
+            param->var_decl.name = param_name->text;
+            param->var_decl.init_expr = NULL;
+            append_params(&params, &param_count, &param_capacity, param);
+        } while (match_token(parserContext, TOKEN_COMMA));
+    }
+
     expect_token(parserContext, TOKEN_RPAREN);
 //    expect_token(parserContext, TOKEN_LBRACE);
-    
-    ASTNode* function_block = parse_block(parserContext);
+    bool declaration_only;
+    ASTNode* function_block = NULL;
+    if (is_current_token(parserContext, TOKEN_LBRACE)) {
+        function_block = parse_block(parserContext);
+        declaration_only = false;
+    }
+    else {
+        expect_token(parserContext, TOKEN_SEMICOLON);
+        declaration_only = true;
+    }
 
 //    expect_token(parserContext, TOKEN_RBRACE);
 
@@ -225,6 +282,9 @@ ASTNode * parse_function(ParserContext* parserContext) {
     func->type = AST_FUNCTION;
     func->function.name = my_strdup(name->text);
     func->function.body = function_block;
+    func->function.params = params;
+    func->function.num_params = param_count;
+    func->function.declaration_only = declaration_only;
     return func;
 }
 
@@ -567,8 +627,8 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
 
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_VAR_DECL;
-    node->declaration.name = my_strdup(name->text);
-    node->declaration.init_expr = expr;
+    node->var_decl.name = my_strdup(name->text);
+    node->var_decl.init_expr = expr;
     return node;
 }
 
@@ -661,7 +721,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         Token * tok = advance(parserContext);
         ASTNode * node = malloc(sizeof(ASTNode));
         node->type = AST_VAR_EXPR;
-        node->var_expression.name = my_strdup(tok->text);
+        node->var_expr.name = my_strdup(tok->text);
         return node;
     }
 
@@ -675,10 +735,14 @@ void print_ast(ASTNode * node, int indent) {
     for (int i=0;i<indent;i++) printf("  ");
 
     switch(node->type) {
-        case AST_PROGRAM:
+        case AST_TRANSLATION_UNIT:
+        {
             printf("ProgramDecl:\n");
-            print_ast(node->program.function, 1);
+            for (int i=0;i<node->translation_unit.count;i++) {
+               print_ast(node->translation_unit.functions[i], indent+1);
+            }   
             break;
+        }
         case AST_FUNCTION:
             printf("FunctionDecl: %s\n", node->function.name);
             print_ast(node->function.body, indent+1);
@@ -818,9 +882,9 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->expr_stmt.expr, indent+1);
             break;
         case AST_VAR_DECL:
-            printf("VariableDeclaration: %s\n", node->declaration.name);
-            if (node->declaration.init_expr) {
-                print_ast(node->declaration.init_expr, indent+1);
+            printf("VariableDeclaration: %s\n", node->var_decl.name);
+            if (node->var_decl.init_expr) {
+                print_ast(node->var_decl.init_expr, indent+1);
             }
             break;
         case AST_ASSIGNMENT:
@@ -836,7 +900,7 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->assignment.expr, indent+1);
             break;
         case AST_VAR_EXPR:
-            printf("VariableExpression: %s\n", node->var_expression.name);
+            printf("VariableExpression: %s\n", node->var_expr.name);
             break;
         default:
             printf("Unknown AST Node Type: %d\n", node->type);
