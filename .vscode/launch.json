@@ -126,7 +126,7 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage9-assert-and-functions",
-        "args": ["tests/test_simple_function_call.c"]
+        "args": ["tests/test_function_call__25.c"]
       }
     ]
   }

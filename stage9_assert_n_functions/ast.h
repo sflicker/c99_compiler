@@ -69,7 +69,13 @@ typedef struct ASTNode {
         struct {
             const char * name;
             struct ASTNode * argument_expression_list;
+            int num_args;
         } function_call;
+
+        struct {
+            struct ASTNode * expression;
+            struct ASTNode * next;
+        } argument_list;
 
         struct {
             struct ASTNode * expr;
