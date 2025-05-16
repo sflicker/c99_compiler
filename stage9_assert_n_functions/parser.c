@@ -255,6 +255,37 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
         return parse_function(parserContext);
 }
 
+ASTNode * parse_param_list(ParserContext * parserContext) {
+
+    do {
+        expect_token(parserContext, TOKEN_INT);
+        Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
+        ASTNode * param = malloc(sizeof(ASTNode));
+        param->type = AST_VAR_DECL;
+        param->var_decl.name = param_name->text;
+        param->var_decl.init_expr = NULL;
+//            append_params(&params, &param_count, &param_capacity, param);
+        if (param_list == NULL) {
+            param_list = malloc(sizeof(ASTNode));
+            param_list->type = AST_PARAM_LIST;
+            param_list->param_list.param = param;
+            param_list->param_list.next = NULL;
+            param_curr = param_list;
+        }
+        else {
+            ASTNode * param_next = malloc(sizeof(ASTNode));
+            param_next->type = AST_PARAM_LIST;
+            param_next->param_list.param = param;
+            param_next->param_list.next = NULL;
+            param_curr->param_list.next = param_next;
+            param_curr = param_next;
+        }
+        param_count++;
+
+    } while (match_token(parserContext, TOKEN_COMMA));
+    return param_list;
+}
+
 ASTNode * parse_function(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_INT);
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
@@ -265,32 +296,7 @@ ASTNode * parse_function(ParserContext* parserContext) {
 //    int param_capacity = 0;
 
     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-        do {
-            expect_token(parserContext, TOKEN_INT);
-            Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
-            ASTNode * param = malloc(sizeof(ASTNode));
-            param->type = AST_VAR_DECL;
-            param->var_decl.name = param_name->text;
-            param->var_decl.init_expr = NULL;
-//            append_params(&params, &param_count, &param_capacity, param);
-            if (param_list == NULL) {
-                param_list = malloc(sizeof(ASTNode));
-                param_list->type = AST_PARAM_LIST;
-                param_list->param_list.param = param;
-                param_list->param_list.next = NULL;
-                param_curr = param_list;
-            }
-            else {
-                ASTNode * param_next = malloc(sizeof(ASTNode));
-                param_next->type = AST_PARAM_LIST;
-                param_next->param_list.param = param;
-                param_next->param_list.next = NULL;
-                param_curr->param_list.next = param_next;
-                param_curr = param_next;
-            }
-            param_count++;
-
-        } while (match_token(parserContext, TOKEN_COMMA));
+        param_list = parse_param_list(parserContext);
     }
 
     expect_token(parserContext, TOKEN_RPAREN);
@@ -735,6 +741,9 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
 ASTNode * parse_argument_expression_list(ParserContext * parserContext) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_ARGUMENT_EXPRESSION_LIST;
+
+
+
     return NULL;
 }
 
