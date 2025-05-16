@@ -16,7 +16,12 @@
 
    <translation-unit>       ::= <function>
 
-   <function> ::= "int" <identifier> "(" ")" <block>
+   <function> ::= "int" <identifier> "(" <parameter_list>* ")" <block>
+
+   <parameter_list> ::=   <parameter_declaration>
+                        | <parameter_list>, <parameter_declaration>
+
+   <parameter_declaration> ::= "int" <identifier>                        
 
    <block> ::= "{" { <statement> } "}"
 
@@ -70,7 +75,13 @@
 
    <primary>     ::= <int_literal> 
                     | <identifier>
+                    | <identifier> "(" <argument-expression-list>* ")"
                     | "(" <expression> ")"
+
+   <argument-expression-list> ::= <assignment-expression>
+                                | <argument-expression-list> , <assignment-expression>                    
+
+   wee4r                                
 
    <identifier>    ::= [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -225,17 +236,17 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
     return node;
 }
 
-void append_params(ASTNode*** params_ptr, int * count_ptr, int* capacity_ptr, ASTNode* param) {
-    if (*params_ptr == NULL) {
-        *capacity_ptr = 4;
-        *params_ptr = malloc(sizeof(ASTNode*) * (*capacity_ptr));   
-    } else {
-        *capacity_ptr *= 2;
-        *params_ptr = realloc(*params_ptr, sizeof(ASTNode*) * (*capacity_ptr));
-    }
+// void append_params(ASTNode*** params_ptr, int * count_ptr, int* capacity_ptr, ASTNode* param) {
+//     if (*params_ptr == NULL) {
+//         *capacity_ptr = 4;
+//         *params_ptr = malloc(sizeof(ASTNode*) * (*capacity_ptr));   
+//     } else {
+//         *capacity_ptr *= 2;
+//         *params_ptr = realloc(*params_ptr, sizeof(ASTNode*) * (*capacity_ptr));
+//     }
 
-    (*params_ptr)[(*count_ptr)++] = param;
-}
+//     (*params_ptr)[(*count_ptr)++] = param;
+// }
 
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
         // expect_token(parserContext, TOKEN_INT);
@@ -248,18 +259,37 @@ ASTNode * parse_function(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_INT);
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
     expect_token(parserContext, TOKEN_LPAREN);
-    ASTNode** params = NULL;
+    ASTNode *param_list = NULL;
+    ASTNode *param_curr = NULL;
     int param_count = 0;
-    int param_capacity = 0;
+//    int param_capacity = 0;
 
     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
         do {
             expect_token(parserContext, TOKEN_INT);
             Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
             ASTNode * param = malloc(sizeof(ASTNode));
+            param->type = AST_VAR_DECL;
             param->var_decl.name = param_name->text;
             param->var_decl.init_expr = NULL;
-            append_params(&params, &param_count, &param_capacity, param);
+//            append_params(&params, &param_count, &param_capacity, param);
+            if (param_list == NULL) {
+                param_list = malloc(sizeof(ASTNode));
+                param_list->type = AST_PARAM_LIST;
+                param_list->param_list.param = param;
+                param_list->param_list.next = NULL;
+                param_curr = param_list;
+            }
+            else {
+                ASTNode * param_next = malloc(sizeof(ASTNode));
+                param_next->type = AST_PARAM_LIST;
+                param_next->param_list.param = param;
+                param_next->param_list.next = NULL;
+                param_curr->param_list.next = param_next;
+                param_curr = param_next;
+            }
+            param_count++;
+
         } while (match_token(parserContext, TOKEN_COMMA));
     }
 
@@ -279,12 +309,12 @@ ASTNode * parse_function(ParserContext* parserContext) {
 //    expect_token(parserContext, TOKEN_RBRACE);
 
     ASTNode * func = malloc(sizeof(ASTNode));
-    func->type = AST_FUNCTION;
-    func->function.name = my_strdup(name->text);
-    func->function.body = function_block;
-    func->function.params = params;
-    func->function.num_params = param_count;
-    func->function.declaration_only = declaration_only;
+    func->type = AST_FUNCTION_DECL;
+    func->function_decl.name = my_strdup(name->text);
+    func->function_decl.body = function_block;
+    func->function_decl.param_list = param_list;
+    func->function_decl.num_params = param_count;
+    func->function_decl.declaration_only = declaration_only;
     return func;
 }
 
@@ -702,6 +732,13 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
     return primary;
 }
 
+ASTNode * parse_argument_expression_list(ParserContext * parserContext) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_ARGUMENT_EXPRESSION_LIST;
+    return NULL;
+}
+
+
 ASTNode * parse_primary(ParserContext * parserContext) {
 
     if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
@@ -719,10 +756,22 @@ ASTNode * parse_primary(ParserContext * parserContext) {
     }
     else if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
         Token * tok = advance(parserContext);
-        ASTNode * node = malloc(sizeof(ASTNode));
-        node->type = AST_VAR_EXPR;
-        node->var_expr.name = my_strdup(tok->text);
-        return node;
+        if (is_current_token(parserContext, TOKEN_LPAREN)) {
+            advance(parserContext);
+            ASTNode * argument_expression_list = parse_argument_expression_list(parserContext);
+            expect_token(parserContext, TOKEN_RPAREN);
+            ASTNode * node = malloc(sizeof(ASTNode));
+            node->type = AST_FUNCTION_CALL;
+            node->function_call.name = my_strdup(tok->text);
+            node->function_call.argument_expression_list = argument_expression_list;
+            return node;
+        }
+        else {
+            ASTNode * node = malloc(sizeof(ASTNode));
+            node->type = AST_VAR_EXPR;
+            node->var_expr.name = my_strdup(tok->text);
+            return node;
+        }
     }
 
     return NULL;
@@ -737,15 +786,17 @@ void print_ast(ASTNode * node, int indent) {
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
         {
-            printf("ProgramDecl:\n");
+            printf("TranslationUnit:\n");
             for (int i=0;i<node->translation_unit.count;i++) {
                print_ast(node->translation_unit.functions[i], indent+1);
             }   
             break;
         }
-        case AST_FUNCTION:
-            printf("FunctionDecl: %s\n", node->function.name);
-            print_ast(node->function.body, indent+1);
+        case AST_FUNCTION_DECL:
+            printf("FunctionDecl: %s\n", node->function_decl.name);
+            if (node->function_decl.body) {
+                print_ast(node->function_decl.body, indent+1);
+            }
             break;
         case AST_RETURN_STMT:
             printf("ReturnStmt:\n");

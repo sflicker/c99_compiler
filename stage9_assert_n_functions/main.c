@@ -15,12 +15,12 @@
 
 
 
-void formatted_output(const char * label, const char * text, TokenType tokenType) {
+void token_formatted_output(const char * label, const char * text, TokenType tokenType, int num) {
     char left[64];
     char right[64];
     snprintf(left, sizeof(left), "%s: %s", label, text);
     snprintf(right, sizeof(right), "TOKEN_TYPE: %s", token_type_name(tokenType));
-    printf("%-25s %-25s\n", left, right);
+    printf("[%6d]  %-25s %-25s\n", num, left, right);
 }
 
 /* main and related */
@@ -94,7 +94,7 @@ int main(int argc, char ** argv) {
     // output list
     for (int i=0;i<tokenList.count;i++) {
         Token token = tokenList.data[i];
-        formatted_output("TOKEN:", token.text, token.type);
+        token_formatted_output("TOKEN:", token.text, token.type, i);
     }
 
     ParserContext parserContext;

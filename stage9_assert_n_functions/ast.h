@@ -9,12 +9,15 @@ typedef enum {
     AST_WHILE_STMT,
     AST_FOR_STMT,
     AST_INT_LITERAL,
-    AST_FUNCTION,
+    AST_FUNCTION_DECL,
+    AST_FUNCTION_CALL,
     AST_TRANSLATION_UNIT,
     AST_BLOCK,
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
     AST_VAR_EXPR,
+    AST_PARAM_LIST,
+    AST_ARGUMENT_EXPRESSION_LIST,
     AST_ASSIGNMENT,
     AST_COMPOUND_ADD_ASSIGN,
     AST_COMPOUND_SUB_ASSIGN,
@@ -52,11 +55,21 @@ typedef struct ASTNode {
 
         struct {
             const char* name;
-            struct ASTNode** params;
+            struct ASTNode* param_list;
             int num_params;
             struct ASTNode* body;
             bool declaration_only;
-        } function;
+        } function_decl;
+
+        struct {
+            struct ASTNode * param;
+            struct ASTNode * next;
+        } param_list;
+
+        struct {
+            const char * name;
+            struct ASTNode * argument_expression_list;
+        } function_call;
 
         struct {
             struct ASTNode * expr;

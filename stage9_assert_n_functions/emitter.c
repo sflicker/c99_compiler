@@ -302,8 +302,8 @@ void populate_symbol_table(ASTNode * node) {
             }
             break;
         }
-        case AST_FUNCTION:
-            populate_symbol_table(node->function.body);
+        case AST_FUNCTION_DECL:
+            populate_symbol_table(node->function_decl.body);
             break;
         
         case AST_BLOCK:
@@ -392,7 +392,7 @@ void emit_function(FILE * out, ASTNode * node) {
 // TODO NEED TO CALCULATE THE SPACE USED BY VARS IN THIS FUNCTION INCLUDING BLOCKS
 
     // create label for function
-    fprintf(out, "%s:\n", node->function.name);
+    fprintf(out, "%s:\n", node->function_decl.name);
 
     fprintf(out, "push rbp\n");
     fprintf(out,  "mov rbp, rsp\n");
@@ -403,7 +403,7 @@ void emit_function(FILE * out, ASTNode * node) {
         fprintf(out, "sub rsp, %d\n", local_space);
     }
     
-    emit_block(out, node->function.body, false);
+    emit_block(out, node->function_decl.body, false);
 
 //    fprintf(out, "pop rbp\n");
     fprintf(out, "leave\n");
@@ -500,7 +500,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             emit_trailer(out);
             break;
         }
-        case AST_FUNCTION:
+        case AST_FUNCTION_DECL:
             emit_function(out, node);
             break;
         case AST_VAR_DECL:
@@ -518,6 +518,15 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_RETURN_STMT:
             emit_tree_node(out, node->return_stmt.expr);
 //            fprintf(out, "ret\n");
+            break;
+        case AST_FUNCTION_CALL:
+            //TODO
+            break;
+        case AST_PARAM_LIST:
+            //TODO
+            break;
+        case AST_ARGUMENT_EXPRESSION_LIST:
+            // TODO
             break;
         case AST_EXPRESSION_STMT:
             emit_tree_node(out, node->expr_stmt.expr);
