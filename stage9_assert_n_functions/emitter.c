@@ -481,6 +481,33 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     exit_scope();
 }
 
+void emit_function_call(FILE * out, struct ASTNode * node) {
+    // if the call has arguments
+    // first get a reversed list
+    // then emit each arg then push it
+    struct node_list * reversed_list = NULL;
+    if (node->function_call.argument_expression_list) {
+        struct node_list * reversed_list = reverse_list(node->function_call.argument_expression_list);
+
+        for (struct node_list * arg = reversed_list;arg != NULL; arg = arg->next) {
+            emit_tree_node(out, arg->node);
+            fprintf(out, "push rax\n");
+        }
+    }
+
+    // call the function
+    fprintf(out, "call %s\n", node->function_call.name);
+
+    // clean up arguments
+    int total_arg_size = get_node_list_count(reversed_list) * 8;
+    if (total_arg_size > 0) {
+        fprintf(out, "add rsp, %d\n", total_arg_size);
+    }
+
+    if (reversed_list) {
+        free_node_list(reversed_list);
+    }
+}
 
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
@@ -514,7 +541,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
 //            fprintf(out, "ret\n");
             break;
         case AST_FUNCTION_CALL:
-            //TODO
+            emit_function_call(out, node);
             break;
         case AST_EXPRESSION_STMT:
             emit_tree_node(out, node->expr_stmt.expr);

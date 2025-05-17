@@ -56,3 +56,24 @@ void add_node_list(struct node_list * list, void * node) {
     }
 
 }
+
+struct node_list * reverse_list(node_list * head) {
+    struct node_list * reversed = NULL;
+
+    for (struct node_list * current = head; current != NULL; current = current->next) {
+        struct node_list * new_node = create_node_list();
+        new_node->node = current->node;
+        new_node->next = reversed;
+        reversed = new_node;
+    }
+    return reversed;
+}
+
+void free_node_list(struct node_list * list) {
+    while(list != NULL) {
+        struct node_list * next = list->next;
+        free(list);
+        list = next;
+    }
+}
+
