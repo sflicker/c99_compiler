@@ -9,6 +9,7 @@
 #include "symtab.h"
 
 void emit_tree_node(FILE * out, ASTNode * node);
+void emit_var_declaration(FILE *out, ASTNode * node);
 
 static int label_id = 0;
 
@@ -303,9 +304,15 @@ void populate_symbol_table(ASTNode * node) {
             break;
         }
         case AST_FUNCTION_DECL:
-            populate_symbol_table(node->function_decl.body);
-            break;
-        
+            {
+                if (node->function_decl.param_list) {
+                    for (struct node_list * param_list = node->function_decl.param_list; param_list != NULL; param_list = param_list->next) {
+                        populate_symbol_table(param_list->node);
+                    }
+                }
+                populate_symbol_table(node->function_decl.body);
+                break;
+            }
         case AST_BLOCK:
             for (int i=0;i<node->block.count;i++) {
                 populate_symbol_table(node->block.statements[i]);
@@ -349,7 +356,7 @@ void populate_symbol_table(ASTNode * node) {
             populate_symbol_table(node->unary.operand);
             break;
         case AST_VAR_EXPR:
-            add_symbol(node->var_expr.name);
+//            add_symbol(node->var_expr.name);
             break;
 
         case AST_WHILE_STMT:
@@ -392,6 +399,7 @@ void emit_function(FILE * out, ASTNode * node) {
 // TODO NEED TO CALCULATE THE SPACE USED BY VARS IN THIS FUNCTION INCLUDING BLOCKS
 
     // create label for function
+//    fprintf(out, "global %s", node->function_decl.name);
     fprintf(out, "%s:\n", node->function_decl.name);
 
     fprintf(out, "push rbp\n");
@@ -403,6 +411,13 @@ void emit_function(FILE * out, ASTNode * node) {
         fprintf(out, "sub rsp, %d\n", local_space);
     }
     
+    if (node->function_decl.param_list) {
+        for (struct node_list * param = node->function_decl.param_list; param != NULL; param = param->next) {
+            ASTNode * var_decl = param->node;
+            emit_var_declaration(out, var_decl);
+        }
+    }
+
     emit_block(out, node->function_decl.body, false);
 
 //    fprintf(out, "pop rbp\n");
@@ -521,12 +536,6 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_FUNCTION_CALL:
             //TODO
-            break;
-        case AST_PARAM_LIST:
-            //TODO
-            break;
-        case AST_ARGUMENT_EXPRESSION_LIST:
-            // TODO
             break;
         case AST_EXPRESSION_STMT:
             emit_tree_node(out, node->expr_stmt.expr);

@@ -16,8 +16,8 @@ typedef enum {
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
     AST_VAR_EXPR,
-    AST_PARAM_LIST,
-    AST_ARGUMENT_EXPRESSION_LIST,
+//    AST_PARAM_LIST,
+//    AST_ARGUMENT_EXPRESSION_LIST,
     AST_ASSIGNMENT,
     AST_COMPOUND_ADD_ASSIGN,
     AST_COMPOUND_SUB_ASSIGN,
@@ -55,27 +55,28 @@ typedef struct ASTNode {
 
         struct {
             const char* name;
-            struct ASTNode* param_list;
-            int num_params;
+            struct node_list* param_list;
+  //          int num_params;
             struct ASTNode* body;
             bool declaration_only;
         } function_decl;
 
-        struct {
-            struct ASTNode * param;
-            struct ASTNode * next;
-        } param_list;
+        // struct {
+        //     struct ASTNode * param;
+        //     struct ASTNode * next;
+        // } param_list;
 
         struct {
             const char * name;
-            struct ASTNode * argument_expression_list;
-            int num_args;
+            struct node_list * argument_expression_list;
+//            struct ASTNode * argument_expression_list;
+//            int num_args;
         } function_call;
 
-        struct {
-            struct ASTNode * expression;
-            struct ASTNode * next;
-        } argument_list;
+        // struct {
+        //     struct ASTNode * expression;
+        //     struct ASTNode * next;
+        // } argument_list;
 
         struct {
             struct ASTNode * expr;
@@ -134,5 +135,10 @@ typedef struct ASTNode {
 
     };
 } ASTNode;
+
+typedef struct node_list {
+    struct ASTNode * node;
+    struct node_list * next;
+} node_list;
 
 #endif
