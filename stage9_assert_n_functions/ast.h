@@ -1,6 +1,8 @@
 #ifndef AST_H
 #define AST_H
 
+#include <stdbool.h>
+
 #include "token.h"
 #include "util.h"
 
@@ -12,6 +14,8 @@ typedef enum {
     AST_INT_LITERAL,
     AST_FUNCTION_DECL,
     AST_FUNCTION_CALL,
+    AST_PARAM_LIST,
+    AST_ARG_LIST,
     AST_TRANSLATION_UNIT,
     AST_BLOCK,
     AST_EXPRESSION_STMT,
@@ -54,10 +58,15 @@ typedef struct ASTNode {
 
         struct {
             const char* name;
-            struct node_list* param_list;
+            struct ASTNode* param_list;
             struct ASTNode* body;
             bool declaration_only;
+            int size;
         } function_decl;
+
+        struct {
+            struct node_list * node_list;
+        } param_list;
 
         struct {
             const char * name;
@@ -108,15 +117,18 @@ typedef struct ASTNode {
         struct {
             const char* name;
             struct ASTNode * init_expr; // NULL if no initializer
+            int offset;
         } var_decl;
 
         struct {
             const char * name;
+            int offset;
             struct ASTNode * expr;
         } assignment;
 
         struct {
             const char * name;
+            int offset;
         } var_expr;
 
     };

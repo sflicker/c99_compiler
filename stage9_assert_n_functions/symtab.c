@@ -16,7 +16,6 @@ typedef struct Scope {
     struct Scope * parent;
 } Scope;
 
-
 // #define MAX_SYMBOLS 128
 
 // typedef struct {
@@ -32,6 +31,10 @@ Scope * current_scope = NULL;
 int current_offset = 0;
 int next_offset = -4;
 
+int storage_size = 0;
+
+struct node_list * node_to_offset_list = NULL;
+
 // void init_symbol_table() {
 //     SymbolTable* symbolTable = &globalSymTable;
 //     symbolTable->count = 0;
@@ -43,6 +46,9 @@ void set_current_offset(int offset) {
     next_offset = offset - 4;
 }
 
+void reset_storage_size() {
+    storage_size = 0;
+}
 
 void enter_scope() {
     Scope * scope = malloc(sizeof(Scope));
@@ -64,7 +70,7 @@ void exit_scope() {
     free(old);
 }
 
-void add_symbol(const char * name) {
+int add_symbol(const char * name, ASTNode * owner) {
     // check if symbol currently exists in current scope only
     // error and exit if so.
     Symbol * sym = current_scope->symbols;
@@ -84,7 +90,8 @@ void add_symbol(const char * name) {
 
     new_symbol->next = current_scope->symbols;
     current_scope->symbols = new_symbol;
-
+    storage_size += 4;
+    return new_symbol->offset;
 }
 
 //int add_symbol(const char * name) {
@@ -129,9 +136,11 @@ int lookup_symbol(const char* name) {
 
 int get_symbol_total_space() {
 
+    return storage_size;
+
     // TODO COULD MAKE THIS TAKE A PARAMETER THAN SCAN THE TREE BELOW FOR NOW JUST RETURN 64
 
-    return 64;
+    //return 64;
 
 //     int count=0;
 //     for (Scope * scope = current_scope; scope != NULL; scope = scope->parent) {

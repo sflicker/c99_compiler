@@ -6,7 +6,7 @@
 
 #include "emitter.h"
 #include "token.h"
-#include "symtab.h"
+//#include "symtab.h"
 #include "util.h"
 
 void emit_tree_node(FILE * out, ASTNode * node);
@@ -193,21 +193,24 @@ void emit_unary(FILE *out, ASTNode * node) {
             fprintf(out, "movzx eax, al\n");
             break;
         case AST_UNARY_PRE_INC: {
-            int offset = lookup_symbol(node->unary.operand->var_expr.name);
+//            int offset = lookup_symbol(node->unary.operand->var_expr.name);
+            int offset = node->unary.operand->var_expr.offset;
             fprintf(out, "mov eax, [rbp%d]\n", offset);            
             fprintf(out, "add eax, 1\n");
             fprintf(out, "mov [rbp%d], eax\n", offset);
             break;
         }
         case AST_UNARY_PRE_DEC: {
-            int offset = lookup_symbol(node->unary.operand->var_expr.name);
+//            int offset = lookup_symbol(node->unary.operand->var_expr.name);
+            int offset = node->unary.operand->var_expr.offset;
             fprintf(out, "mov eax, [rbp%d]\n", offset);            
             fprintf(out, "sub eax, 1\n");
             fprintf(out, "mov [rbp%d], eax\n", offset);
         break;
         }
         case AST_UNARY_POST_INC: {
-            int offset = lookup_symbol(node->unary.operand->var_expr.name);
+//            int offset = lookup_symbol(node->unary.operand->var_expr.name);
+            int offset = node->unary.operand->var_expr.offset;
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             fprintf(out, "mov ecx, eax\n");
             fprintf(out, "add eax, 1\n");
@@ -216,7 +219,8 @@ void emit_unary(FILE *out, ASTNode * node) {
             break;
         }
         case AST_UNARY_POST_DEC: {
-            int offset = lookup_symbol(node->unary.operand->var_expr.name);
+//            int offset = lookup_symbol(node->unary.operand->var_expr.name);
+            int offset = node->unary.operand->var_expr.offset;
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             fprintf(out, "mov ecx, eax\n");
             fprintf(out, "sub eax, 1\n");
@@ -269,112 +273,40 @@ void emit_while_statement(FILE* out, ASTNode * node) {
     emit_label(out, "while_end", id); 
 }
 
-void populate_symbol_table(ASTNode * node) {
-    if (!node) {
-        return;
-    }
-
-    switch(node->type) {
-        case AST_TRANSLATION_UNIT:
-        {   
-            for (int i=0;i<node->translation_unit.count;i++) {
-                populate_symbol_table(node->translation_unit.functions[i]);
-            }
-            break;
-        }
-        case AST_FUNCTION_DECL:
-            {
-                if (node->function_decl.param_list) {
-                    for (struct node_list * param_list = node->function_decl.param_list; param_list != NULL; param_list = param_list->next) {
-                        populate_symbol_table(param_list->node);
-                    }
-                }
-                populate_symbol_table(node->function_decl.body);
-                break;
-            }
-        case AST_BLOCK:
-            for (int i=0;i<node->block.count;i++) {
-                populate_symbol_table(node->block.statements[i]);
-            }
-            break;
-        case AST_VAR_DECL:
-            add_symbol(node->var_decl.name);
-            if (node->var_decl.init_expr) {
-                populate_symbol_table(node->var_decl.init_expr);
-            }
-            break;
-        case AST_ASSIGNMENT:
-        case AST_COMPOUND_ADD_ASSIGN:
-        case AST_COMPOUND_SUB_ASSIGN:
-//            add_symbol(node->assignment.name);  
-            populate_symbol_table(node->assignment.expr);
-            break;
-        case AST_RETURN_STMT:
-            populate_symbol_table(node->return_stmt.expr);
-            break;
-
-        case AST_IF_STMT:
-            populate_symbol_table(node->if_stmt.cond);
-            populate_symbol_table(node->if_stmt.then_statement);
-            if (node->if_stmt.else_statement) {
-                populate_symbol_table(node->if_stmt.else_statement);
-            }
-            break;
-
-        case AST_EXPRESSION_STMT:
-            populate_symbol_table(node->expr_stmt.expr);
-            break;
-
-        case AST_UNARY_POST_INC:
-        case AST_UNARY_POST_DEC:
-        case AST_UNARY_PRE_INC:
-        case AST_UNARY_PRE_DEC:
-        case AST_UNARY_NEGATE:
-        case AST_UNARY_NOT:
-        case AST_UNARY_PLUS:
-            populate_symbol_table(node->unary.operand);
-            break;
-        case AST_VAR_EXPR:
-//            add_symbol(node->var_expr.name);
-            break;
-
-        case AST_WHILE_STMT:
-            populate_symbol_table(node->while_stmt.cond);
-            populate_symbol_table(node->while_stmt.body);
-
-        case AST_FOR_STMT:
-            populate_symbol_table(node->for_stmt.init_expr);
-            populate_symbol_table(node->for_stmt.cond_expr);
-            populate_symbol_table(node->for_stmt.update_expr);
-            populate_symbol_table(node->for_stmt.body);
-            break;
-
-        default:
-            break;
-    }
-}
 
 void emit_block(FILE * out, ASTNode * node, bool enterNewScope) {
 
-    if (enterNewScope) {
-        enter_scope();
-    }
+    // if (enterNewScope) {
+    //     enter_scope();
+    // }
 
     for (int i=0;i<node->block.count;i++) {
         emit_tree_node(out, node->block.statements[i]);
     }
 
-    if (enterNewScope) {
-        exit_scope();
-    }
+    // if (enterNewScope) {
+    //     exit_scope();
+    // }
 }
 
 void emit_function(FILE * out, ASTNode * node) {
 
-    set_current_offset(0);
-    enter_scope();
+    // prescan tree to get storage size
+//    set_current_offset(0);
+//    enter_scope();
 
-//    populate_symbol_table(node);
+//    populate_symbol_table(node, false);
+    int local_space = node->function_decl.size;
+
+    // reset symbol table
+//    exit_scope();
+
+//    reset_storage_size();
+    
+//    set_current_offset(0);
+//    enter_scope();
+    
+
 // TODO NEED TO CALCULATE THE SPACE USED BY VARS IN THIS FUNCTION INCLUDING BLOCKS
 
     // create label for function
@@ -384,14 +316,13 @@ void emit_function(FILE * out, ASTNode * node) {
     fprintf(out, "push rbp\n");
     fprintf(out,  "mov rbp, rsp\n");
 
-    int local_space = get_symbol_total_space();
     if (local_space > 0) {
         //local_space = 16; //TODO may need to round the original local space to a 16 boundary
         fprintf(out, "sub rsp, %d\n", local_space);
     }
     
     if (node->function_decl.param_list) {
-        for (struct node_list * param = node->function_decl.param_list; param != NULL; param = param->next) {
+        for (struct node_list * param = node->function_decl.param_list->param_list.node_list; param != NULL; param = param->next) {
             ASTNode * var_decl = param->node;
             emit_var_declaration(out, var_decl);
         }
@@ -403,14 +334,16 @@ void emit_function(FILE * out, ASTNode * node) {
     fprintf(out, "leave\n");
     fprintf(out, "ret\n");
 
-    exit_scope();
-    set_current_offset(0);
+    // exit_scope();
+    // set_current_offset(0);
 }
 
 void emit_var_declaration(FILE *out, ASTNode * node) {
-    add_symbol(node->var_decl.name);
+    //add_symbol(node->var_decl.name);
     if (node->var_decl.init_expr) {
-        int offset = lookup_symbol(node->var_decl.name);
+//        int offset = lookup_symbol(node->var_decl.name);
+//        int offset = lookup_symbol(node->var_decl.name);
+        int offset = node->var_decl.offset;
         emit_tree_node(out, node->var_decl.init_expr);
         fprintf(out, "mov [rbp%d], eax\n", offset);
     }
@@ -418,12 +351,14 @@ void emit_var_declaration(FILE *out, ASTNode * node) {
 
 void emit_assignment(FILE * out, ASTNode* node) {
     emit_tree_node(out, node->assignment.expr);
-    int offset = lookup_symbol(node->assignment.name);
+//    int offset = lookup_symbol(node->assignment.name);
+    int offset = node->assignment.offset;
     fprintf(out, "mov [rbp%d], eax\n", offset);
 }
 
 void emit_add_assignment(FILE *out, ASTNode * node) {
-    int offset = lookup_symbol(node->assignment.name);
+    //int offset = lookup_symbol(node->assignment.name);
+    int offset = node->assignment.offset;
     fprintf(out, "mov eax, [rbp%d]\n", offset);
     fprintf(out, "push rax\n");
     emit_tree_node(out, node->assignment.expr);
@@ -433,7 +368,8 @@ void emit_add_assignment(FILE *out, ASTNode * node) {
 }
 
 void emit_sub_assignment(FILE *out, ASTNode * node) {
-    int offset = lookup_symbol(node->assignment.name);
+    //int offset = lookup_symbol(node->assignment.name);
+    int offset = node->assignment.offset;
     emit_tree_node(out, node->assignment.expr);
     fprintf(out, "mov ecx, eax\n");
     fprintf(out, "mov eax, [rbp%d]\n", offset);
@@ -446,7 +382,7 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     int label_cond = label_id++;
     int label_end = label_id++;
 
-    enter_scope();
+//    enter_scope();
 
     // initializer
     if (node->for_stmt.init_expr) {
@@ -478,7 +414,7 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     // end label
     emit_label(out, "end", label_end);
 
-    exit_scope();
+//    exit_scope();
 }
 
 void emit_function_call(FILE * out, struct ASTNode * node) {
@@ -609,7 +545,8 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             fprintf(out, "mov eax, %d\n", node->int_value);
             break;
         case AST_VAR_EXPR:
-            int offset = lookup_symbol(node->var_expr.name);
+//            int offset = lookup_symbol(node->var_expr.name);
+            int offset = node->var_expr.offset;
             fprintf(out, "mov eax, [rbp%d]\n", offset);
             break;
         case AST_FOR_STMT:
@@ -623,7 +560,7 @@ void emit_translation_unit(ASTNode * translation_unit, const char * output_file)
     FILE * ptr = fopen(output_file, "w");
 
     // init_symbol_table();
-    // populate_symbol_table(program);
+
     
     emit_tree_node(ptr, translation_unit);
 

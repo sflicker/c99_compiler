@@ -10,8 +10,8 @@
 #include "parser.h"
 #include "token.h"
 #include "tokenizer.h"
-
-
+#include "runtime_info_decorator.h"
+#include "ast_printer.h"
 
 
 
@@ -101,6 +101,7 @@ int main(int argc, char ** argv) {
     initialize_parser(&parserContext, &tokenList);
 
     ASTNode * translation_unit = parse_translation_unit(&parserContext);
+    populate_symbol_table(translation_unit, true);
     print_ast(translation_unit, 0);
 
     emit_translation_unit(translation_unit, output_file);
