@@ -249,6 +249,7 @@ ASTNode * parse_param_list(ParserContext * parserContext) {
         param->type = AST_VAR_DECL;
         param->var_decl.name = param_name->text;
         param->var_decl.init_expr = NULL;
+        param->var_decl.offset = 0;
         if (param_list == NULL) {
             param_list = create_node_list(param);
 //            add_node_list(param_list, param);
@@ -663,6 +664,7 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
     node->type = AST_VAR_DECL;
     node->var_decl.name = my_strdup(name->text);
     node->var_decl.init_expr = expr;
+    node->var_decl.offset = 0;
     return node;
 }
 
@@ -682,6 +684,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         node->type = AST_ASSIGNMENT;
         node->assignment.name = my_strdup(name->text);
         node->assignment.expr = expr;
+        node->assignment.offset = 0;
         return node;
     }
     else if (is_current_token(parserContext, TOKEN_PLUS_EQUAL)) {
@@ -692,6 +695,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         node->type = AST_COMPOUND_ADD_ASSIGN;
         node->assignment.name = my_strdup(name->text);
         node->assignment.expr = rhs;
+        node->assignment.offset = 0;
         return node;
     }
     else if (is_current_token(parserContext, TOKEN_MINUS_EQUAL)) {
@@ -701,6 +705,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
             node->type = AST_COMPOUND_SUB_ASSIGN;
             node->assignment.name = my_strdup(name->text);
             node->assignment.expr = rhs;
+            node->assignment.offset = 0;
             return node;    
     }
     error("Expected assignment operator");
@@ -779,6 +784,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
             ASTNode * node = malloc(sizeof(ASTNode));
             node->type = AST_VAR_EXPR;
             node->var_expr.name = my_strdup(tok->text);
+            node->var_expr.offset = 0;
             return node;
         }
     }

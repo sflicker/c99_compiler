@@ -70,7 +70,35 @@ void exit_scope() {
     free(old);
 }
 
-int add_symbol(const char * name, ASTNode * owner) {
+int add_symbol_with_offset(const char * name, int offset) {
+    // check if symbol currently exists in current scope only
+    // error and exit if so.
+    Symbol * sym = current_scope->symbols;
+    while(sym) {
+        if (strcmp(sym->name, name) == 0) {
+            fprintf(stderr, "Error: redeclaration of '%s' in same scope\n", name);
+            exit(1);
+        }
+        sym = sym->next;
+    }
+
+    // add new symbol
+    Symbol * new_symbol = malloc(sizeof(Symbol));
+    new_symbol->name = my_strdup(name);
+    new_symbol->offset = offset;
+
+    new_symbol->next = current_scope->symbols;
+    current_scope->symbols = new_symbol;
+    
+    // only update for negative offsets which are for local variables
+    if (offset < 0) {
+        storage_size += 4;
+    }
+    return new_symbol->offset;
+
+}
+
+int add_symbol(const char * name) {
     // check if symbol currently exists in current scope only
     // error and exit if so.
     Symbol * sym = current_scope->symbols;

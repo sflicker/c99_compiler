@@ -6,7 +6,8 @@
 //void init_symbol_table();
 
 
-int add_symbol(const char * name, struct ASTNode * owner);
+int add_symbol(const char * name);
+int add_symbol_with_offset(const char * name, int offset);
 int lookup_symbol(const char * name);
 int get_symbol_total_space();
 void enter_scope();

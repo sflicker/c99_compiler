@@ -195,36 +195,36 @@ void emit_unary(FILE *out, ASTNode * node) {
         case AST_UNARY_PRE_INC: {
 //            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             int offset = node->unary.operand->var_expr.offset;
-            fprintf(out, "mov eax, [rbp%d]\n", offset);            
+            fprintf(out, "mov eax, [rbp%+d]\n", offset);            
             fprintf(out, "add eax, 1\n");
-            fprintf(out, "mov [rbp%d], eax\n", offset);
+            fprintf(out, "mov [rbp%+d], eax\n", offset);
             break;
         }
         case AST_UNARY_PRE_DEC: {
 //            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             int offset = node->unary.operand->var_expr.offset;
-            fprintf(out, "mov eax, [rbp%d]\n", offset);            
+            fprintf(out, "mov eax, [rbp%+d]\n", offset);            
             fprintf(out, "sub eax, 1\n");
-            fprintf(out, "mov [rbp%d], eax\n", offset);
+            fprintf(out, "mov [rbp%+d], eax\n", offset);
         break;
         }
         case AST_UNARY_POST_INC: {
 //            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             int offset = node->unary.operand->var_expr.offset;
-            fprintf(out, "mov eax, [rbp%d]\n", offset);
+            fprintf(out, "mov eax, [rbp%+d]\n", offset);
             fprintf(out, "mov ecx, eax\n");
             fprintf(out, "add eax, 1\n");
-            fprintf(out, "mov [rbp%d], eax\n", offset);
+            fprintf(out, "mov [rbp%+d], eax\n", offset);
             fprintf(out, "mov eax, ecx\n");
             break;
         }
         case AST_UNARY_POST_DEC: {
 //            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             int offset = node->unary.operand->var_expr.offset;
-            fprintf(out, "mov eax, [rbp%d]\n", offset);
+            fprintf(out, "mov eax, [rbp%+d]\n", offset);
             fprintf(out, "mov ecx, eax\n");
             fprintf(out, "sub eax, 1\n");
-            fprintf(out, "mov [rbp%d], eax\n", offset);
+            fprintf(out, "mov [rbp%+d], eax\n", offset);
             fprintf(out, "mov eax, ecx\n");
             break;
         }
@@ -345,7 +345,7 @@ void emit_var_declaration(FILE *out, ASTNode * node) {
 //        int offset = lookup_symbol(node->var_decl.name);
         int offset = node->var_decl.offset;
         emit_tree_node(out, node->var_decl.init_expr);
-        fprintf(out, "mov [rbp%d], eax\n", offset);
+        fprintf(out, "mov [rbp%+d], eax\n", offset);
     }
 }
 
@@ -353,18 +353,18 @@ void emit_assignment(FILE * out, ASTNode* node) {
     emit_tree_node(out, node->assignment.expr);
 //    int offset = lookup_symbol(node->assignment.name);
     int offset = node->assignment.offset;
-    fprintf(out, "mov [rbp%d], eax\n", offset);
+    fprintf(out, "mov [rbp%+d], eax\n", offset);
 }
 
 void emit_add_assignment(FILE *out, ASTNode * node) {
     //int offset = lookup_symbol(node->assignment.name);
     int offset = node->assignment.offset;
-    fprintf(out, "mov eax, [rbp%d]\n", offset);
+    fprintf(out, "mov eax, [rbp%+d]\n", offset);
     fprintf(out, "push rax\n");
     emit_tree_node(out, node->assignment.expr);
     fprintf(out, "pop rcx\n");
     fprintf(out, "add eax, ecx\n");
-    fprintf(out, "mov [rbp%d], eax\n", offset);
+    fprintf(out, "mov [rbp%+d], eax\n", offset);
 }
 
 void emit_sub_assignment(FILE *out, ASTNode * node) {
@@ -372,9 +372,9 @@ void emit_sub_assignment(FILE *out, ASTNode * node) {
     int offset = node->assignment.offset;
     emit_tree_node(out, node->assignment.expr);
     fprintf(out, "mov ecx, eax\n");
-    fprintf(out, "mov eax, [rbp%d]\n", offset);
+    fprintf(out, "mov eax, [rbp%+d]\n", offset);
     fprintf(out, "sub eax, ecx\n");
-    fprintf(out, "mov [rbp%d], eax\n", offset);
+    fprintf(out, "mov [rbp%+d], eax\n", offset);
 }
 
 void emit_for_statement(FILE * out, ASTNode * node) {
@@ -547,7 +547,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_VAR_EXPR:
 //            int offset = lookup_symbol(node->var_expr.name);
             int offset = node->var_expr.offset;
-            fprintf(out, "mov eax, [rbp%d]\n", offset);
+            fprintf(out, "mov eax, [rbp%+d]\n", offset);
             break;
         case AST_FOR_STMT:
             emit_for_statement(out, node);

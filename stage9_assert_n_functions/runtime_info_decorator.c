@@ -30,7 +30,13 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
                 reset_storage_size();
                 enter_scope();
                 if (node->function_decl.param_list) {
-                    populate_symbol_table(node->function_decl.param_list, false);
+                    int offset = 16;
+                    for(struct node_list * curr = node->function_decl.param_list->param_list.node_list; curr != NULL; curr = curr->next) {
+                        ASTNode * astNode = (ASTNode*)curr->node;
+                        offset = add_symbol_with_offset(astNode->var_decl.name, offset);
+                        astNode->var_decl.offset = offset;
+                        offset += 8;
+                    }
                 }
                 populate_symbol_table(node->function_decl.body, false);
                 node->function_decl.size = get_symbol_total_space();
@@ -53,7 +59,7 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             if (make_new_scope) exit_scope();
             break;
         case AST_VAR_DECL:
-            int offset = add_symbol(node->var_decl.name, node);
+            int offset = add_symbol(node->var_decl.name);
             node->var_decl.offset = offset;
             if (node->var_decl.init_expr) {
                 populate_symbol_table(node->var_decl.init_expr, false);
@@ -70,11 +76,6 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
         }
         case AST_RETURN_STMT:
             populate_symbol_table(node->return_stmt.expr, true);
-            break;
-
-        case AST_ADD:
-            populate_symbol_table(node->binary.lhs, true);
-            populate_symbol_table(node->binary.rhs, true);
             break;
 
         case AST_IF_STMT:
@@ -115,6 +116,37 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             populate_symbol_table(node->for_stmt.update_expr, false);
             populate_symbol_table(node->for_stmt.body , false);
             exit_scope();
+            break;
+
+        case AST_LESS_THAN:
+        case AST_LESS_EQUAL:
+        case AST_GREATER_THAN:
+        case AST_GREATER_EQUAL:
+        case AST_EQUAL:
+        case AST_NOT_EQUAL:
+        case AST_DIV:
+        case AST_MUL:
+        case AST_ADD:
+        case AST_SUB:
+        case AST_LOGICAL_AND:
+        case AST_LOGICAL_OR:
+            populate_symbol_table(node->binary.lhs, true);
+            populate_symbol_table(node->binary.rhs, true);
+            break;
+
+        case AST_FUNCTION_CALL: {
+            for (struct node_list * curr = node->function_call.argument_expression_list; curr != NULL; curr = curr->next) {
+                ASTNode * node = (ASTNode*)curr->node;
+                populate_symbol_table(node, false);
+            }
+            break;
+        }
+        case AST_ARG_LIST:
+            // TODO
+            break;
+
+        case AST_INT_LITERAL:
+            // DO NOTHING
             break;
 
         default:
