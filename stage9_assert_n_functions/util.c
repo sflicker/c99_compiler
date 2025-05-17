@@ -29,9 +29,9 @@ int get_node_list_count(struct node_list * node_list) {
     return arg_count;
 }
 
-struct node_list * create_node_list() {
+struct node_list * create_node_list(void * node) {
     struct node_list * list = malloc(sizeof(node_list));
-    list->node = NULL;
+    list->node = node;
     list->next = NULL;
     return list;
 }
@@ -49,9 +49,9 @@ void add_node_list(struct node_list * list, void * node) {
     }
     else {
         // otherwise create a new list node and link the current to it.
-        struct node_list * next = create_node_list();
+        struct node_list * next = malloc(sizeof(node_list));
         curr->next = next;
-        next->node = NULL;
+        next->next = NULL;
         next->node = node;
     }
 
@@ -61,8 +61,8 @@ struct node_list * reverse_list(node_list * head) {
     struct node_list * reversed = NULL;
 
     for (struct node_list * current = head; current != NULL; current = current->next) {
-        struct node_list * new_node = create_node_list();
-        new_node->node = current->node;
+        struct node_list * new_node = create_node_list(current->node);
+//        new_node->node = current->node;
         new_node->next = reversed;
         reversed = new_node;
     }

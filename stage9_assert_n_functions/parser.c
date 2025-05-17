@@ -250,8 +250,8 @@ struct node_list * parse_param_list(ParserContext * parserContext) {
         param->var_decl.name = param_name->text;
         param->var_decl.init_expr = NULL;
         if (param_list == NULL) {
-            param_list = create_node_list();
-            add_node_list(param_list, param);
+            param_list = create_node_list(param);
+//            add_node_list(param_list, param);
         }
         else {
             add_node_list(param_list, param);
@@ -269,8 +269,8 @@ struct node_list * parse_argument_expression_list(ParserContext * parserContext)
     do {
         ASTNode * expression = parse_expression(parserContext);
         if (arg_list == NULL) {
-            arg_list = create_node_list();
-            add_node_list(arg_list, expression);
+            arg_list = create_node_list(expression);
+//            add_node_list(arg_list, expression);
         }
         else {
             add_node_list(arg_list, expression);
