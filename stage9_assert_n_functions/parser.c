@@ -123,7 +123,6 @@ ASTNode * parse_logical_and(ParserContext * parserContext);
 ASTNode * parse_assert_statement(ParserContext * parserContext);
 
 void update_current_token_info(ParserContext* parserContext);
-int get_node_list_count(struct node_list * node_list);
 
 void initialize_parser(ParserContext * parserContext, TokenList * tokenList) {
     parserContext->list = tokenList;
@@ -189,10 +188,6 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
 
     printf("unexpected token at POS: %d, expected: %s, actual: %s\n", parserContext->pos, token_type_name(expected), token_type_name(token->type));
 
-
-//    fprintf(stderr, "Parse error: expected token of type %s, but got %s (text: '%.*s')\n",
-//        token_type_name(expected), token->type, token->length, token->text);
-
     exit(1);    
 }
 
@@ -237,18 +232,6 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
     return node;
 }
 
-// void append_params(ASTNode*** params_ptr, int * count_ptr, int* capacity_ptr, ASTNode* param) {
-//     if (*params_ptr == NULL) {
-//         *capacity_ptr = 4;
-//         *params_ptr = malloc(sizeof(ASTNode*) * (*capacity_ptr));   
-//     } else {
-//         *capacity_ptr *= 2;
-//         *params_ptr = realloc(*params_ptr, sizeof(ASTNode*) * (*capacity_ptr));
-//     }
-
-//     (*params_ptr)[(*count_ptr)++] = param;
-// }
-
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
         // expect_token(parserContext, TOKEN_INT);
         // Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
@@ -258,7 +241,6 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
 
 struct node_list * parse_param_list(ParserContext * parserContext) {
     struct node_list * param_list = NULL;
-    struct node_list * param_curr = NULL;
 
     do {
         expect_token(parserContext, TOKEN_INT);
@@ -267,75 +249,36 @@ struct node_list * parse_param_list(ParserContext * parserContext) {
         param->type = AST_VAR_DECL;
         param->var_decl.name = param_name->text;
         param->var_decl.init_expr = NULL;
-//            append_params(&params, &param_count, &param_capacity, param);
         if (param_list == NULL) {
-            param_list = malloc(sizeof(node_list));
-            
-//            param_list->type = AST_PARAM_LIST;
-            param_list->node = param;
-            param_list->next = NULL;
-            param_curr = param_list;
+            param_list = create_node_list();
+            add_node_list(param_list, param);
         }
         else {
-            struct node_list * param_next = malloc(sizeof(node_list));
-            //param_next->type = AST_PARAM_LIST;
-            param_next->node = param;
-            param_next->next = NULL;
-            param_curr->next = param_next;
-            param_curr = param_next;
+            add_node_list(param_list, param);
         }
 
     } while (match_token(parserContext, TOKEN_COMMA));
     return param_list;
 }
 
-int get_node_list_count(struct node_list * node_list) {
-    int arg_count = 0;
-//    ASTNode * argCurr = argumentExpressionList;
-    while(node_list) {
-        arg_count++;
-        node_list = node_list->next;
-    }
-    return arg_count;
-}
+
 
 struct node_list * parse_argument_expression_list(ParserContext * parserContext) {
     struct node_list * arg_list = NULL;
-    struct node_list * arg_curr = NULL;
-    //int arg_count = 0;
     
     do {
         ASTNode * expression = parse_expression(parserContext);
         if (arg_list == NULL) {
-            arg_list = malloc(sizeof(node_list));
-//            arg_list->type = AST_ARGUMENT_EXPRESSION_LIST;
-            arg_list->node = expression;
-            arg_list->next = NULL;
-            arg_curr = arg_list;
+            arg_list = create_node_list();
+            add_node_list(arg_list, expression);
         }
         else {
-            node_list * arg_next = malloc(sizeof(node_list));
-//            arg_next->type = AST_ARGUMENT_EXPRESSION_LIST;
-            arg_next->node = expression;
-            arg_next->next = NULL;
-            arg_curr->next = arg_next;
-            arg_curr = arg_next;
+            add_node_list(arg_list, expression);
         }
-//        arg_count++;
 
     } while (match_token(parserContext, TOKEN_COMMA));
     return arg_list;
 }
-
-// int get_param_list_count(ASTNode * paramList) {
-//     int count = 0;
-//     ASTNode * curr = paramList;
-//     while(curr) {
-//         count++;
-//         curr = curr->param_list.next;
-//     }
-//     return count;
-// }
 
 ASTNode * parse_function(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_INT);

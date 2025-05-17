@@ -7,6 +7,7 @@
 #include "emitter.h"
 #include "token.h"
 #include "symtab.h"
+#include "util.h"
 
 void emit_tree_node(FILE * out, ASTNode * node);
 void emit_var_declaration(FILE *out, ASTNode * node);
@@ -170,28 +171,6 @@ void emit_binary_op(FILE * out, ASTNodeType op) {
         case AST_MUL:
             fprintf(out, "imul eax, ecx\n");
             break;
-        // case TOKEN_DIV:
-        //     fprintf(out, "cdq\n");          // sign-extend eax into edx:eax
-        //     fprintf(out, "idiv ecx\n");
-        //     break;
-        // case TOKEN_EQ:
-        //     fprintf(out, "sete al\n");
-        //     break;
-        // case TOKEN_NEQ:
-        //     fprintf(out, "setne al\n");
-        //     break;
-        // case TOKEN_GT:
-        //     fprintf(out, "setg al\n");
-        //     break;
-        // case TOKEN_GE:
-        //     fprintf(out, "setge al\n");
-        //     break;
-        // case TOKEN_LT:
-        //     fprintf(out, "setl al\n");
-        //     break;
-        // case TOKEN_LE:
-        //     fprintf(out, "setle al\n");
-        //     break;
         default:
             fprintf(stderr, "Unsupported binary operator: %s\n", token_type_name(op));
     }
@@ -545,9 +524,6 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_BLOCK:
             emit_block(out, node, true);
-//            for (int i=0;i<node->block.count;i++) {
-//                emit_tree_node(out, node->block.statements[i]);
-//            }
             break;
         case AST_IF_STMT:
             emit_if_statement(out, node);
@@ -574,19 +550,6 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             fprintf(out, "pop rcx\n");                      // pop lhs to ECX
             emit_binary_op(out, node->type);        // emit proper for op
         break;
-            // else if (node->binary_op.op == TOKEN_EQ || node->binary_op.op == TOKEN_NEQ ||
-            //         node->binary_op.op == TOKEN_LT || node->binary_op.op == TOKEN_LE ||
-            //         node->binary_op.op == TOKEN_GT || node->binary_op.op == TOKEN_GE) {
-            //             emit_tree_node(out, node->binary_op.lhs);
-            //             fprintf(out, "push rax\n");
-            //             emit_tree_node(out, node->binary_op.rhs);
-            //             fprintf(out, "mov rcx, rax\n");
-            //             fprintf(out, "pop rax\n");
-            //             fprintf(out, "cmp eax, ecx\n");
-            //             emit_binary_op(out, node->binary_op.op);
-            //             fprintf(out, "movzx eax, al\n");
-            //         }
-            // break;
 
         case AST_EQUAL:
         case AST_NOT_EQUAL:
