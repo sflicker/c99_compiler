@@ -14,9 +14,12 @@
 
    Simplifed grammar
 
-   <translation-unit>       ::= <function>
+   <translation-unit>       ::= <external-declaration>
 
-   <function> ::= "int" <identifier> "(" <parameter_list>* ")" <block>
+   <external-declaration>   ::= <function>
+
+   <function> ::= "int" <identifier> "(" <parameter_list>* ")" 
+                [ <block> | ";" ]
 
    <parameter_list> ::=   <parameter_declaration>
                         | <parameter_list>, <parameter_declaration>
@@ -25,7 +28,7 @@
 
    <block> ::= "{" { <statement> } "}"
 
-   <statement> ::=  <declaration>
+   <statement> ::=  <var-declaration>
                     | <assignment_statement>
                     | <return_statement>
                     | <if_statement>
@@ -40,7 +43,7 @@
 
    <print_extension_statement> ::= "_print" "(" <expression> ")" ";"
 
-   <declaration> ::= "int" <identifier> [ "=" <expression> ] ";"
+   <var-declaration> ::= "int" <identifier> [ "=" <expression> ] ";"
 
    <assignment_statement> ::= <assignment_expression> ";";
 
@@ -291,17 +294,12 @@ ASTNode * parse_function(ParserContext* parserContext) {
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
     expect_token(parserContext, TOKEN_LPAREN);
     ASTNode *param_list = NULL;
-//    ASTNode *param_curr = NULL;
-//    int param_count = 0;
-//    int param_capacity = 0;
 
     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
         param_list = parse_param_list(parserContext);
-  //      param_count = get_param_list_count(param_list);
     }
 
     expect_token(parserContext, TOKEN_RPAREN);
-//    expect_token(parserContext, TOKEN_LBRACE);
     bool declaration_only;
     ASTNode* function_block = NULL;
     if (is_current_token(parserContext, TOKEN_LBRACE)) {
@@ -313,14 +311,11 @@ ASTNode * parse_function(ParserContext* parserContext) {
         declaration_only = true;
     }
 
-//    expect_token(parserContext, TOKEN_RBRACE);
-
     ASTNode * func = malloc(sizeof(ASTNode));
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = my_strdup(name->text);
     func->function_decl.body = function_block;
     func->function_decl.param_list = param_list;
-//    func->function_decl.num_params = get_node_list_count(param_list);
     func->function_decl.declaration_only = declaration_only;
     return func;
 }
@@ -536,7 +531,6 @@ ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = nodeType;
     node->binary.lhs = lhs;
-//    node->binary_op.op = op;
     node->binary.rhs = rhs;
     return node;    
 }
