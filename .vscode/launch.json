@@ -116,7 +116,7 @@
         "preLaunchTask": "build-stage8-block-scope",
         "args": ["tests/test_block_scope__2.c"]
       }
-            ,
+      ,
       {
         "name": "Debug stage9",
         "type": "cppdbg",
@@ -128,5 +128,20 @@
         "preLaunchTask": "build-stage9-assert-and-functions",
         "args": ["tests/test_function_result_add__6.c"]
       }
+      ,
+      {
+        "name": "Debug stage10",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage10_control_wrapup/mimic99",
+        "cwd": "${workspaceFolder}/stage10_control_wrapup",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage10-control-wrapup",
+        "args": ["tests/test_function_result_add__6.c"]
+      }
+
     ]
   }
+
+  

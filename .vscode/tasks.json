@@ -91,7 +91,7 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
-            {
+      {
         "label": "build-stage9-assert-and-functions",
         "type": "shell",
         "command": "make",
@@ -101,6 +101,17 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
+      {
+        "label": "build-stage10-control-wrapup",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cwd": "${workspaceFolder}/stage10_control_wrapup"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
+
     ]
   }
 
