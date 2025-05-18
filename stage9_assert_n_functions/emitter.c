@@ -166,7 +166,9 @@ void emit_binary_op(FILE * out, ASTNodeType op) {
             fprintf(out, "add eax, ecx\n");
             break;
         case AST_SUB:
-            fprintf(out, "sub eax, ecx\n");
+//            fprintf(out, "sub eax, ecx\n");
+              fprintf(out, "sub ecx, eax\n");
+              fprintf(out, "mov eax, ecx\n");
             break;
         case AST_MUL:
             fprintf(out, "imul eax, ecx\n");
@@ -423,7 +425,7 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
     // then emit each arg then push it
     struct node_list * reversed_list = NULL;
     if (node->function_call.argument_expression_list) {
-        struct node_list * reversed_list = reverse_list(node->function_call.argument_expression_list);
+        reversed_list = reverse_list(node->function_call.argument_expression_list);
 
         for (struct node_list * arg = reversed_list;arg != NULL; arg = arg->next) {
             emit_tree_node(out, arg->node);
@@ -556,7 +558,7 @@ void emit_tree_node(FILE * out, ASTNode * node) {
     }
 }
 
-void emit_translation_unit(ASTNode * translation_unit, const char * output_file) {
+void emit(ASTNode * translation_unit, const char * output_file) {
     FILE * ptr = fopen(output_file, "w");
 
     // init_symbol_table();

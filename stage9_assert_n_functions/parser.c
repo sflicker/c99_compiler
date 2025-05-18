@@ -79,9 +79,7 @@
                     | "(" <expression> ")"
 
    <argument-expression-list> ::= <assignment-expression>
-                                | <argument-expression-list> , <assignment-expression>                    
-
-   wee4r                                
+                                | <argument-expression-list> , <assignment-expression>                    o       
 
    <identifier>    ::= [a-zA-Z_][a-zA-Z0-9_]*
 

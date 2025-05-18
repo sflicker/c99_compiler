@@ -104,7 +104,7 @@ int main(int argc, char ** argv) {
     populate_symbol_table(translation_unit, true);
     print_ast(translation_unit, 0);
 
-    emit_translation_unit(translation_unit, output_file);
+    emit(translation_unit, output_file);
 
     cleanup_token_list(&tokenList);
     
