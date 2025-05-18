@@ -202,8 +202,12 @@ void print_ast(ASTNode * node, int indent) {
             printf("ExpressionStatement\n");
             print_ast(node->expr_stmt.expr, indent+1);
             break;
-        case AST_ASSERT_STATEMENT:
+        case AST_ASSERT_EXTENSION_STATEMENT:
             printf("AssertStatement\n");
+            print_ast(node->expr_stmt.expr, indent+1);
+            break;
+        case AST_PRINT_EXTENSION_STATEMENT:
+            printf("PrintExtensionStatement\n");
             print_ast(node->expr_stmt.expr, indent+1);
             break;
         case AST_VAR_DECL:

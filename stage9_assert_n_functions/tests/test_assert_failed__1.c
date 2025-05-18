@@ -1,4 +1,4 @@
 int main() {
-    assert(1);
+    _assert(1);
 }
 

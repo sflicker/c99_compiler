@@ -33,9 +33,12 @@
                     | <for_statement>
                     | <block>
                     | <expression_stmt>
-                    | <assert_statement>
+                    | <assert_extension_statement>
+                    | <print_extension_statement>
 
-    <assert_statement> ::= "assert" "(" <expression> ")" ";"
+   <assert_extension_statement> ::= "_assert" "(" <expression> ")" ";"
+
+   <print_extension_statement> ::= "_print" "(" <expression> ")" ";"
 
    <declaration> ::= "int" <identifier> [ "=" <expression> ] ";"
 
@@ -118,7 +121,8 @@ ASTNode * parse_for_statement(ParserContext * parserContext);
 ASTNode * parse_assignment_expression(ParserContext * parserContext);
 ASTNode * parse_logical_or(ParserContext * parserContext);
 ASTNode * parse_logical_and(ParserContext * parserContext);
-ASTNode * parse_assert_statement(ParserContext * parserContext);
+ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
+ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 
 void update_current_token_info(ParserContext* parserContext);
 
@@ -321,8 +325,8 @@ ASTNode * parse_function(ParserContext* parserContext) {
     return func;
 }
 
-ASTNode * parse_assert_statement(ParserContext * parserContext) {
-    expect_token(parserContext, TOKEN_ASSERT);
+ASTNode * parse_assert_extension_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_ASSERT_EXTENSION);
     expect_token(parserContext, TOKEN_LPAREN);
 
     ASTNode * expr = parse_expression(parserContext);
@@ -331,7 +335,22 @@ ASTNode * parse_assert_statement(ParserContext * parserContext) {
     expect_token(parserContext, TOKEN_SEMICOLON);
 
     ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_ASSERT_STATEMENT;
+    node->type = AST_ASSERT_EXTENSION_STATEMENT;
+    node->expr_stmt.expr = expr;
+    return node;
+}
+
+ASTNode * parse_print_extension_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_PRINT_EXTENSION);
+    expect_token(parserContext, TOKEN_LPAREN);
+
+    ASTNode * expr = parse_expression(parserContext);
+
+    expect_token(parserContext, TOKEN_RPAREN);
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_PRINT_EXTENSION_STATEMENT;
     node->expr_stmt.expr = expr;
     return node;
 }
@@ -388,8 +407,11 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_FOR)) {
         return parse_for_statement(parserContext);
     }
-    if (is_current_token(parserContext, TOKEN_ASSERT)) {
-        return parse_assert_statement(parserContext);
+    if (is_current_token(parserContext, TOKEN_ASSERT_EXTENSION)) {
+        return parse_assert_extension_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_PRINT_EXTENSION)) {
+        return parse_print_extension_statement(parserContext);
     }
     return parse_expression_statement(parserContext);
 }

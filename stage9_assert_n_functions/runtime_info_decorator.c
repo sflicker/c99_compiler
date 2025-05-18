@@ -149,6 +149,15 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             // DO NOTHING
             break;
 
+        case AST_ASSERT_EXTENSION_STATEMENT:
+            populate_symbol_table(node->expr_stmt.expr, true);
+            break;
+
+        case AST_PRINT_EXTENSION_STATEMENT:
+            populate_symbol_table(node->expr_stmt.expr, true);
+            break;
+
+
         default:
             break;
     }

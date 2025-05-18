@@ -12,6 +12,8 @@
 void emit_tree_node(FILE * out, ASTNode * node);
 void emit_var_declaration(FILE *out, ASTNode * node);
 
+bool emit_print_int_extension = false;
+
 static int label_id = 0;
 
 void emit_header(FILE* out) {
@@ -26,6 +28,36 @@ void emit_trailer(FILE* out) {
     fprintf(out, "assert_fail_msg: db \"Assertion failed!\", 10\n");
 }
 
+void emit_text_section_header(FILE * out) {
+    fprintf(out, "\n");
+    fprintf(out, ";---------------------------------------\n");
+    fprintf(out, ";   SECTION: Text (Code)\n");
+    fprintf(out, ";---------------------------------------\n");
+    fprintf(out, "\n");
+    fprintf(out, "section .text\n");
+    fprintf(out, "\n");
+}
+
+void emit_data_section_header(FILE * out) {
+    fprintf(out, "\n");
+    fprintf(out, ";---------------------------------------\n");
+    fprintf(out, ";   SECTION: Data (Initialized globals/strings\n");
+    fprintf(out, ";---------------------------------------\n");
+    fprintf(out, "\n");
+    fprintf(out, "section .data\n");
+    fprintf(out, "\n");
+}
+
+void emit_bss_section_header(FILE * out) {
+    fprintf(out, "\n");
+    fprintf(out, ";---------------------------------------\n");
+    fprintf(out, ";   SECTION: BSS (Uninitialized buffers)\n");
+    fprintf(out, ";---------------------------------------\n");
+    fprintf(out, "\n");
+    fprintf(out, "section .bss\n");
+    fprintf(out, "\n");
+}
+
 void emit_label(FILE * out, const char * prefix, int num) {
     fprintf(out, ".L%s%d:\n", prefix, num);
 }
@@ -34,7 +66,7 @@ void emit_jump(FILE * out, const char * op, const char * prefix, int num) {
     fprintf(out, "%s .L%s%d\n", op, prefix, num);
 }
 
-void emit_assert_statement(FILE * out, ASTNode * node) {
+void emit_assert_extension_statement(FILE * out, ASTNode * node) {
     int label_pass = label_id++;
 
     // evaluate expression
@@ -59,6 +91,13 @@ void emit_assert_statement(FILE * out, ASTNode * node) {
 
     emit_label(out, "assert_pass", label_pass);
 
+}
+
+void emit_print_extension_statement(FILE * out, ASTNode * node) {
+    // emit the expression storing it in EAX
+    emit_tree_node(out, node->expr_stmt.expr);
+    fprintf(out, "call print_int\n");
+    emit_print_int_extension = true;
 }
 
 void emit_logical_and(FILE * out, ASTNode * node) {
@@ -293,6 +332,9 @@ void emit_block(FILE * out, ASTNode * node, bool enterNewScope) {
 
 void emit_function(FILE * out, ASTNode * node) {
 
+    emit_text_section_header(out);
+
+    
     // prescan tree to get storage size
 //    set_current_offset(0);
 //    enter_scope();
@@ -476,7 +518,8 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_RETURN_STMT:
             emit_tree_node(out, node->return_stmt.expr);
-//            fprintf(out, "ret\n");
+            fprintf(out, "leave\n");
+            fprintf(out, "ret\n");
             break;
         case AST_FUNCTION_CALL:
             emit_function_call(out, node);
@@ -484,8 +527,11 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_EXPRESSION_STMT:
             emit_tree_node(out, node->expr_stmt.expr);
             break;
-        case AST_ASSERT_STATEMENT:
-            emit_assert_statement(out, node);
+        case AST_ASSERT_EXTENSION_STATEMENT:
+            emit_assert_extension_statement(out, node);
+            break;
+        case AST_PRINT_EXTENSION_STATEMENT:
+            emit_print_extension_statement(out, node);
             break;
         case AST_BLOCK:
             emit_block(out, node, true);
@@ -558,13 +604,64 @@ void emit_tree_node(FILE * out, ASTNode * node) {
     }
 }
 
+void emit_print_int_extension_code(FILE * out) {
+    int label_convert = label_id++;
+//    int label_next_digit = label_id++;
+    int label_done = label_id++;
+    int label_buffer = label_id++;
+    int label_loop = label_id++;
+
+    emit_bss_section_header(out);
+    fprintf(out, "buffer%d resb 20\n", label_buffer);
+
+    emit_text_section_header(out);
+    fprintf(out, "print_int:\n");
+    fprintf(out, "; assumes integer to print is in eax\n");
+    fprintf(out, "; converts and prints using syscall\n");
+    fprintf(out, "mov rcx, buffer%d + 19\n", label_buffer);
+    fprintf(out, "mov byte [rcx], 10\n");
+    fprintf(out, "dec rcx\n");
+    fprintf(out, "\n");
+    fprintf(out, "cmp eax, 0\n");
+    emit_jump(out, "jne", "convert", label_convert);
+    fprintf(out, "mov byte [rcx], '0'\n");
+    fprintf(out, "dec rcx\n");
+    emit_jump(out, "jmp", "done", label_done);
+    fprintf(out, "\n");
+    emit_label(out, "convert", label_convert);
+    fprintf(out, "xor edx, edx\n");
+    fprintf(out, "mov ebx, 10\n");
+    emit_label(out, "loop", label_loop);
+    fprintf(out, "xor edx, edx\n");
+    fprintf(out, "div ebx\n");
+    fprintf(out, "add dl, '0'\n");
+    fprintf(out, "mov [rcx], dl\n");
+    fprintf(out, "dec rcx\n");
+    fprintf(out, "test eax, eax\n");
+    emit_jump(out, "jnz", "loop", label_loop);
+    fprintf(out, "\n");
+    emit_label(out, "done", label_done);
+    fprintf(out, "lea rsi, [rcx + 1]\n");
+    fprintf(out, "mov rdx, buffer%d + 20\n", label_buffer);
+    fprintf(out, "sub rdx, rsi\n");
+    fprintf(out, "mov rax, 1\n");
+    fprintf(out, "mov rdi, 1\n");
+    fprintf(out, "syscall\n");
+    fprintf(out, "ret\n");
+
+}
+
 void emit(ASTNode * translation_unit, const char * output_file) {
-    FILE * ptr = fopen(output_file, "w");
+    FILE * out = fopen(output_file, "w");
 
     // init_symbol_table();
-
     
-    emit_tree_node(ptr, translation_unit);
+    emit_tree_node(out, translation_unit);
 
-    fclose(ptr);
+    // emit referenced private functions
+    if (emit_print_int_extension) {
+        emit_print_int_extension_code(out);
+    }
+
+    fclose(out);
 }
