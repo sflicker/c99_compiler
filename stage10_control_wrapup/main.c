@@ -12,6 +12,7 @@
 #include "tokenizer.h"
 #include "runtime_info_decorator.h"
 #include "ast_printer.h"
+#include "tokenizer_context.h"
 
 
 
@@ -84,12 +85,13 @@ int main(int argc, char ** argv) {
     const char * output_file = change_extension(program_file, ".s");
 
     const char * program_text = read_text_file(program_file);
-
+    TokenizerContext * tokenizerContext = init_tokenizer_context(program_text);
     TokenList tokenList;
 
     printf("Compiling\n\n%s\n\n", program_text);
 
-    tokenize(program_text, &tokenList);
+
+    tokenize(tokenizerContext, &tokenList);
 
     // output list
     for (int i=0;i<tokenList.count;i++) {

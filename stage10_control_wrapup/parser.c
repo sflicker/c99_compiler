@@ -98,7 +98,7 @@ char nextTokenInfo[128];
 Token* expect_token(ParserContext * parserContext, TokenType expected);
 
 Token* peek(ParserContext * parserContext);
-Token* advance(ParserContext * parserContext);
+Token* advance_parser(ParserContext * parserContext);
 bool match_token(ParserContext* p, TokenType type);
 
 ASTNode * parse_external_declaration(ParserContext * parserContext);
@@ -170,7 +170,7 @@ bool is_next_token(ParserContext * parserContext, TokenType type) {
     return parserContext->list->data[parserContext->pos+1].type == type;
 }
 
-Token * advance(ParserContext * parserContext) {
+Token * advance_parser(ParserContext * parserContext) {
     Token * token = peek(parserContext);
     parserContext->pos++;
     update_current_token_info(parserContext);
@@ -179,7 +179,7 @@ Token * advance(ParserContext * parserContext) {
 
 bool match_token(ParserContext * parserContext, TokenType type) {
     if (parserContext->list->data[parserContext->pos].type == type) {
-        advance(parserContext);
+        advance_parser(parserContext);
         return true;
     }
     return false;
@@ -188,7 +188,7 @@ bool match_token(ParserContext * parserContext, TokenType type) {
 Token* expect_token(ParserContext * parserContext, TokenType expected) {
     Token * token = peek(parserContext);
     if (token->type == expected) {
-        return advance(parserContext);
+        return advance_parser(parserContext);
     }
 
     printf("unexpected token at POS: %d, expected: %s, actual: %s\n", parserContext->pos, token_type_name(expected), token_type_name(token->type));
@@ -419,7 +419,7 @@ ASTNode * parse_if_statement(ParserContext * parserContext) {
     ASTNode * then_statement = parse_statement(parserContext);
     ASTNode * else_statement = NULL;
     if (is_current_token(parserContext, TOKEN_ELSE)) {
-        advance(parserContext);
+        advance_parser(parserContext);
         else_statement = parse_statement(parserContext);
     }
 
@@ -574,7 +574,7 @@ ASTNode * parse_equality_expression(ParserContext * parserContext) {
 
     while(is_current_token(parserContext, TOKEN_EQ) || is_current_token(parserContext, TOKEN_NEQ)) {
         ASTNode * lhs = root;
-        Token * op = advance(parserContext);
+        Token * op = advance_parser(parserContext);
         ASTNode * rhs = parse_relational_expression(parserContext);
         root = create_binary_op(lhs, op->type, rhs);
     }
@@ -588,7 +588,7 @@ ASTNode * parse_relational_expression(ParserContext * parserContext) {
     while(is_current_token(parserContext, TOKEN_GT) || is_current_token(parserContext, TOKEN_GE) 
             || is_current_token(parserContext, TOKEN_LT) || is_current_token(parserContext, TOKEN_LE)) {
         ASTNode * lhs = root;
-        Token * op = advance(parserContext);
+        Token * op = advance_parser(parserContext);
         ASTNode * rhs = parse_additive_expression(parserContext);
         root = create_binary_op(lhs, op->type, rhs);
     }
@@ -600,7 +600,7 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
 
     while(is_current_token(parserContext, TOKEN_PLUS) || is_current_token(parserContext, TOKEN_MINUS)) {
         ASTNode * lhs = root;
-        Token * op = advance(parserContext);
+        Token * op = advance_parser(parserContext);
         ASTNode * rhs = parse_term(parserContext);
         root = create_binary_op(lhs, op->type, rhs);
     }
@@ -615,7 +615,7 @@ ASTNode * parse_term(ParserContext * parserContext) {
 
     while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV)) {
         ASTNode * lhs = root;
-        Token * op = advance(parserContext);
+        Token * op = advance_parser(parserContext);
         ASTNode * rhs = parse_unary_expression(parserContext);
         root = create_binary_op(lhs, op->type, rhs);
     }
@@ -651,7 +651,7 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
      || is_current_token(parserContext, TOKEN_BANG)
      || is_current_token(parserContext, TOKEN_INCREMENT) 
      || is_current_token(parserContext, TOKEN_DECREMENT)) {
-                Token * currentToken = advance(parserContext);
+                Token * currentToken = advance_parser(parserContext);
 
                 ASTNode * operand = parse_unary_expression(parserContext);
                 ASTNode * node = create_unary_node(unary_op_token_to_ast_type(currentToken->type), operand);
@@ -669,7 +669,7 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
     Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     ASTNode * expr = NULL;
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
-        advance(parserContext);
+        advance_parser(parserContext);
         expr = parse_expression(parserContext);
     }
     expect_token(parserContext, TOKEN_SEMICOLON);
@@ -768,7 +768,7 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
 ASTNode * parse_primary(ParserContext * parserContext) {
 
     if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
-        Token * tok = advance(parserContext);
+        Token * tok = advance_parser(parserContext);
         ASTNode * node = malloc(sizeof(ASTNode));
         node->type = AST_INT_LITERAL;
         node->int_value = tok->int_value;
@@ -781,9 +781,9 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         return node;
     }
     else if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
-        Token * tok = advance(parserContext);
+        Token * tok = advance_parser(parserContext);
         if (is_current_token(parserContext, TOKEN_LPAREN)) {
-            advance(parserContext);
+            advance_parser(parserContext);
             struct node_list * argument_expression_list = parse_argument_expression_list(parserContext);
 //            int arg_count = get_argument_expression_count(argument_expression_list);
             expect_token(parserContext, TOKEN_RPAREN);
