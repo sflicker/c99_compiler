@@ -11,6 +11,7 @@ typedef struct {
     int col;
 } TokenizerContext;
 
+char advance(TokenizerContext * context);
 TokenizerContext * init_tokenizer_context(const char * text);
 TokenList * get_tokens(TokenizerContext * context);
 Token * get_next_token(TokenizerContext * context);
