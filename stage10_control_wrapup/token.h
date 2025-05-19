@@ -45,6 +45,8 @@ typedef struct {
     const char * text;
     int length;
     int int_value;
+    int line;
+    int col;
 } Token;
 
 typedef struct {

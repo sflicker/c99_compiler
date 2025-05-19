@@ -21,6 +21,7 @@ void error(const char * message) {
 }
 
 int get_node_list_count(struct node_list * node_list) {
+
     int arg_count = 0;
     while(node_list) {
         arg_count++;

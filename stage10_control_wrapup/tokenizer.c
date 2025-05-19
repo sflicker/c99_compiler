@@ -14,6 +14,65 @@ const char *keywords[] = {
 
 const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
 
+Token * make_token(TokenType type, const char * text) {
+    Token * token = malloc(sizeof(Token));
+    token->type = type;
+    token->text = text;
+    return token;
+}
+
+TokenizerContext * init_tokenizer_context(const char * text) {
+    TokenizerContext * context = malloc(sizeof(TokenizerContext));
+    context->text = text;
+    context->pos = 0;
+    context->line = 1;
+    context->col = 1;
+    context->current = context->text[context->pos];
+    return context;
+}
+
+char advance(TokenizerContext * context) {
+    context->pos++;
+    context->current = context->text[context->pos];
+    if (context->current == '\n') {
+        context->line++;
+        context->col=1;
+    }
+    else {
+        context->col++;
+    }
+    return context->current;
+}
+
+TokenList * get_tokens(TokenizerContext * context) {
+    TokenList * tokenList = malloc(sizeof(TokenList));
+
+    while(context->current) {
+        Token * token = get_next_token(context);
+        append_token(tokenList, token);
+    }
+
+    Token * eof = make_token(TOKEN_EOF, "");
+    append_token(tokenList, eof);
+    return tokenList;
+}
+
+Token * get_next_token(TokenizerContext * context) {
+    while(context->current) {
+        if (isspace(context->current)) {
+            advance(context);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
 void init_token_list(TokenList * list);
 
 void init_token_list(TokenList * list) {
@@ -236,20 +295,44 @@ void add_operator_token(TokenList * tokenList, const char * operatorText) {
     add_token(tokenList, token);
 }
 
+char next_char(const char ** p, int * line, int * col) {
+    // save the current character
+    char c = **p;
+
+    // update line/col for the current character
+    if (c == '\n') {
+        (*line)++;
+        *col = 1;
+    }
+    else {
+        (*col)++;
+    }
+
+    // advance to the next character
+    (*p)++;
+
+    // return the saved current character
+    return c;
+}
+
 void tokenize(const char* code, TokenList * tokenList) {
     const char* p = code;
+    int line = 1;
+    int col = 1;
     
     init_token_list(tokenList);
 
     while(*p) {
         if (isspace(*p)) {
-            p++;
+            //p++;
+            next_char(&p, &line, &col);
         }
         else if (isalpha(*p) || *p == '_') {
             char buffer[128];
             int i=0;
             while(isalnum(*p) || *p == '_') {
-                buffer[i++] = *p++;
+//                buffer[i++] = *p++;
+                buffer[i++] = next_char(&p, &line, &col);
             }
             buffer[i] = '\0';
 
@@ -264,76 +347,102 @@ void tokenize(const char* code, TokenList * tokenList) {
             char buffer[128];
             int i=0;
             while(isdigit(*p)) {
-                buffer[i++] = *p++;
+//                buffer[i++] = *p++;
+                buffer[i++] = next_char(&p, &line, &col);
             }
             buffer[i++] = '\0';
             add_int_token(tokenList, buffer);
         }
         else if (*p == '=' && *(p+1) == '=') {
             add_token_by_type(tokenList, TOKEN_EQ);
-            p += 2;
+            //p += 2;
+            next_char(&p, &line, &col);
+            next_char(&p, &line, &col);
         }
         else if (*p == '!' && *(p+1) == '=') {
             add_token_by_type(tokenList, TOKEN_NEQ);
-            p += 2;
+            //p += 2;
+            next_char(&p, &line, &col);
+            next_char(&p, &line, &col);
         }
         else if (*p == '>') {
             if (*(p+1) == '=') {
                 add_token_by_type(tokenList, TOKEN_GE);
-                p += 2;
+                //p += 2;
+                next_char(&p, &line, &col);
+                next_char(&p, &line, &col);
             }
             else {
                 add_token_by_type(tokenList, TOKEN_GT);
-                p++;
+                //p++;
+                next_char(&p, &line, &col);
             }
         }
         else if (*p == '<') {
             if (*(p+1) == '=') {
                 add_token_by_type(tokenList, TOKEN_LE);
-                p += 2;
+                //p += 2;
+                next_char(&p, &line, &col);
+                next_char(&p, &line, &col);
             }
             else {
                 add_token_by_type(tokenList, TOKEN_LT);
-                p++;
+                //p++;
+                next_char(&p, &line, &col);
+                next_char(&p, &line, &col);
             }
         }
         else if (*p == '+' && *(p+1) == '+') {
             add_token_by_type(tokenList, TOKEN_INCREMENT);
-            p+=2;
+            //p+=2;
+            next_char(&p, &line, &col);
+            next_char(&p, &line, &col);
         }
         else if (*p == '-' && *(p+1) == '-') {
             add_token_by_type(tokenList, TOKEN_DECREMENT);
-            p+=2;
+            //p+=2;
+            next_char(&p, &line, &col);
+            next_char(&p, &line, &col);
         }
         else if (*p == '+' && *(p+1) == '=') {
             add_token_by_type(tokenList, TOKEN_PLUS_EQUAL);
-            p+=2;
+            //p+=2;
+            next_char(&p, &line, &col);
+            next_char(&p, &line, &col);
         }
         else if (*p == '-' && *(p+1) == '=') {
             add_token_by_type(tokenList, TOKEN_MINUS_EQUAL);
-            p+=2;
+            //p+=2;
+            next_char(&p, &line, &col);
+            next_char(&p, &line, &col);
         }
         else if (*p == '&' && *(p+1) == '&') {
             add_token_by_type(tokenList, TOKEN_LOGICAL_AND);
-            p+=2;
+            //p+=2;
+            next_char(&p, &line, &col);
+            next_char(&p, &line, &col);
         }
         else if (*p == '|' && *(p+1) == '|') {
             add_token_by_type(tokenList, TOKEN_LOGICAL_OR);
-            p+=2;
+            //p+=2;
+            next_char(&p, &line, &col);
+            next_char(&p, &line, &col);
         }
         else if (is_punctuator(*p)) {
             char * buffer = malloc(2);
             memcpy(buffer, p, 1);
             buffer[1] = '\0';
             add_punctuator_token(tokenList, buffer);
-            p++;
+            //p++;
+            next_char(&p, &line, &col);
         }
         else if (is_operator(*p)) {
             char * buffer = malloc(2);
             memcpy(buffer, p, 1);
             buffer[1] = '\0';
             add_operator_token(tokenList, buffer);
-            p++;
+            //p++;
+            next_char(&p, &line, &col);
         }
 
     }
