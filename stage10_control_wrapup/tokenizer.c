@@ -13,12 +13,45 @@ const char *keywords[] = {
     "int", "return", "if", "else", "while", "for", "_assert", "_print"
 };
 
+typedef struct {
+    const char* text;
+    TokenType type;
+} TokenMapEntry;
+
+TokenMapEntry keyword_map[] = {
+    { "int", TOKEN_INT }, 
+    { "return", TOKEN_RETURN },
+    { "if", TOKEN_IF },
+    { "else", TOKEN_ELSE },
+    { "while", TOKEN_WHILE },
+    { "for", TOKEN_FOR },
+    { "_assert", TOKEN_ASSERT_EXTENSION },
+    { "_print", TOKEN_PRINT_EXTENSION },
+    { NULL, 0 }
+};
+
+TokenMapEntry two_char_operator_map[] = {
+    { "==", TOKEN_EQ },
+    { "!=", TOKEN_NEQ },
+    { "<=", TOKEN_LE },
+    { ">=", TOKEN_GE },
+    { "&&", TOKEN_LOGICAL_AND },
+    { "||", TOKEN_LOGICAL_OR },
+    { "+=", TOKEN_PLUS_EQUAL },
+    { "-=", TOKEN_MINUS_EQUAL },
+    { "++", TOKEN_INCREMENT },
+    { "--", TOKEN_DECREMENT },
+    { NULL, 0 }
+};
+
 const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
 
-Token * make_token(TokenType type, const char * text) {
+Token * make_token(TokenType type, const char * text, int line, int col) {
     Token * token = malloc(sizeof(Token));
     token->type = type;
     token->text = text;
+    token->line = line;
+    token->col = col;
     return token;
 }
 
@@ -83,6 +116,30 @@ TokenType get_keyword_token(const char* keyword) {
     else {
         return TOKEN_UNKNOWN;
     }
+}
+
+Token * match_keyword(TokenizerContext * ctx, char * text) {
+
+    for (int i=0;keyword_map[i].text != NULL; i++) {
+        if (strcmp(text, keyword_map[i].text) == 0) {
+            return make_token(two_char_operator_map[i].type, keyword_map[i].text, ctx->line, ctx->col);
+        }
+    }
+    return NULL;
+
+}
+
+Token * match_two_char_operator(TokenizerContext *ctx, char first, char second) {
+    char op_str[3] = { first, second, '\0' };
+    for (int i=0;two_char_operator_map[i].text != NULL; i++) {
+        if (strcmp(op_str, two_char_operator_map[i].text) == 0) {
+            Token *tok = make_token(two_char_operator_map[i].type, two_char_operator_map[i].text, ctx->line, ctx->col);
+            advance(ctx);
+            advance(ctx);
+            return tok;
+        }
+    }
+    return NULL;
 }
 
 TokenType punctuator_token(char punctuator) {
@@ -247,6 +304,7 @@ void add_operator_token(TokenList * tokenList, const char * operatorText) {
 void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
     
     init_token_list(tokenList);
+    Token * matched_tok = NULL;
 
     while(ctx->curr_char) {
         if (isspace(ctx->curr_char)) {
@@ -262,12 +320,19 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
             }
             buffer[i] = '\0';
 
-            if (is_keyword(buffer)) {
-                add_keyword_token(tokenList, buffer);
-            }
-            else {
+            // if (is_keyword(buffer)) {
+            //     add_keyword_token(tokenList, buffer);
+            // }
+            // else {
+            //     add_identifier_token(tokenList, buffer);
+            // }
+
+            if ((matched_tok = match_keyword(ctx, buffer)) != NULL) {
+                add_token(tokenList, *matched_tok);
+            } else {
                 add_identifier_token(tokenList, buffer);
             }
+
         }
         else if (isdigit(ctx->curr_char)) {
             char buffer[128];
@@ -278,6 +343,9 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
             }
             buffer[i++] = '\0';
             add_int_token(tokenList, buffer);
+        }
+        else if ((matched_tok = match_two_char_operator(ctx, ctx->curr_char, ctx->next_char)) != NULL) {
+            add_token(tokenList, *matched_tok);
         }
         else if (ctx->curr_char == '=' && ctx->next_char == '=') {
             add_token_by_type(tokenList, TOKEN_EQ);
