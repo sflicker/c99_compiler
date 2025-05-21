@@ -44,6 +44,22 @@ TokenMapEntry two_char_operator_map[] = {
     { NULL, 0 }
 };
 
+TokenMapEntry single_char_operator_map[] = {
+    { "(", TOKEN_LPAREN },
+    { ")", TOKEN_RPAREN },
+    { "{", TOKEN_LBRACE },
+    { "}", TOKEN_RBRACE },
+    { ";", TOKEN_SEMICOLON },
+    { "-", TOKEN_MINUS },
+    { "+", TOKEN_PLUS },
+    { "*", TOKEN_STAR },
+    { "/", TOKEN_DIV },
+    { "=", TOKEN_ASSIGN },
+    { ",", TOKEN_COMMA },
+    { "!", TOKEN_BANG },
+    { NULL, 0 }
+};
+
 const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
 
 Token * make_token(TokenType type, const char * text, int line, int col) {
@@ -122,7 +138,7 @@ Token * match_keyword(TokenizerContext * ctx, char * text) {
 
     for (int i=0;keyword_map[i].text != NULL; i++) {
         if (strcmp(text, keyword_map[i].text) == 0) {
-            return make_token(two_char_operator_map[i].type, keyword_map[i].text, ctx->line, ctx->col);
+            return make_token(keyword_map[i].type, keyword_map[i].text, ctx->line, ctx->col);
         }
     }
     return NULL;
@@ -135,6 +151,18 @@ Token * match_two_char_operator(TokenizerContext *ctx, char first, char second) 
         if (strcmp(op_str, two_char_operator_map[i].text) == 0) {
             Token *tok = make_token(two_char_operator_map[i].type, two_char_operator_map[i].text, ctx->line, ctx->col);
             advance(ctx);
+            advance(ctx);
+            return tok;
+        }
+    }
+    return NULL;
+}
+
+Token * match_one_char_operator(TokenizerContext * ctx, char c) {
+    char match_str[2] = { c, '\0' };
+    for (int i=0;single_char_operator_map[i].text != NULL; i++) {
+        if (strcmp(match_str, single_char_operator_map[i].text) == 0) {
+            Token *tok = make_token(single_char_operator_map[i].type, single_char_operator_map[i].text, ctx->line, ctx->col);
             advance(ctx);
             return tok;
         }
@@ -219,23 +247,23 @@ const char * token_type_name(TokenType type) {
     }
 }
 
-void add_token_by_type(TokenList * list, TokenType tokenType) {
-    const char * tokenText = token_type_name(tokenType);
-    int tokenLen = strlen(tokenText);
-    char * tokenCopy = malloc(tokenLen + 1);
-    memcpy(tokenCopy, tokenText, tokenLen);
-    tokenCopy[tokenLen] = '\0';
+// void add_token_by_type(TokenList * list, TokenType tokenType) {
+//     const char * tokenText = token_type_name(tokenType);
+//     int tokenLen = strlen(tokenText);
+//     char * tokenCopy = malloc(tokenLen + 1);
+//     memcpy(tokenCopy, tokenText, tokenLen);
+//     tokenCopy[tokenLen] = '\0';
 
-    Token token;
-    token.type = tokenType;
-    token.text = tokenCopy;
-    token.int_value = 0;
-    token.length = tokenLen;
-    add_token(list, token);
-}
+//     Token token;
+//     token.type = tokenType;
+//     token.text = tokenCopy;
+//     token.int_value = 0;
+//     token.length = tokenLen;
+//     add_token(list, token);
+// }
 
 
-void add_int_token(TokenList * tokenList, char * numberText) {
+void add_int_token(TokenList * tokenList, char * numberText, int line, int col) {
     Token token;
     token.type = TOKEN_INT_LITERAL;
     int numberTextLen = strlen(numberText);
@@ -245,24 +273,26 @@ void add_int_token(TokenList * tokenList, char * numberText) {
     token.text = numberTextCopy;
     token.length = numberTextLen;
     token.int_value = atoi(numberText);
+    token.line = line;
+    token.col = col;
     add_token(tokenList, token);
 }
 
+void tokenize_number(TokenizerContext * ctx, TokenList * tokenList) {
+    char buffer[128];
+    int i=0;
+    int line = ctx->line;
+    int col = ctx->col;
+    while(isdigit(ctx->curr_char)) {
+        buffer[i++] = ctx->curr_char;
+        advance(ctx);
+    }
+    buffer[i++] = '\0';
+    add_int_token(tokenList, buffer, line, col);
 
-void add_keyword_token(TokenList *tokenList, const char * keywordText) {
-    Token token;
-    token.type = get_keyword_token(keywordText);
-    int buffer_len = strlen(keywordText);
-    char * buffer_copy = malloc(buffer_len + 1);
-    memcpy(buffer_copy, keywordText, buffer_len);
-    buffer_copy[buffer_len] = '\0';
-    token.text = buffer_copy;
-    token.length = buffer_len;
-    token.int_value = 0;
-    add_token(tokenList, token);
 }
 
-void add_identifier_token(TokenList * tokenList, const char * id) {
+void add_identifier_token(TokenList * tokenList, const char * id, int line, int col) {
     Token token;
     token.type = TOKEN_IDENTIFIER;
     int idLen = strlen(id);
@@ -272,34 +302,36 @@ void add_identifier_token(TokenList * tokenList, const char * id) {
     token.text = idCopy;
     token.length = idLen;
     token.int_value = 0;
+    token.line = line;
+    token.col = col;
     add_token(tokenList, token);
 }
 
-void add_punctuator_token(TokenList * tokenList, const char * punctuatorText) {
-    Token token;
-    token.type = punctuator_token(*punctuatorText);
-    int punctuatorLen = 1;
-    char * punctuatorCopy = malloc(punctuatorLen + 1);
-    memcpy(punctuatorCopy, punctuatorText, punctuatorLen);
-    punctuatorCopy[punctuatorLen] = '\0';
-    token.text = punctuatorCopy;
-    token.length = punctuatorLen;
-    token.int_value = 0;
-    add_token(tokenList, token);
-}
+// void add_punctuator_token(TokenList * tokenList, const char * punctuatorText) {
+//     Token token;
+//     token.type = punctuator_token(*punctuatorText);
+//     int punctuatorLen = 1;
+//     char * punctuatorCopy = malloc(punctuatorLen + 1);
+//     memcpy(punctuatorCopy, punctuatorText, punctuatorLen);
+//     punctuatorCopy[punctuatorLen] = '\0';
+//     token.text = punctuatorCopy;
+//     token.length = punctuatorLen;
+//     token.int_value = 0;
+//     add_token(tokenList, token);
+// }
 
-void add_operator_token(TokenList * tokenList, const char * operatorText) {
-    Token token;
-    token.type = operator_token(operatorText);
-    int operatorLen = strlen(operatorText);
-    char * operatorCopy = malloc(operatorLen + 1);
-    memcpy(operatorCopy, operatorText, operatorLen);
-    operatorCopy[operatorLen] = '\0';
-    token.text = operatorCopy;
-    token.length = operatorLen;
-    token.int_value = 0;
-    add_token(tokenList, token);
-}
+// void add_operator_token(TokenList * tokenList, const char * operatorText) {
+//     Token token;
+//     token.type = operator_token(operatorText);
+//     int operatorLen = strlen(operatorText);
+//     char * operatorCopy = malloc(operatorLen + 1);
+//     memcpy(operatorCopy, operatorText, operatorLen);
+//     operatorCopy[operatorLen] = '\0';
+//     token.text = operatorCopy;
+//     token.length = operatorLen;
+//     token.int_value = 0;
+//     add_token(tokenList, token);
+// }
 
 void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
     
@@ -314,6 +346,8 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
         else if (isalpha(ctx->curr_char) || ctx->curr_char == '_') {
             char buffer[128];
             int i=0;
+            int line = ctx->line;
+            int col = ctx->col;
             while(isalnum(ctx->curr_char) || ctx->curr_char == '_') {
                   buffer[i++] = ctx->curr_char;
                   advance(ctx);
@@ -330,113 +364,117 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
             if ((matched_tok = match_keyword(ctx, buffer)) != NULL) {
                 add_token(tokenList, *matched_tok);
             } else {
-                add_identifier_token(tokenList, buffer);
+                add_identifier_token(tokenList, buffer, line, col);
             }
 
         }
         else if (isdigit(ctx->curr_char)) {
-            char buffer[128];
-            int i=0;
-            while(isdigit(ctx->curr_char)) {
-                buffer[i++] = ctx->curr_char;
-                advance(ctx);
-            }
-            buffer[i++] = '\0';
-            add_int_token(tokenList, buffer);
+            tokenize_number(ctx, tokenList);
+            // char buffer[128];
+            // int i=0;
+            // while(isdigit(ctx->curr_char)) {
+            //     buffer[i++] = ctx->curr_char;
+            //     advance(ctx);
+            // }
+            // buffer[i++] = '\0';
+            // add_int_token(tokenList, buffer);
         }
         else if ((matched_tok = match_two_char_operator(ctx, ctx->curr_char, ctx->next_char)) != NULL) {
             add_token(tokenList, *matched_tok);
         }
-        else if (ctx->curr_char == '=' && ctx->next_char == '=') {
-            add_token_by_type(tokenList, TOKEN_EQ);
-            //p += 2;
-            advance(ctx);
-            advance(ctx);
+        else if ((matched_tok = match_one_char_operator(ctx, ctx->curr_char)) != NULL) {
+            add_token(tokenList, *matched_tok);
         }
-        else if (ctx->curr_char == '!' && ctx->next_char == '=') {
-            add_token_by_type(tokenList, TOKEN_NEQ);
-            //p += 2;
-            advance(ctx);
-            advance(ctx);
-        }
-        else if (ctx->curr_char == '>') {
-            if (ctx->next_char == '=') {
-                add_token_by_type(tokenList, TOKEN_GE);
-                //p += 2;
-                advance(ctx);
-                advance(ctx);
-            }
-            else {
-                add_token_by_type(tokenList, TOKEN_GT);
-                //p++;
-                advance(ctx);
-            }
-        }
-        else if (ctx->curr_char == '<') {
-            if (ctx->next_char == '=') {
-                add_token_by_type(tokenList, TOKEN_LE);
-                //p += 2;
-                advance(ctx);
-                advance(ctx);
-            }
-            else {
-                add_token_by_type(tokenList, TOKEN_LT);
-                //p++;
-                advance(ctx);
-            }
-        }
-        else if (ctx->curr_char == '+' && ctx->next_char == '+') {
-            add_token_by_type(tokenList, TOKEN_INCREMENT);
-            //p+=2;
-            advance(ctx);
-            advance(ctx);
-        }
-        else if (ctx->curr_char == '-' && ctx->next_char == '-') {
-            add_token_by_type(tokenList, TOKEN_DECREMENT);
-            //p+=2;
-            advance(ctx);
-            advance(ctx);
-        }
-        else if (ctx->curr_char == '+' && ctx->next_char == '=') {
-            add_token_by_type(tokenList, TOKEN_PLUS_EQUAL);
-            //p+=2;
-            advance(ctx);
-            advance(ctx);
-        }
-        else if (ctx->curr_char == '-' && ctx->next_char == '=') {
-            add_token_by_type(tokenList, TOKEN_MINUS_EQUAL);
-            //p+=2;
-            advance(ctx);
-            advance(ctx);
-        }
-        else if (ctx->curr_char == '&' && ctx->next_char == '&') {
-            add_token_by_type(tokenList, TOKEN_LOGICAL_AND);
-            //p+=2;
-            advance(ctx);
-            advance(ctx);
-        }
-        else if (ctx->curr_char == '|' && ctx->next_char == '|') {
-            add_token_by_type(tokenList, TOKEN_LOGICAL_OR);
-            //p+=2;
-            advance(ctx);
-            advance(ctx);
-        }
-        else if (is_punctuator(ctx->curr_char)) {
-            char * buffer = malloc(2);
-            memcpy(buffer, &ctx->curr_char, 1);
-            buffer[1] = '\0';
-            add_punctuator_token(tokenList, buffer);
-            //p++;
-            advance(ctx);
-        }
-        else if (is_operator(ctx->curr_char)) {
-            char * buffer = malloc(2);
-            memcpy(buffer,&ctx->curr_char, 1);
-            buffer[1] = '\0';
-            add_operator_token(tokenList, buffer);
-            //p++;
-            advance(ctx);
-        }
+        // else if (ctx->curr_char == '=' && ctx->next_char == '=') {
+        //     add_token_by_type(tokenList, TOKEN_EQ);
+        //     //p += 2;
+        //     advance(ctx);
+        //     advance(ctx);
+        // }
+        // else if (ctx->curr_char == '!' && ctx->next_char == '=') {
+        //     add_token_by_type(tokenList, TOKEN_NEQ);
+        //     //p += 2;
+        //     advance(ctx);
+        //     advance(ctx);
+        // }
+        // else if (ctx->curr_char == '>') {
+        //     if (ctx->next_char == '=') {
+        //         add_token_by_type(tokenList, TOKEN_GE);
+        //         //p += 2;
+        //         advance(ctx);
+        //         advance(ctx);
+        //     }
+        //     else {
+        //         add_token_by_type(tokenList, TOKEN_GT);
+        //         //p++;
+        //         advance(ctx);
+        //     }
+        // }
+        // else if (ctx->curr_char == '<') {
+        //     if (ctx->next_char == '=') {
+        //         add_token_by_type(tokenList, TOKEN_LE);
+        //         //p += 2;
+        //         advance(ctx);
+        //         advance(ctx);
+        //     }
+        //     else {
+        //         add_token_by_type(tokenList, TOKEN_LT);
+        //         //p++;
+        //         advance(ctx);
+        //     }
+        // }
+        // else if (ctx->curr_char == '+' && ctx->next_char == '+') {
+        //     add_token_by_type(tokenList, TOKEN_INCREMENT);
+        //     //p+=2;
+        //     advance(ctx);
+        //     advance(ctx);
+        // }
+        // else if (ctx->curr_char == '-' && ctx->next_char == '-') {
+        //     add_token_by_type(tokenList, TOKEN_DECREMENT);
+        //     //p+=2;
+        //     advance(ctx);
+        //     advance(ctx);
+        // }
+        // else if (ctx->curr_char == '+' && ctx->next_char == '=') {
+        //     add_token_by_type(tokenList, TOKEN_PLUS_EQUAL);
+        //     //p+=2;
+        //     advance(ctx);
+        //     advance(ctx);
+        // }
+        // else if (ctx->curr_char == '-' && ctx->next_char == '=') {
+        //     add_token_by_type(tokenList, TOKEN_MINUS_EQUAL);
+        //     //p+=2;
+        //     advance(ctx);
+        //     advance(ctx);
+        // }
+        // else if (ctx->curr_char == '&' && ctx->next_char == '&') {
+        //     add_token_by_type(tokenList, TOKEN_LOGICAL_AND);
+        //     //p+=2;
+        //     advance(ctx);
+        //     advance(ctx);
+        // }
+        // else if (ctx->curr_char == '|' && ctx->next_char == '|') {
+        //     add_token_by_type(tokenList, TOKEN_LOGICAL_OR);
+        //     //p+=2;
+        //     advance(ctx);
+        //     advance(ctx);
+        // }
+        // else if (is_punctuator(ctx->curr_char)) {
+        //     char * buffer = malloc(2);
+        //     memcpy(buffer, &ctx->curr_char, 1);
+        //     buffer[1] = '\0';
+        //     add_punctuator_token(tokenList, buffer);
+        //     //p++;
+        //     advance(ctx);
+        // }
+        // else if (is_operator(ctx->curr_char)) {
+        //     char * buffer = malloc(2);
+        //     memcpy(buffer,&ctx->curr_char, 1);
+        //     buffer[1] = '\0';
+        //     add_operator_token(tokenList, buffer);
+        //     //p++;
+        //     advance(ctx);
+        // }
 
     }
 
@@ -444,6 +482,8 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
     eofToken.type = TOKEN_EOF;
     eofToken.text = '\0';
     eofToken.length = 0;
+    eofToken.line = ctx->line;
+    eofToken.col = ctx->col;
     add_token(tokenList, eofToken);
 
 }

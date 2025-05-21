@@ -16,12 +16,12 @@
 
 
 
-void token_formatted_output(const char * label, const char * text, TokenType tokenType, int num) {
+void token_formatted_output(const char * label, const char * text, TokenType tokenType, int num, int line, int col) {
     char left[64];
     char right[64];
     snprintf(left, sizeof(left), "%s: %s", label, text);
     snprintf(right, sizeof(right), "TOKEN_TYPE: %s", token_type_name(tokenType));
-    printf("[%6d]  %-25s %-25s\n", num, left, right);
+    printf("[%6d]  %-25s %-25s%6d%6d\n", num, left, right, line, col);
 }
 
 /* main and related */
@@ -96,7 +96,7 @@ int main(int argc, char ** argv) {
     // output list
     for (int i=0;i<tokenList.count;i++) {
         Token token = tokenList.data[i];
-        token_formatted_output("TOKEN:", token.text, token.type, i);
+        token_formatted_output("TOKEN:", token.text, token.type, i, token.line, token.col);
     }
 
     ParserContext parserContext;
@@ -108,6 +108,7 @@ int main(int argc, char ** argv) {
 
     emit(translation_unit, output_file);
 
-    cleanup_token_list(&tokenList);
+    // TODO THIS NEEDS TO BE FIXED and OTHER CLEAN AS WELL.
+    // cleanup_token_list(&tokenList);
     
 }                             

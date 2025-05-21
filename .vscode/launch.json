@@ -138,7 +138,7 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage10-control-wrapup",
-        "args": ["tests/test_function_result_add__6.c"]
+        "args": ["tests/test_add__42.c"]
       }
 
     ]
