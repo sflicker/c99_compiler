@@ -613,7 +613,7 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
 ASTNode * parse_term(ParserContext * parserContext) {
     ASTNode * root = parse_unary_expression(parserContext);
 
-    while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV)) {
+    while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV || is_current_token(parserContext, TOKEN_DIV))) {
         ASTNode * lhs = root;
         Token * op = advance_parser(parserContext);
         ASTNode * rhs = parse_unary_expression(parserContext);
