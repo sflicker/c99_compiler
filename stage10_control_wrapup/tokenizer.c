@@ -3,14 +3,16 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "token.h"
 #include "tokenizer.h"
+#include "util.h"
 
 bool is_keyword(const char * word);
 
 const char *keywords[] = {
-    "int", "return", "if", "else", "while", "for", "_assert", "_print"
+    "int", "return", "if", "else", "while", "for", "break", "continue", "_assert", "_print"
 };
 
 typedef struct {
@@ -25,6 +27,8 @@ TokenMapEntry keyword_map[] = {
     { "else", TOKEN_ELSE },
     { "while", TOKEN_WHILE },
     { "for", TOKEN_FOR },
+    { "break", TOKEN_BREAK },
+    { "continue", TOKEN_CONTINUE },
     { "_assert", TOKEN_ASSERT_EXTENSION },
     { "_print", TOKEN_PRINT_EXTENSION },
     { NULL, 0 }
@@ -57,6 +61,9 @@ TokenMapEntry single_char_operator_map[] = {
     { "=", TOKEN_ASSIGN },
     { ",", TOKEN_COMMA },
     { "!", TOKEN_BANG },
+    { "<", TOKEN_LT },
+    { ">", TOKEN_GT },
+    { "%", TOKEN_MOD },
     { NULL, 0 }
 };
 
@@ -240,6 +247,9 @@ const char * token_type_name(TokenType type) {
         case TOKEN_DECREMENT: return "DECREMENT";
         case TOKEN_PLUS_EQUAL: return "PLUSEQUAL";
         case TOKEN_MINUS_EQUAL: return "MINUSEQUAL";
+        case TOKEN_BREAK: return "BREAK";
+        case TOKEN_CONTINUE: return "CONTINUE";
+        case TOKEN_MOD: return "MOD";
         case TOKEN_ASSERT_EXTENSION: return "_ASSERT";
         case TOKEN_PRINT_EXTENSION: return "_PRINT";
 
@@ -333,12 +343,39 @@ void add_identifier_token(TokenList * tokenList, const char * id, int line, int 
 //     add_token(tokenList, token);
 // }
 
+void swallow_comment(TokenizerContext * ctx) {
+    if (ctx->curr_char == '/') {
+        if (ctx->next_char == '/') {
+            advance(ctx);
+            advance(ctx);
+            while (ctx->curr_char != '\n' && ctx->curr_char != '\0') {
+                advance(ctx);    // skip to end of line
+            }
+        }
+        else if (ctx->next_char == '*') {
+            advance(ctx);
+            advance(ctx);
+            while (!(ctx->curr_char == '*' && ctx->next_char == '/')) {
+                if (ctx->curr_char == '\0') {
+                    error("Unterminated block comment\n");
+                    exit(1);
+                }
+                advance(ctx);
+            }
+            advance(ctx);
+            advance(ctx);
+        }
+    }
+}
+
+
 void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
     
     init_token_list(tokenList);
     Token * matched_tok = NULL;
 
     while(ctx->curr_char) {
+        swallow_comment(ctx);
         if (isspace(ctx->curr_char)) {
             //p++;
             advance(ctx);
@@ -475,7 +512,10 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
         //     //p++;
         //     advance(ctx);
         // }
+        else {
+            error("Invalid character '%c' at line: %d, col: %d\n", ctx->curr_char, ctx->line, ctx->col);
 
+        }
     }
 
     Token eofToken;

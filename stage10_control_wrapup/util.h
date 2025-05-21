@@ -13,6 +13,6 @@ struct node_list * reverse_list(node_list * head);
 void free_node_list(struct node_list * list);
 
 char * my_strdup(const char* s);
-void error(const char * message);
+void error(const char* fmt, ...);
 
 #endif

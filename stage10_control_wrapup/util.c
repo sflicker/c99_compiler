@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "util.h"
 
@@ -15,8 +16,19 @@ char * my_strdup(const char* s) {
     return copy;
 }
 
-void error(const char * message) {
-    fprintf(stderr, "%s\n", message);
+void error(const char* fmt, ...) {
+    va_list args;
+
+    // --- 1. Write to stderr
+    va_start(args, fmt);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+
+    // --- 2. Echo to stdout (re-initialize args)
+    va_start(args, fmt);
+    vfprintf(stdout, fmt, args);
+    va_end(args);
+
     exit(1);
 }
 
