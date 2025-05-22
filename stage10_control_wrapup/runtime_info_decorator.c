@@ -125,6 +125,7 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
         case AST_EQUAL:
         case AST_NOT_EQUAL:
         case AST_DIV:
+        case AST_MOD:
         case AST_MUL:
         case AST_ADD:
         case AST_SUB:
@@ -157,9 +158,9 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             populate_symbol_table(node->expr_stmt.expr, true);
             break;
 
-
         default:
-            break;
+            error("Unknown AST Node Type: %d\n", node->type);
+
     }
 }
 

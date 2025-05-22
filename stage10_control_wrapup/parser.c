@@ -129,11 +129,35 @@ ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
 ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 
 void update_current_token_info(ParserContext* parserContext);
+bool is_current_token(ParserContext * parserContext, TokenType type);
 
 void initialize_parser(ParserContext * parserContext, TokenList * tokenList) {
     parserContext->list = tokenList;
     parserContext->pos = 0;
     update_current_token_info(parserContext);
+}
+
+ASTNode* parse(ParserContext * parserContext) {
+    ASTNode** functions = NULL;
+    int capacity = 8;
+    int count = 0;
+    functions = malloc(sizeof(ASTNode*) * capacity);
+
+    while (!is_current_token(parserContext, TOKEN_EOF)) {
+        // currently only supporting functions as topmost. will need to add file level variables.
+        ASTNode * function = parse_external_declaration(parserContext);
+        if (count >= capacity) {
+            capacity *= 2;
+            functions = realloc(functions, sizeof(ASTNode*) * capacity);
+        }
+        functions[count++] = function;
+    }
+
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_TRANSLATION_UNIT;
+    node->translation_unit.functions = functions;
+    node->translation_unit.count = count;
+    return node;
 }
 
 void update_current_token_info(ParserContext* ctx) {
@@ -214,29 +238,6 @@ ASTNodeType binary_op_token_to_ast_type(TokenType tok) {
             fprintf(stderr, "Unknown binary operator in expression");
             exit(1);
     }
-}
-
-ASTNode* parse_translation_unit(ParserContext * parserContext) {
-    ASTNode** functions = NULL;
-    int capacity = 8;
-    int count = 0;
-    functions = malloc(sizeof(ASTNode*) * capacity);
-
-    while (!is_current_token(parserContext, TOKEN_EOF)) {
-        // currently only supporting functions as topmost. will need to add file level variables.
-        ASTNode * function = parse_external_declaration(parserContext);
-        if (count >= capacity) {
-            capacity *= 2;
-            functions = realloc(functions, sizeof(ASTNode*) * capacity);
-        }
-        functions[count++] = function;
-    }
-
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_TRANSLATION_UNIT;
-    node->translation_unit.functions = functions;
-    node->translation_unit.count = count;
-    return node;
 }
 
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
@@ -486,7 +487,8 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
     // expect_token(parserContext, TOKEN_SEMICOLON);
 
     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-        if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token(parserContext, TOKEN_ASSIGN)) {
+        if (is_current_token(parserContext, TOKEN_IDENTIFIER) && 
+            (is_next_token(parserContext, TOKEN_ASSIGN) || is_next_token(parserContext, TOKEN_PLUS_EQUAL) || is_next_token(parserContext, TOKEN_MINUS_EQUAL))) {
             update_expr = parse_assignment_expression(parserContext);
         }
         else {

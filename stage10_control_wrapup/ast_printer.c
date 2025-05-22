@@ -99,6 +99,10 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
+        case AST_MOD:
+            printf("Binary: %s\n", "MOD");
+            print_ast(node->binary.lhs, indent+1);
+            print_ast(node->binary.rhs, indent+1);
         case AST_EQUAL:
             printf("Binary: %s\n", "EQUAL");
             print_ast(node->binary.lhs, indent+1);
@@ -232,7 +236,7 @@ void print_ast(ASTNode * node, int indent) {
             printf("VariableExpression: %s, offset: %d\n", node->var_expr.name, node->var_expr.offset);
             break;
         default:
-            printf("Unknown AST Node Type: %d\n", node->type);
+            error("Unknown AST Node Type: %d\n", node->type);
             break;
     }
 }

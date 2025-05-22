@@ -103,7 +103,7 @@ int main(int argc, char ** argv) {
     ParserContext parserContext;
     initialize_parser(&parserContext, &tokenList);
 
-    ASTNode * translation_unit = parse_translation_unit(&parserContext);
+    ASTNode * translation_unit = parse(&parserContext);
     populate_symbol_table(translation_unit, true);
     print_ast(translation_unit, 0);
 

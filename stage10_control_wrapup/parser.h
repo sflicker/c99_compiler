@@ -12,7 +12,7 @@ typedef struct {
 } ParserContext;
 
 void initialize_parser(ParserContext * parserContext, TokenList * tokenList);
-ASTNode* parse_translation_unit(ParserContext * parserContext);
+ASTNode* parse(ParserContext * parserContext);
 void print_ast(ASTNode * node, int indent);
 
 #endif
