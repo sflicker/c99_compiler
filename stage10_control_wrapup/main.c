@@ -4,11 +4,12 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "util.h"
 #include "ast.h"
+#include "token.h"
+#include "util.h"
+
 #include "emitter.h"
 #include "parser.h"
-#include "token.h"
 #include "tokenizer.h"
 #include "runtime_info_decorator.h"
 #include "ast_printer.h"

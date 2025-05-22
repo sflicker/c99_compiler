@@ -6,6 +6,8 @@
 #include <stdarg.h>
 
 #include "util.h"
+#include "token.h"
+#include "ast.h"
 
 char * my_strdup(const char* s) {
     size_t len = strlen(s) + 1;

@@ -3,7 +3,7 @@ int main() {
     for (int i=0;i<10;i+=1) {
         if (i % 2 == 0) {
             sum += i;
-		}
-	}
-	return sum;	// expected 30 = (0+2+4+7+8+10)
+        }
+    }
+    return sum;	 // expected 30 = (0+2+4+7+8+10)
 } 

@@ -524,6 +524,17 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             emit_line(out, "idiv ecx\n");
             break;
         }
+        case AST_MOD: {
+            emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+            emit_line(out, "push rax\n");                     // push lhs result
+            emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+            emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
+            emit_line(out, "pop rax\n");                      // restore numerator to eax
+            emit_line(out, "cdq\n");
+            emit_line(out, "idiv ecx\n");               // divide eax by ecx. result goes to eax, remainder to edx
+            emit_line(out, "mov eax, edx\n");           // move remainer in edx to eax
+            break;
+        }
         case AST_ADD:
         case AST_SUB:
         case AST_MUL:

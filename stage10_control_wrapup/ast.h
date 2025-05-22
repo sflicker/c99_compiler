@@ -35,6 +35,7 @@ typedef enum {
     AST_SUB,
     AST_MUL,
     AST_DIV,
+    AST_MOD,
     AST_EQUAL,
     AST_NOT_EQUAL,
     AST_LOGICAL_AND,

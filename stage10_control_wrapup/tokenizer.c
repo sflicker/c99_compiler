@@ -9,11 +9,11 @@
 #include "tokenizer.h"
 #include "util.h"
 
-bool is_keyword(const char * word);
+//bool is_keyword(const char * word);
 
-const char *keywords[] = {
-    "int", "return", "if", "else", "while", "for", "break", "continue", "_assert", "_print"
-};
+// const char *keywords[] = {
+//     "int", "return", "if", "else", "while", "for", "break", "continue", "_assert", "_print"
+// };
 
 typedef struct {
     const char* text;
@@ -29,6 +29,7 @@ TokenMapEntry keyword_map[] = {
     { "for", TOKEN_FOR },
     { "break", TOKEN_BREAK },
     { "continue", TOKEN_CONTINUE },
+    { "do", TOKEN_DO },
     { "_assert", TOKEN_ASSERT_EXTENSION },
     { "_print", TOKEN_PRINT_EXTENSION },
     { NULL, 0 }
@@ -63,11 +64,11 @@ TokenMapEntry single_char_operator_map[] = {
     { "!", TOKEN_BANG },
     { "<", TOKEN_LT },
     { ">", TOKEN_GT },
-    { "%", TOKEN_MOD },
+    { "%", TOKEN_PERCENT },
     { NULL, 0 }
 };
 
-const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
+//const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
 
 Token * make_token(TokenType type, const char * text, int line, int col) {
     Token * token = malloc(sizeof(Token));
@@ -94,14 +95,14 @@ void add_token(TokenList * list, Token token) {
     list->data[list->count++] = token;
 }
 
-bool is_keyword(const char * word) {
-    for (int i=0;i<num_keywords; i++) {
-        if (strcmp(word, keywords[i]) == 0) {
-            return true;
-        }
-    }
-    return false;
-}
+// bool is_keyword(const char * word) {
+//     for (int i=0;i<num_keywords; i++) {
+//         if (strcmp(word, keywords[i]) == 0) {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
 
 bool is_punctuator(char c) {
     return c == '{' || c == '}' || c == '(' || c == ')' || c == ';' || c == ',';
@@ -249,7 +250,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_MINUS_EQUAL: return "MINUSEQUAL";
         case TOKEN_BREAK: return "BREAK";
         case TOKEN_CONTINUE: return "CONTINUE";
-        case TOKEN_MOD: return "MOD";
+        case TOKEN_PERCENT: return "MOD";
         case TOKEN_ASSERT_EXTENSION: return "_ASSERT";
         case TOKEN_PRINT_EXTENSION: return "_PRINT";
 

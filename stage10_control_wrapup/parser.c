@@ -8,6 +8,7 @@
 #include "token.h"
 #include "ast.h"
 #include "parser.h"
+#include "parser_util.h"
 
 /* 
    Simple C compiler example 
@@ -117,7 +118,7 @@ ASTNode * parse_unary_expression(ParserContext * parserContext);
 ASTNode * parse_postfix_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
-ASTNode *  parse_var_declaration(ParserContext * parserContext);
+ASTNode * parse_var_declaration(ParserContext * parserContext);
 ASTNode * parse_assignment_statement(ParserContext * parserContext);
 ASTNode * parse_while_statement(ParserContext * parserContext);
 ASTNode * parse_for_statement(ParserContext * parserContext);
@@ -202,6 +203,7 @@ ASTNodeType binary_op_token_to_ast_type(TokenType tok) {
         case TOKEN_MINUS: return AST_SUB;
         case TOKEN_STAR: return AST_MUL;
         case TOKEN_DIV: return AST_DIV;
+        case TOKEN_PERCENT: return AST_MOD;
         case TOKEN_EQ: return AST_EQUAL;
         case TOKEN_NEQ: return AST_NOT_EQUAL;
         case TOKEN_LT: return AST_LESS_THAN;
@@ -613,7 +615,7 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
 ASTNode * parse_term(ParserContext * parserContext) {
     ASTNode * root = parse_unary_expression(parserContext);
 
-    while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV || is_current_token(parserContext, TOKEN_DIV))) {
+    while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV) || is_current_token(parserContext, TOKEN_PERCENT)) {
         ASTNode * lhs = root;
         Token * op = advance_parser(parserContext);
         ASTNode * rhs = parse_unary_expression(parserContext);
@@ -623,12 +625,7 @@ ASTNode * parse_term(ParserContext * parserContext) {
     return root;
 }
 
-ASTNode * create_unary_node(ASTNodeType op, ASTNode * operand) {
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = op;
-    node->unary.operand = operand;
-    return node;
-}
+
 
 ASTNodeType unary_op_token_to_ast_type(TokenType tokenType) {
     switch(tokenType) {
