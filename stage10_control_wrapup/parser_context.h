@@ -1,0 +1,20 @@
+#ifndef __PARSER_CONTEXT_H__
+#define __PARSER_CONTEXT_H__
+
+#include "token.h"
+
+typedef struct {
+    TokenList* list;
+    int pos;
+} ParserContext;
+
+
+ParserContext* create_parser_context(TokenList * tokenList);
+Token * peek(ParserContext * parserContext);
+bool is_current_token(ParserContext * parserContext, TokenType type);
+bool is_next_token(ParserContext * parserContext, TokenType type);
+Token * advance_parser(ParserContext * parserContext);
+bool match_token(ParserContext * parserContext, TokenType type);
+Token* expect_token(ParserContext * parserContext, TokenType expected);
+
+#endif

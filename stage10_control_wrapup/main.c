@@ -100,10 +100,13 @@ int main(int argc, char ** argv) {
         token_formatted_output("TOKEN:", token.text, token.type, i, token.line, token.col);
     }
 
-    ParserContext parserContext;
-    initialize_parser(&parserContext, &tokenList);
+    //ParserContext parserContext;
+    //initialize_parser(&parserContext, &tokenList);
 
-    ASTNode * translation_unit = parse(&parserContext);
+//    ASTNode * translation_unit = parse(&parserContext);
+
+    ASTNode * translation_unit = parse(&tokenList);
+
     populate_symbol_table(translation_unit, true);
     print_ast(translation_unit, 0);
 

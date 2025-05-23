@@ -9,6 +9,7 @@
 #include "ast.h"
 #include "parser.h"
 #include "parser_util.h"
+#include "parser_context.h"
 
 /* 
    Simple C compiler example 
@@ -93,14 +94,13 @@
     <int_literal> ::= [0-9]+
 */
 
-char currentTokenInfo[128];
-char nextTokenInfo[128];
 
-Token* expect_token(ParserContext * parserContext, TokenType expected);
 
-Token* peek(ParserContext * parserContext);
-Token* advance_parser(ParserContext * parserContext);
-bool match_token(ParserContext* p, TokenType type);
+//Token* expect_token(ParserContext * parserContext, TokenType expected);
+
+//Token* peek(ParserContext * parserContext);
+//Token* advance_parser(ParserContext * parserContext);
+//bool match_token(ParserContext* p, TokenType type);
 
 ASTNode * parse_external_declaration(ParserContext * parserContext);
 ASTNode * parse_function(ParserContext * parserContext);
@@ -128,16 +128,8 @@ ASTNode * parse_logical_and(ParserContext * parserContext);
 ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
 ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 
-void update_current_token_info(ParserContext* parserContext);
-bool is_current_token(ParserContext * parserContext, TokenType type);
-
-void initialize_parser(ParserContext * parserContext, TokenList * tokenList) {
-    parserContext->list = tokenList;
-    parserContext->pos = 0;
-    update_current_token_info(parserContext);
-}
-
-ASTNode* parse(ParserContext * parserContext) {
+ASTNode* parse(TokenList * tokenList) {
+    ParserContext * parserContext = create_parser_context(tokenList);
     ASTNode** functions = NULL;
     int capacity = 8;
     int count = 0;
@@ -158,86 +150,6 @@ ASTNode* parse(ParserContext * parserContext) {
     node->translation_unit.functions = functions;
     node->translation_unit.count = count;
     return node;
-}
-
-void update_current_token_info(ParserContext* ctx) {
-    Token * currentToken = (ctx->pos < ctx->list->count) ? &ctx->list->data[ctx->pos] : NULL;
-    if (currentToken != NULL) {
-        snprintf(currentTokenInfo, sizeof(currentTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
-            ctx->pos,
-            token_type_name(currentToken->type), currentToken->text ? currentToken->text : "(null)");
-    }
-    else {
-        snprintf(currentTokenInfo, sizeof(currentTokenInfo), "(NULL)\n");
-    }
-
-    Token * nextToken = (ctx->pos+1 < ctx->list->count) ? &ctx->list->data[ctx->pos+1] : NULL;
-    if (nextToken != NULL) {
-        snprintf(nextTokenInfo, sizeof(nextTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
-            ctx->pos+1,
-            token_type_name(nextToken->type), nextToken->text ? nextToken->text : "(null)");
-    }
-    else {
-        snprintf(nextTokenInfo, sizeof(nextTokenInfo), "(NULL)\n");
-    }
-}
-
-Token * peek(ParserContext * parserContext) {
-    return &parserContext->list->data[parserContext->pos];
-}
-
-bool is_current_token(ParserContext * parserContext, TokenType type) {
-    return parserContext->list->data[parserContext->pos].type == type;
-}
-
-//TODO need a check so this doesn't cause an out of bounds
-bool is_next_token(ParserContext * parserContext, TokenType type) {
-    return parserContext->list->data[parserContext->pos+1].type == type;
-}
-
-Token * advance_parser(ParserContext * parserContext) {
-    Token * token = peek(parserContext);
-    parserContext->pos++;
-    update_current_token_info(parserContext);
-    return token;
-}
-
-bool match_token(ParserContext * parserContext, TokenType type) {
-    if (parserContext->list->data[parserContext->pos].type == type) {
-        advance_parser(parserContext);
-        return true;
-    }
-    return false;
-}
-
-Token* expect_token(ParserContext * parserContext, TokenType expected) {
-    Token * token = peek(parserContext);
-    if (token->type == expected) {
-        return advance_parser(parserContext);
-    }
-
-    printf("unexpected token at POS: %d, expected: %s, actual: %s\n", parserContext->pos, token_type_name(expected), token_type_name(token->type));
-
-    exit(1);    
-}
-
-ASTNodeType binary_op_token_to_ast_type(TokenType tok) {
-    switch (tok) {
-        case TOKEN_PLUS: return AST_ADD;
-        case TOKEN_MINUS: return AST_SUB;
-        case TOKEN_STAR: return AST_MUL;
-        case TOKEN_DIV: return AST_DIV;
-        case TOKEN_PERCENT: return AST_MOD;
-        case TOKEN_EQ: return AST_EQUAL;
-        case TOKEN_NEQ: return AST_NOT_EQUAL;
-        case TOKEN_LT: return AST_LESS_THAN;
-        case TOKEN_LE: return AST_LESS_EQUAL;
-        case TOKEN_GT: return AST_GREATER_THAN;
-        case TOKEN_GE: return AST_GREATER_EQUAL;
-        default:
-            fprintf(stderr, "Unknown binary operator in expression");
-            exit(1);
-    }
 }
 
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
@@ -377,12 +289,6 @@ ASTNode * parse_block(ParserContext* parserContext) {
     return blockNode;
 }
 
-bool is_next_token_assignment(ParserContext * parserContext) {
-    return is_next_token(parserContext, TOKEN_ASSIGN) || 
-        is_next_token(parserContext, TOKEN_PLUS_EQUAL) || 
-        is_next_token(parserContext, TOKEN_MINUS_EQUAL);
-}
-
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_INT)) {
         return parse_var_declaration(parserContext);
@@ -426,12 +332,7 @@ ASTNode * parse_if_statement(ParserContext * parserContext) {
         else_statement = parse_statement(parserContext);
     }
 
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_IF_STMT;
-    node->if_stmt.cond = condExpression;
-    node->if_stmt.then_statement = then_statement;
-    node->if_stmt.else_statement = else_statement;
-    return node;
+    return create_if_else_statement_node(condExpression, then_statement, else_statement);
 
 }
 
@@ -442,12 +343,7 @@ ASTNode * parse_while_statement(ParserContext * parserContext) {
     expect_token(parserContext, TOKEN_RPAREN);
     ASTNode * body_statement = parse_statement(parserContext);
 
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_WHILE_STMT;
-    node->while_stmt.cond = condExpression;
-    node->while_stmt.body = body_statement;
-    return node;
-
+    return create_while_statement_node(condExpression, body_statement);
 }
 
 ASTNode * parse_for_statement(ParserContext * parserContext) {
