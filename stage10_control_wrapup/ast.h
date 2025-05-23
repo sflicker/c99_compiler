@@ -16,6 +16,7 @@ typedef enum {
     AST_CASE_STMT,
     AST_DEFAULT_STMT,
     AST_GOTO_STMT,
+    AST_SWITCH_STMT,
     AST_INT_LITERAL,
     AST_FUNCTION_DECL,
     AST_FUNCTION_CALL,
@@ -160,6 +161,11 @@ typedef struct ASTNode {
             struct ASTNode * stmt;
             struct ASTNode * expr;
         } do_while_stmt;
+
+        struct {
+            struct ASTNode * expr;
+            struct ASTNode * stmt;
+        } switch_stmt;
         
     };
 } ASTNode;

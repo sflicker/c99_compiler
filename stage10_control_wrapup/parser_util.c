@@ -98,6 +98,14 @@ ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr) {
     return node;
 }
 
+ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_SWITCH_STMT;
+    node->switch_stmt.expr = expr;
+    node->switch_stmt.stmt = stmt;
+    return node;
+}
+
 bool is_lvalue(ASTNode * node) {
     return node->type == AST_VAR_EXPR;
 }

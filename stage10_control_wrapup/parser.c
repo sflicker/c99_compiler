@@ -354,6 +354,16 @@ ASTNode * parse_do_while_statement(ParserContext * parserContext) {
     return create_do_while_statement(stmt, expr);
 }
 
+ASTNode * parse_switch_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_SWITCH);
+    expect_token(parserContext, TOKEN_LPAREN);
+    ASTNode * expr = parse_expression(parserContext);
+    expect_token(parserContext, TOKEN_RPAREN);
+    ASTNode * stmt = parse_statement(parserContext);
+
+    return create_switch_statement(expr, stmt);
+}
+
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_INT)) {
         return parse_var_declaration(parserContext);
@@ -396,6 +406,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     }
     if (is_current_token(parserContext, TOKEN_GOTO)) {
         return parse_goto_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_SWITCH)) {
+        return parse_switch_statement(parserContext);
     }
     return parse_expression_statement(parserContext);
 }
