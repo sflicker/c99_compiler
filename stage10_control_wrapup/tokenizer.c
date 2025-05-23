@@ -30,6 +30,10 @@ TokenMapEntry keyword_map[] = {
     { "break", TOKEN_BREAK },
     { "continue", TOKEN_CONTINUE },
     { "do", TOKEN_DO },
+    { "goto", TOKEN_GOTO },
+    { "switch", TOKEN_SWITCH },
+    { "case", TOKEN_CASE },
+    { "default", TOKEN_DEFAULT },
     { "_assert", TOKEN_ASSERT_EXTENSION },
     { "_print", TOKEN_PRINT_EXTENSION },
     { NULL, 0 }
@@ -65,6 +69,7 @@ TokenMapEntry single_char_operator_map[] = {
     { "<", TOKEN_LT },
     { ">", TOKEN_GT },
     { "%", TOKEN_PERCENT },
+    { ":", TOKEN_COLON },
     { NULL, 0 }
 };
 
@@ -104,13 +109,13 @@ void add_token(TokenList * list, Token token) {
 //     return false;
 // }
 
-bool is_punctuator(char c) {
-    return c == '{' || c == '}' || c == '(' || c == ')' || c == ';' || c == ',';
-}
+// bool is_punctuator(char c) {
+//     return c == '{' || c == '}' || c == '(' || c == ')' || c == ';' || c == ',';
+// }
 
-bool is_operator(char c) {
-    return c == '*' || c == '+' || c == '-' || c == '/' || c == '!' || c == '=' ;
-}
+// bool is_operator(char c) {
+//     return c == '*' || c == '+' || c == '-' || c == '/' || c == '!' || c == '=' ;
+// }
 
 TokenType get_keyword_token(const char* keyword) {
     if (strcmp(keyword, "int") == 0) {
