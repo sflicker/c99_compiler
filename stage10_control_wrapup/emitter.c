@@ -16,6 +16,35 @@ bool emit_print_int_extension = false;
 
 static int label_id = 0;
 
+typedef struct SwitchContext {
+    const char * break_label;
+    struct SwitchContext * next;
+} SwitchContext;
+
+static SwitchContext * switch_stack = NULL;
+
+void push_switch_context(const char * break_label) {
+    SwitchContext * ctx = malloc(sizeof(SwitchContext));
+    ctx->break_label = break_label;
+    ctx->next = switch_stack;
+    switch_stack = ctx;
+}
+
+void pop_switch_context() {
+    if (switch_stack) {
+        SwitchContext * old = switch_stack;
+        switch_stack = old->next;
+        free(old);
+    }
+}
+
+const char * current_switch_break_label() {
+    if (switch_stack) {
+        return switch_stack->break_label;
+    }
+    return NULL;  // error break outside switch
+}
+
 void emit_line(FILE* out, const char* fmt, ...) {
     va_list args;
 
@@ -70,6 +99,13 @@ void emit_bss_section_header(FILE * out) {
     emit_line(out, "\n");
     emit_line(out, "section .bss\n");
     emit_line(out, "\n");
+}
+
+const char * make_label_text(const char * prefix, int num) {
+    size_t buffer_size = strlen(prefix) + 20;
+    char * label = malloc(buffer_size);
+    snprintf(label, buffer_size, ".L%s%d", prefix, num);
+    return label;
 }
 
 void emit_label(FILE * out, const char * prefix, int num) {
@@ -470,6 +506,99 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
     }
 }
 
+void emit_switch_dispatch(FILE* out, ASTNode * stmtList) {
+    ASTNode * node = stmtList;
+
+    while(node) {
+        if (node->type == AST_CASE_STMT) {
+            node->case_stmt.label = make_label("case");
+            emit_line(out, "mov rax, [rsp]");
+            emit_line(out, "cmp rax, %d\n", node->case_stmt.constExpression->int_value);
+            emit_line(out, "je %s", node->case_stmt.label);
+        }
+        else if (node->type == AST_DEFAULT_STMT) {
+            node->default_stmt.label = make_label("default");
+            emit_line(out, "jmp %s", node->default_stmt.label);
+        }
+
+        node = node->next;
+    }
+}
+
+void emit_switch_bodies(FILE * out, ASTNode * stmtList) {
+    ASTNode * node = stmtList;
+
+    while(node) {
+        if (node->type == AST_CASE_STMT) {
+            emit_line(out, "%s\n", node->case_stmt.label);
+            emit_tree_node(out, node->case_stmt.stmt);
+        }
+        else if (node->type == AST_DEFAULT_STMT) {
+            emit_line(out, "%s:\n", node->default_stmt.label);
+            emit_tree_node(out, node->default_stmt.stmt);
+        }
+
+        node = node->next;
+    }
+}
+
+void emit_switch_statement(FILE * out, ASTNode * node) {
+    int label_end = label_id++;
+
+    const char * break_label = make_label_text("switch_end", label_end);
+
+    emit_tree_node(out, node->switch_stmt.expr);
+    emit_line(out, "push rax   ; save switch expression\n");
+
+    push_switch_context(break_label);
+
+    // first pass emit all comparisons and jumps
+    emit_switch_dispatch(out, node->switch_stmt.stmt);
+
+    // second pass emit all labels and bodies
+    emit_switch_bodies(out, node->switch_stmt.stmt);
+
+    emit_line(out, "%s\n", break_label);
+    // TODO MAY NEED TO EMIT A STACK restore
+    //emit_line(out, "add rsp, 8  ; restore stack\n");
+
+    pop_switch_context();
+
+}
+
+void emit_case_statement(FILE *out, ASTNode * node) {
+    int case_label_id = label_id++;
+    const char * case_label = make_label_text("case", case_label_id);
+    node->case_stmt.label = case_label;
+
+    // load switch value back from the stack
+    emit_line(out, "mov rax, [rsp] ; reload switch expr\n");
+    
+    // emit the jmp to the case body
+    emit_line(out, "cmp rax, %d\n", node->case_stmt.constExpression->int_value);
+    emit_line(out, "je %s\n", case_label);
+
+    // emit the case body
+    emit_line(out, "%s\n", node->case_stmt.label);
+    emit_tree_node(out, node->case_stmt.stmt);
+    // emit jump to break
+
+    emit_jump(out, "jmp", switch_stack->break_label);
+
+}
+
+const char * get_break_label() {
+//    if (loop_stack) return loop_stack->break_label;    TODO
+    if (switch_stack) return switch_stack->break_label;
+    return NULL;
+}
+
+void emit_break_statement(FILE * out, ASTNode * node) {
+    const char * label = get_break_label();
+    emit_line(out, "jmp %s   ; break\n", label);
+}
+
+
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
@@ -525,6 +654,15 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_DO_WHILE_STMT:
             emit_do_while_statement(out, node);
+            break;
+        case AST_SWITCH_STMT:
+            emit_switch_statement(out, node);
+            break;
+        case AST_CASE_STMT:
+            emit_case_statement(out, node);
+            break;
+        case AST_BREAK_STMT:
+            emit_break_statement(out, node);
             break;
         case AST_DIV: {
             emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX

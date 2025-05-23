@@ -364,6 +364,15 @@ ASTNode * parse_switch_statement(ParserContext * parserContext) {
     return create_switch_statement(expr, stmt);
 }
 
+ASTNode * parse_break_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_BREAK);
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    return create_break_statement_node();
+}
+
+
+
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_INT)) {
         return parse_var_declaration(parserContext);
@@ -409,6 +418,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     }
     if (is_current_token(parserContext, TOKEN_SWITCH)) {
         return parse_switch_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_BREAK)) {
+        return parse_break_statement(parserContext);
     }
     return parse_expression_statement(parserContext);
 }

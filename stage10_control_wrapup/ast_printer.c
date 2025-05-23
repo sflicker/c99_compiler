@@ -201,11 +201,22 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->do_while_stmt.stmt, indent+1);
             print_ast(node->do_while_stmt.expr, indent+1);
             break;
+        case AST_SWITCH_STMT:
+            printf("SwitchStatement\n");
+            print_ast(node->switch_stmt.expr, indent+1);
+            print_ast(node->switch_stmt.stmt, indent+1);
+            break;
         case AST_BLOCK:
             printf("Block\n");
             for (int i=0;i<node->block.count;i++) {
                 print_ast(node->block.statements[i], indent+1);
             }
+            break;
+        case AST_BREAK_STMT:
+            printf("BreakStatment:\n");
+            break;
+        case AST_CONTINUE_STMT:
+            printf("ContinueStmt:\n");
             break;
         case AST_GOTO_STMT:
             printf("GotoStatment: %s\n", node->goto_stmt.label);
@@ -213,13 +224,15 @@ void print_ast(ASTNode * node, int indent) {
         case AST_CASE_STMT:
             printf("CaseStatement %d\n", node->case_stmt.constExpression->int_value);
             print_ast(node->case_stmt.stmt, indent+1);
+            break;
         case AST_LABELED_STMT:
             printf("LabeledStatement: %s\n", node->labeled_stmt.label);
             print_ast(node->labeled_stmt.stmt, indent+1);
             break;
         case AST_DEFAULT_STMT:
-            printf("Default\n");
+            printf("Default:\n");
             print_ast(node->default_stmt.stmt, indent+1);
+            break;
         case AST_EXPRESSION_STMT:
             printf("ExpressionStatement\n");
             print_ast(node->expr_stmt.expr, indent+1);

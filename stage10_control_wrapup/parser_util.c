@@ -106,6 +106,12 @@ ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt) {
     return node;
 }
 
+ASTNode * create_break_statement_node() {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_BREAK_STMT;
+    return node;
+}
+
 bool is_lvalue(ASTNode * node) {
     return node->type == AST_VAR_EXPR;
 }

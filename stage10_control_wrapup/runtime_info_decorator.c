@@ -150,6 +150,11 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             // DO NOTHING
             break;
 
+        case AST_SWITCH_STMT:
+            populate_symbol_table(node->switch_stmt.expr, true);
+            populate_symbol_table(node->switch_stmt.stmt, true);
+            break;
+
         case AST_ASSERT_EXTENSION_STATEMENT:
             populate_symbol_table(node->expr_stmt.expr, true);
             break;
@@ -161,6 +166,8 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
         case AST_CASE_STMT:
         case AST_DEFAULT_STMT:
         case AST_LABELED_STMT:
+        case AST_BREAK_STMT:
+        case AST_CONTINUE_STMT:
             break;
 
         case AST_DO_WHILE_STMT:

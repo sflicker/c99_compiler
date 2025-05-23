@@ -117,35 +117,35 @@ void add_token(TokenList * list, Token token) {
 //     return c == '*' || c == '+' || c == '-' || c == '/' || c == '!' || c == '=' ;
 // }
 
-TokenType get_keyword_token(const char* keyword) {
-    if (strcmp(keyword, "int") == 0) {
-        return TOKEN_INT;
-    }
-    else if (strcmp(keyword, "return") == 0) {
-        return TOKEN_RETURN;
-    }
-    else if (strcmp(keyword, "if") == 0) {
-        return TOKEN_IF;
-    }
-    else if (strcmp(keyword, "else") == 0) {
-        return TOKEN_ELSE;
-    }
-    else if (strcmp(keyword, "while") == 0) {
-        return TOKEN_WHILE;
-    }
-    else if (strcmp(keyword, "for") == 0) {
-        return TOKEN_FOR;
-    }
-    else if (strcmp(keyword, "_assert") == 0) {
-        return TOKEN_ASSERT_EXTENSION;
-    }
-    else if (strcmp(keyword, "_print") == 0) {
-        return TOKEN_PRINT_EXTENSION;
-    }
-    else {
-        return TOKEN_UNKNOWN;
-    }
-}
+// TokenType get_keyword_token(const char* keyword) {
+//     if (strcmp(keyword, "int") == 0) {
+//         return TOKEN_INT;
+//     }
+//     else if (strcmp(keyword, "return") == 0) {
+//         return TOKEN_RETURN;
+//     }
+//     else if (strcmp(keyword, "if") == 0) {
+//         return TOKEN_IF;
+//     }
+//     else if (strcmp(keyword, "else") == 0) {
+//         return TOKEN_ELSE;
+//     }
+//     else if (strcmp(keyword, "while") == 0) {
+//         return TOKEN_WHILE;
+//     }
+//     else if (strcmp(keyword, "for") == 0) {
+//         return TOKEN_FOR;
+//     }
+//     else if (strcmp(keyword, "_assert") == 0) {
+//         return TOKEN_ASSERT_EXTENSION;
+//     }
+//     else if (strcmp(keyword, "_print") == 0) {
+//         return TOKEN_PRINT_EXTENSION;
+//     }
+//     else {
+//         return TOKEN_UNKNOWN;
+//     }
+// }
 
 Token * match_keyword(TokenizerContext * ctx, char * text) {
 
@@ -237,6 +237,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_LBRACE: return "LBRACE";
         case TOKEN_RBRACE: return "RBRACE";
         case TOKEN_SEMICOLON: return "SEMICOLON";
+        case TOKEN_COLON: return "COLON";
         case TOKEN_STAR: return "STAR";
         case TOKEN_PLUS: return "PLUS";
         case TOKEN_DIV: return "DIV";
