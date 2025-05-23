@@ -325,6 +325,15 @@ void emit_while_statement(FILE* out, ASTNode * node) {
     emit_label(out, "while_end", id); 
 }
 
+void emit_do_while_statement(FILE * out, ASTNode * node) {
+    int id = label_id++;
+    emit_label(out, "do_while_start", id);
+    emit_tree_node(out, node->do_while_stmt.stmt);
+    emit_tree_node(out, node->do_while_stmt.expr);
+    emit_line(out, "cmp eax, 0\n");
+    emit_jump(out, "jne", "do_while_start", id);
+    emit_label(out, "do_while_end", id);
+}
 
 void emit_block(FILE * out, ASTNode * node, bool enterNewScope) {
 
@@ -513,6 +522,9 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_WHILE_STMT:
             emit_while_statement(out, node);
+            break;
+        case AST_DO_WHILE_STMT:
+            emit_do_while_statement(out, node);
             break;
         case AST_DIV: {
             emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX

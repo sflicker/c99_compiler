@@ -225,6 +225,11 @@ const char * token_type_name(TokenType type) {
         case TOKEN_RETURN: return "RETURN";
         case TOKEN_WHILE: return "WHILE";
         case TOKEN_FOR: return "FOR";
+        case TOKEN_DO: return "DO";
+        case TOKEN_GOTO: return "GOTO";
+        case TOKEN_SWITCH: return "SWITCH";
+        case TOKEN_CASE: return "CASE";
+        case TOKEN_DEFAULT: return "DEFAULT";
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
         case TOKEN_INT_LITERAL: return "LITERAL_INT";
         case TOKEN_LPAREN: return "LPAREN";

@@ -348,6 +348,8 @@ ASTNode * parse_do_while_statement(ParserContext * parserContext) {
     expect_token(parserContext, TOKEN_WHILE);
     expect_token(parserContext, TOKEN_LPAREN);
     ASTNode * expr = parse_expression(parserContext);
+    expect_token(parserContext, TOKEN_RPAREN);
+    expect_token(parserContext, TOKEN_SEMICOLON);
 
     return create_do_while_statement(stmt, expr);
 }
