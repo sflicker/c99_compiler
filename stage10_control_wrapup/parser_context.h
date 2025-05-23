@@ -16,5 +16,8 @@ bool is_next_token(ParserContext * parserContext, TokenType type);
 Token * advance_parser(ParserContext * parserContext);
 bool match_token(ParserContext * parserContext, TokenType type);
 Token* expect_token(ParserContext * parserContext, TokenType expected);
+const char * get_current_token_type(ParserContext * parserContext);
+int get_current_token_line(ParserContext * parserContext);
+int get_current_token_col(ParserContext * parserContext);
 
 #endif

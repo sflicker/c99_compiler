@@ -293,9 +293,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_INT)) {
         return parse_var_declaration(parserContext);
     }
-    if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token_assignment(parserContext)){
-        return parse_assignment_statement(parserContext);
-    }
+    // if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token_assignment(parserContext)){
+    //     return parse_assignment_statement(parserContext);
+    // }
     if (is_current_token(parserContext, TOKEN_RETURN)) {
         return parse_return_statement(parserContext);
     }
@@ -436,7 +436,8 @@ ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
 }
 
 ASTNode * parse_expression(ParserContext * parserContext) {
-    return parse_logical_or(parserContext);
+//    return parse_logical_or(parserContext);
+    return parse_assignment_expression(parserContext);
 }
 
 ASTNode * parse_logical_or(ParserContext * parserContext) {
@@ -578,21 +579,28 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
 }
 
 ASTNode * parse_assignment_expression(ParserContext * parserContext) {
-    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
-    
-    // if not an assignment fallback to expressio
-    if (!name) {
-        return parse_expression(parserContext);
+
+    ASTNode * lhs = parse_logical_or(parserContext);
+
+    if (!is_lvalue(lhs)) {
+        return lhs;
     }
+
+    // Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
+    
+    // // if not an assignment fallback to expressio
+    // if (!name) {
+    //     return parse_expression(parserContext);
+    // }
 
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
         expect_token(parserContext, TOKEN_ASSIGN);
-        ASTNode * expr = parse_expression(parserContext);
+        ASTNode * rhs = parse_assignment_expression(parserContext);
         
         ASTNode * node =  malloc(sizeof(ASTNode));
         node->type = AST_ASSIGNMENT;
-        node->assignment.name = my_strdup(name->text);
-        node->assignment.expr = expr;
+        node->assignment.name = my_strdup(lhs->var_expr.name);
+        node->assignment.expr = rhs;
         node->assignment.offset = 0;
         return node;
     }
@@ -602,7 +610,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         ASTNode * rhs = parse_expression(parserContext);
         ASTNode * node =  malloc(sizeof(ASTNode));
         node->type = AST_COMPOUND_ADD_ASSIGN;
-        node->assignment.name = my_strdup(name->text);
+        node->assignment.name = my_strdup(lhs->var_expr.name);
         node->assignment.expr = rhs;
         node->assignment.offset = 0;
         return node;
@@ -612,12 +620,16 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
             ASTNode * rhs = parse_expression(parserContext);
             ASTNode * node =  malloc(sizeof(ASTNode));
             node->type = AST_COMPOUND_SUB_ASSIGN;
-            node->assignment.name = my_strdup(name->text);
+            node->assignment.name = my_strdup(lhs->var_expr.name);
             node->assignment.expr = rhs;
             node->assignment.offset = 0;
             return node;    
     }
-    error("Expected assignment operator");
+    else {
+        return lhs;
+    }
+    error("Expected assignment operator. actual=%s at line=%d, col=%d\n", 
+            get_current_token_type(parserContext), get_current_token_line(parserContext), get_current_token_col(parserContext));
     return NULL;  // should never reach because error exits. this is to remove a warning
 }
 
@@ -679,7 +691,13 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         Token * tok = advance_parser(parserContext);
         if (is_current_token(parserContext, TOKEN_LPAREN)) {
             advance_parser(parserContext);
-            struct node_list * argument_expression_list = parse_argument_expression_list(parserContext);
+            struct node_list * argument_expression_list = NULL; 
+            if (!is_current_token(parserContext, TOKEN_RPAREN)) {
+                argument_expression_list = parse_argument_expression_list(parserContext);
+            }
+            else {
+                advance(parserContext);
+            }
 //            int arg_count = get_argument_expression_count(argument_expression_list);
             expect_token(parserContext, TOKEN_RPAREN);
             ASTNode * node = malloc(sizeof(ASTNode));

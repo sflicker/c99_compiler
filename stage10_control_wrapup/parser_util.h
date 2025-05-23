@@ -8,6 +8,6 @@ ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodySt
 
 ASTNodeType binary_op_token_to_ast_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
-
+bool is_lvalue(ASTNode * node);
 
 #endif

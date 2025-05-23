@@ -58,3 +58,7 @@ ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodySt
     node->while_stmt.body = bodyStatement;
     return node;
 }
+
+bool is_lvalue(ASTNode * node) {
+    return node->type == AST_VAR_EXPR;
+}
