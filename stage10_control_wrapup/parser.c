@@ -31,6 +31,7 @@
    <block> ::= "{" { <statement> } "}"
 
    <statement> ::=  <var-declaration>
+                    | <labeled_statement>
                     | <assignment_statement>
                     | <return_statement>
                     | <if_statement>
@@ -40,6 +41,10 @@
                     | <expression_stmt>
                     | <assert_extension_statement>
                     | <print_extension_statement>
+
+   <labeled_statement> ::= <identifier> : <statement>
+                           | "case" <constant-expression> : <statement>
+                           | "default" : <statement> 
 
    <assert_extension_statement> ::= "_assert" "(" <expression> ")" ";"
 
@@ -289,6 +294,42 @@ ASTNode * parse_block(ParserContext* parserContext) {
     return blockNode;
 }
 
+ASTNode * parse_label_statement(ParserContext* parserContext) {
+    Token * labelToken = expect_token(parserContext, TOKEN_IDENTIFIER);
+    const char * label = labelToken->text;
+    
+    expect_token(parserContext, TOKEN_COLON);
+    ASTNode * stmt = parse_statement(parserContext);
+
+    return create_ast_labeled_statement_node(label, stmt);
+}
+
+ASTNode * parse_constant_expression(ParserContext * parserContext) {
+    ASTNode * node = parse_primary(parserContext);
+    if (node->type == AST_INT_LITERAL) {
+        return node;
+    }
+    error("expected constant expression\n");
+    return NULL;
+}
+
+ASTNode * parse_case_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_CASE);
+    ASTNode * constantExpression = parse_constant_expression(parserContext);
+    expect_token(parserContext, TOKEN_COLON);
+    ASTNode * stmt = parse_statement(parserContext);
+
+    return create_ast_case_statement_node(constantExpression, stmt);
+}
+
+ASTNode * parse_default_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_DEFAULT);
+    expect_token(parserContext, TOKEN_COLON);
+    ASTNode * stmt = parse_statement(parserContext);
+
+    return create_ast_default_statement_node(stmt);
+}
+
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_INT)) {
         return parse_var_declaration(parserContext);
@@ -316,6 +357,15 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     }
     if (is_current_token(parserContext, TOKEN_PRINT_EXTENSION)) {
         return parse_print_extension_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token(parserContext, TOKEN_COLON)) {
+        return parse_label_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_CASE)) {
+        return parse_case_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_DEFAULT)) {
+        return parse_default_statement(parserContext);
     }
     return parse_expression_statement(parserContext);
 }

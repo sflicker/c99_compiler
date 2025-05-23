@@ -59,6 +59,29 @@ ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodySt
     return node;
 }
 
+ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_LABELED_STMT;
+    node->labeled_stmt.label = label;
+    node->labeled_stmt.stmt = stmt;
+    return node;
+}
+
+ASTNode * create_ast_case_statement_node(ASTNode * constantExpression, ASTNode * stmt) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_CASE_STMT;
+    node->case_stmt.constExpression = constantExpression;
+    node->case_stmt.stmt = stmt;
+    return node;
+}
+
+ASTNode * create_ast_default_statement_node(ASTNode * stmt) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_DEFAULT_STMT;
+    node->default_stmt.stmt = stmt;
+    return node;
+}
+
 bool is_lvalue(ASTNode * node) {
     return node->type == AST_VAR_EXPR;
 }

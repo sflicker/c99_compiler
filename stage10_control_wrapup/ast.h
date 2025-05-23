@@ -11,6 +11,9 @@ typedef enum {
     AST_IF_STMT,
     AST_WHILE_STMT,
     AST_FOR_STMT,
+    AST_LABELED_STMT,
+    AST_CASE_STMT,
+    AST_DEFAULT_STMT,
     AST_INT_LITERAL,
     AST_FUNCTION_DECL,
     AST_FUNCTION_CALL,
@@ -133,6 +136,19 @@ typedef struct ASTNode {
             int offset;
         } var_expr;
 
+        struct {
+            const char * label;
+            struct ASTNode * stmt;
+        } labeled_stmt;
+
+        struct {
+            struct ASTNode * constExpression;
+            struct ASTNode * stmt;
+        } case_stmt;
+
+        struct {
+            struct ASTNode * stmt;
+        } default_stmt;
     };
 } ASTNode;
 
