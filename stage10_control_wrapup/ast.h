@@ -11,6 +11,7 @@ typedef enum {
     AST_IF_STMT,
     AST_WHILE_STMT,
     AST_FOR_STMT,
+    AST_DO_WHILE_STMT,
     AST_LABELED_STMT,
     AST_CASE_STMT,
     AST_DEFAULT_STMT,
@@ -154,6 +155,12 @@ typedef struct ASTNode {
         struct {
             const char * label;
         } goto_stmt;
+
+        struct {
+            struct ASTNode * stmt;
+            struct ASTNode * expr;
+        } do_while_stmt;
+        
     };
 } ASTNode;
 

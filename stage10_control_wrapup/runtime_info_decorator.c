@@ -163,6 +163,11 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
         case AST_LABELED_STMT:
             break;
 
+        case AST_DO_WHILE_STMT:
+            populate_symbol_table(node->do_while_stmt.expr, true);
+            populate_symbol_table(node->do_while_stmt.stmt, true);
+            break;
+
         default:
             error("Unknown AST Node Type: %d\n", node->type);
 

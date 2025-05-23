@@ -37,6 +37,7 @@
                     | <if_statement>
                     | <while_statement>
                     | <for_statement>
+                    | <do_while_statement>
                     | <block>
                     | <expression_stmt>
                     | <assert_extension_statement>
@@ -66,6 +67,8 @@
 
    <for_statement> ::= "for" "(" [init_expr] ";" [cond_expr] ";" [update_expr] ")" statement
 
+   <do_while_statement> ::= "do" <statement> "while" "(" <expression> ")" ";"
+   
    <expression_stmt> ::= <expression> ";"
 
    <expression> ::= <logical_or_expr>
@@ -339,6 +342,16 @@ ASTNode * parse_goto_statement(ParserContext * parserContext) {
     return create_goto_statement(label);
 }
 
+ASTNode * parse_do_while_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_DO);
+    ASTNode * stmt = parse_statement(parserContext);
+    expect_token(parserContext, TOKEN_WHILE);
+    expect_token(parserContext, TOKEN_LPAREN);
+    ASTNode * expr = parse_expression(parserContext);
+
+    return create_do_while_statement(stmt, expr);
+}
+
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_INT)) {
         return parse_var_declaration(parserContext);
@@ -357,6 +370,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     }
     if (is_current_token(parserContext, TOKEN_WHILE)) {
         return parse_while_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_DO)) {
+        return parse_do_while_statement(parserContext);
     }
     if (is_current_token(parserContext, TOKEN_FOR)) {
         return parse_for_statement(parserContext);

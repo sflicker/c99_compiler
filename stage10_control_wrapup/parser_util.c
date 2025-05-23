@@ -90,6 +90,14 @@ ASTNode * create_goto_statement(const char * label) {
     return node;
 }
 
+ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_DO_WHILE_STMT;
+    node->do_while_stmt.stmt = stmt;
+    node->do_while_stmt.expr = expr;
+    return node;
+}
+
 bool is_lvalue(ASTNode * node) {
     return node->type == AST_VAR_EXPR;
 }

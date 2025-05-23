@@ -196,6 +196,11 @@ void print_ast(ASTNode * node, int indent) {
             }
             print_ast(node->for_stmt.body, indent+1);
             break;
+        case AST_DO_WHILE_STMT:
+            printf("DoWhileStmt:\n");
+            print_ast(node->do_while_stmt.stmt, indent+1);
+            print_ast(node->do_while_stmt.expr, indent+1);
+            break;
         case AST_BLOCK:
             printf("Block\n");
             for (int i=0;i<node->block.count;i++) {

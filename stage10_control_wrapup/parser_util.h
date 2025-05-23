@@ -9,6 +9,7 @@ ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt);
 ASTNode * create_ast_case_statement_node(ASTNode * constantExpression, ASTNode * stmt);
 ASTNode * create_ast_default_statement_node(ASTNode * stmt);
 ASTNode * create_goto_statement(const char * label);
+ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr);
 
 ASTNodeType binary_op_token_to_ast_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
