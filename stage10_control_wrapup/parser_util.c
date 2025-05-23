@@ -82,6 +82,14 @@ ASTNode * create_ast_default_statement_node(ASTNode * stmt) {
     return node;
 }
 
+ASTNode * create_goto_statement(const char * label) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_GOTO_STMT;
+    node->goto_stmt.label = label;
+
+    return node;
+}
+
 bool is_lvalue(ASTNode * node) {
     return node->type == AST_VAR_EXPR;
 }

@@ -157,6 +157,11 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
         case AST_PRINT_EXTENSION_STATEMENT:
             populate_symbol_table(node->expr_stmt.expr, true);
             break;
+        case AST_GOTO_STMT:         //TODO make need implementation
+        case AST_CASE_STMT:
+        case AST_DEFAULT_STMT:
+        case AST_LABELED_STMT:
+            break;
 
         default:
             error("Unknown AST Node Type: %d\n", node->type);

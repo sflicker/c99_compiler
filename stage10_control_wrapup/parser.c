@@ -330,6 +330,15 @@ ASTNode * parse_default_statement(ParserContext * parserContext) {
     return create_ast_default_statement_node(stmt);
 }
 
+ASTNode * parse_goto_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_GOTO);
+    Token * labelToken = expect_token(parserContext, TOKEN_IDENTIFIER);
+    const char * label = labelToken->text;
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    return create_goto_statement(label);
+}
+
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token(parserContext, TOKEN_INT)) {
         return parse_var_declaration(parserContext);
@@ -366,6 +375,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     }
     if (is_current_token(parserContext, TOKEN_DEFAULT)) {
         return parse_default_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_GOTO)) {
+        return parse_goto_statement(parserContext);
     }
     return parse_expression_statement(parserContext);
 }

@@ -582,6 +582,14 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_FOR_STMT:
             emit_for_statement(out, node);
             break;
+        case AST_GOTO_STMT:
+            emit_jump(out, "jmp", node->goto_stmt.label, 0);
+            break;
+
+        case AST_LABELED_STMT:
+            emit_label(out, node->labeled_stmt.label, 0);
+            emit_tree_node(out, node->labeled_stmt.stmt);
+            break;
 
     }
 }

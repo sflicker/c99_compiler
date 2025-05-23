@@ -14,6 +14,7 @@ typedef enum {
     AST_LABELED_STMT,
     AST_CASE_STMT,
     AST_DEFAULT_STMT,
+    AST_GOTO_STMT,
     AST_INT_LITERAL,
     AST_FUNCTION_DECL,
     AST_FUNCTION_CALL,
@@ -149,6 +150,10 @@ typedef struct ASTNode {
         struct {
             struct ASTNode * stmt;
         } default_stmt;
+
+        struct {
+            const char * label;
+        } goto_stmt;
     };
 } ASTNode;
 
