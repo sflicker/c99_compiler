@@ -79,7 +79,7 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
     }
 
     error("unexpected token at POS: %d, expected: %s, actual: %s\n", parserContext->pos, token_type_name(expected), token_type_name(token->type));
-
+    return NULL;
 }
 
 const char * get_current_token_type(ParserContext * parserContext) {
