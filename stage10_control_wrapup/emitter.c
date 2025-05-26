@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
+#include <assert.h>
 
 #include "emitter.h"
 #include "token.h"
@@ -506,43 +507,47 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
     }
 }
 
-void emit_switch_dispatch(FILE* out, ASTNode * stmtList) {
-    ASTNode * node = stmtList;
+void emit_switch_dispatch(FILE* out, ASTNode * node) {
+    assert(node->type == AST_SWITCH_STMT);
+    ASTNode * block = node->switch_stmt.stmt;
+    assert(block->type == AST_BLOCK);
 
-    while(node) {
-        if (node->type == AST_CASE_STMT) {
-            node->case_stmt.label = make_label("case");
-            emit_line(out, "mov rax, [rsp]");
-            emit_line(out, "cmp rax, %d\n", node->case_stmt.constExpression->int_value);
-            emit_line(out, "je %s", node->case_stmt.label);
+    for (int i=0;i<block->block.count;i++) {
+        ASTNode * statement = block->block.statements[i];
+        if (statement->type == AST_CASE_STMT) {
+            statement->case_stmt.label = make_label_text("case", label_id++);
+            emit_line(out, "mov rax, [rsp]\n");
+            emit_line(out, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
+            emit_line(out, "je %s\n", statement->case_stmt.label);
         }
-        else if (node->type == AST_DEFAULT_STMT) {
-            node->default_stmt.label = make_label("default");
-            emit_line(out, "jmp %s", node->default_stmt.label);
+        else if (statement->type == AST_DEFAULT_STMT) {
+            statement->default_stmt.label = make_label_text("default", label_id++);
+            emit_line(out, "jmp %s\n", statement->default_stmt.label);
         }
-
-        node = node->next;
     }
+
 }
 
-void emit_switch_bodies(FILE * out, ASTNode * stmtList) {
-    ASTNode * node = stmtList;
+void emit_switch_bodies(FILE * out, ASTNode * node) {
+        assert(node->type == AST_SWITCH_STMT);
+    ASTNode * block = node->switch_stmt.stmt;
+    assert(block->type == AST_BLOCK);
 
-    while(node) {
-        if (node->type == AST_CASE_STMT) {
-            emit_line(out, "%s\n", node->case_stmt.label);
-            emit_tree_node(out, node->case_stmt.stmt);
+    for (int i=0;i<block->block.count;i++) {
+        ASTNode * statement = block->block.statements[i];
+        if (statement->type == AST_CASE_STMT) {
+            emit_line(out, "%s:\n", statement->case_stmt.label);
+            emit_tree_node(out, statement->case_stmt.stmt);
         }
-        else if (node->type == AST_DEFAULT_STMT) {
-            emit_line(out, "%s:\n", node->default_stmt.label);
-            emit_tree_node(out, node->default_stmt.stmt);
+        else if (statement->type == AST_DEFAULT_STMT) {
+            emit_line(out, "%s:\n", statement->default_stmt.label);
+            emit_tree_node(out, statement->default_stmt.stmt);
         }
-
-        node = node->next;
     }
 }
 
 void emit_switch_statement(FILE * out, ASTNode * node) {
+    assert(node->type == AST_SWITCH_STMT);
     int label_end = label_id++;
 
     const char * break_label = make_label_text("switch_end", label_end);
@@ -553,10 +558,12 @@ void emit_switch_statement(FILE * out, ASTNode * node) {
     push_switch_context(break_label);
 
     // first pass emit all comparisons and jumps
-    emit_switch_dispatch(out, node->switch_stmt.stmt);
+//    emit_switch_dispatch(out, node->switch_stmt.stmt);
+    emit_switch_dispatch(out, node);
 
     // second pass emit all labels and bodies
-    emit_switch_bodies(out, node->switch_stmt.stmt);
+//    emit_switch_bodies(out, node->switch_stmt.stmt);
+    emit_switch_bodies(out, node);
 
     emit_line(out, "%s\n", break_label);
     // TODO MAY NEED TO EMIT A STACK restore
@@ -583,7 +590,7 @@ void emit_case_statement(FILE *out, ASTNode * node) {
     emit_tree_node(out, node->case_stmt.stmt);
     // emit jump to break
 
-    emit_jump(out, "jmp", switch_stack->break_label);
+    emit_line(out, "jmp %s\n", switch_stack->break_label);
 
 }
 
