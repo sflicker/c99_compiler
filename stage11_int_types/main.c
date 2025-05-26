@@ -79,7 +79,7 @@ char* change_extension(const char* source_file, const char* new_ext) {
 int main(int argc, char ** argv) {
 
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <source file>", argv[0]);
+        fprintf(stderr, "Usage: %s <source file>\n", argv[0]);
         return 1;
     }
     const char * program_file = argv[1];

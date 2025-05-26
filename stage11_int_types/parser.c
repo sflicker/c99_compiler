@@ -10,6 +10,7 @@
 #include "parser.h"
 #include "parser_util.h"
 #include "parser_context.h"
+#include "type.h"
 
 /* 
    Simple C compiler example 
@@ -26,7 +27,9 @@
    <parameter_list> ::=   <parameter_declaration>
                         | <parameter_list>, <parameter_declaration>
 
-   <parameter_declaration> ::= "int" <identifier>                        
+   <parameter_declaration> ::= <type-specifier> <identifier>                        
+
+   <type-specifier> ::= "char" | "short" | "int" | "long"
 
    <block> ::= "{" { <statement> } "}"
 
@@ -51,7 +54,7 @@
 
    <print_extension_statement> ::= "_print" "(" <expression> ")" ";"
 
-   <var-declaration> ::= "int" <identifier> [ "=" <expression> ] ";"
+   <var-declaration> ::= <type-specifier> <identifier> [ "=" <expression> ] ";"
 
    <assignment_statement> ::= <assignment_expression> ";";
 
@@ -160,6 +163,17 @@ ASTNode* parse(TokenList * tokenList) {
     return node;
 }
 
+Type * parse_type(ParserContext * ctx) {
+    switch (peek(ctx)->type) {
+        case TOKEN_INT: advance_parser(ctx); return &TYPE_INT_T;
+        case TOKEN_CHAR: advance_parser(ctx); return &TYPE_CHAR_T;
+        case TOKEN_SHORT: advance_parser(ctx); return &TYPE_SHORT_T;
+        case TOKEN_LONG: advance_parser(ctx); return &TYPE_LONG_T;
+        default: error("Invalid Type"); return NULL;
+    }
+}
+
+
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
         // expect_token(parserContext, TOKEN_INT);
         // Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
@@ -171,7 +185,7 @@ ASTNode * parse_param_list(ParserContext * parserContext) {
     struct node_list * param_list = NULL;
 
     do {
-        expect_token(parserContext, TOKEN_INT);
+        Token * type_token = expect_type_token(parserContext);
         Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
         ASTNode * param = malloc(sizeof(ASTNode));
         param->type = AST_VAR_DECL;
@@ -380,7 +394,7 @@ ASTNode * parse_continue_statement(ParserContext * parserContext) {
 
 
 ASTNode * parse_statement(ParserContext* parserContext) {
-    if (is_current_token(parserContext, TOKEN_INT)) {
+    if (is_current_token_a_type(parserContext)) {
         return parse_var_declaration(parserContext);
     }
     // if (is_current_token(parserContext, TOKEN_IDENTIFIER) && is_next_token_assignment(parserContext)){
@@ -675,7 +689,7 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
 }
 
 ASTNode*  parse_var_declaration(ParserContext * parserContext) {
-    expect_token(parserContext, TOKEN_INT);
+    Type * type = parse_type(parserContext);
     Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     ASTNode * expr = NULL;
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
@@ -686,6 +700,7 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
 
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_VAR_DECL;
+    node->var_decl.var_type = type;
     node->var_decl.name = my_strdup(name->text);
     node->var_decl.init_expr = expr;
     node->var_decl.offset = 0;

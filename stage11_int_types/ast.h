@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "token.h"
+#include "type.h"
 #include "util.h"
 
 typedef enum {
@@ -125,6 +126,7 @@ typedef struct ASTNode {
         } expr_stmt;
 
         struct {
+            Type * var_type;
             const char* name;
             struct ASTNode * init_expr; // NULL if no initializer
             int offset;

@@ -3,6 +3,9 @@
 
 typedef enum {
     TOKEN_INT,
+    TOKEN_CHAR,
+    TOKEN_SHORT,
+    TOKEN_LONG,
     TOKEN_RETURN,
     TOKEN_IF,
     TOKEN_ELSE,

@@ -22,6 +22,9 @@ typedef struct {
 
 TokenMapEntry keyword_map[] = {
     { "int", TOKEN_INT }, 
+    { "char", TOKEN_CHAR },
+    { "short", TOKEN_SHORT },
+    { "long", TOKEN_LONG },
     { "return", TOKEN_RETURN },
     { "if", TOKEN_IF },
     { "else", TOKEN_ELSE },
@@ -222,6 +225,9 @@ const char * token_type_name(TokenType type) {
     switch(type) {
         case TOKEN_EOF: return "EOF";
         case TOKEN_INT: return "INT";
+        case TOKEN_CHAR: return "CHAR";
+        case TOKEN_SHORT: return "SHORT";
+        case TOKEN_LONG: return "LONG";
         case TOKEN_RETURN: return "RETURN";
         case TOKEN_WHILE: return "WHILE";
         case TOKEN_FOR: return "FOR";
