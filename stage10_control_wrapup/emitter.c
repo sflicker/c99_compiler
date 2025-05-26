@@ -424,6 +424,11 @@ void emit_block(FILE * out, ASTNode * node, bool enterNewScope) {
 
 void emit_function(FILE * out, ASTNode * node) {
 
+    // skip forward declarations (only codegen for function definitions that include the body)
+    if (node->function_decl.body == NULL) {
+        return;
+    }
+
     emit_text_section_header(out);
 
     int local_space = node->function_decl.size;
