@@ -140,6 +140,18 @@
         "preLaunchTask": "build-stage10-control-wrapup",
         "args": ["tests/test_forward_declaration__42.c"]
       }
+      ,
+      {
+        "name": "Debug stage11",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage11_int_types/mimic99",
+        "cwd": "${workspaceFolder}/stage11_int_types",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "build-stage11-int-types",
+        "args": ["tests/test_forward_declaration__42.c"]
+      }
 
     ]
   }
