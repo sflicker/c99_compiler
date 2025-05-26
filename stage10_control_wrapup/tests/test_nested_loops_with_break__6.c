@@ -7,7 +7,8 @@ int main() {
             if (j == 2) {
                 break;
             }
-        count += 1;
+            count += 1;
+        }
     }
     return count;     // expected: 2 for each inner iters: and 3 for outer so 2x3=6.
 }

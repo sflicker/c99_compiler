@@ -8,6 +8,7 @@ int main() {
             continue;    // don't sum even numbers
         }
         sum += i;
+        _print(sum);
     }
     return sum;
 }

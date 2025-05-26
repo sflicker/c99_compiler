@@ -5,7 +5,7 @@ int main() {
         if (i == 5) {
 			break;
         }
-        sum += 1;
+        sum += i;
     }
     return sum;      // expected 0+1+2+3+4 = 10
 }

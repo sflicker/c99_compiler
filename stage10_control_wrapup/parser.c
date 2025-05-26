@@ -371,6 +371,12 @@ ASTNode * parse_break_statement(ParserContext * parserContext) {
     return create_break_statement_node();
 }
 
+ASTNode * parse_continue_statement(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_CONTINUE);
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    return create_continue_statement_node();
+}
 
 
 ASTNode * parse_statement(ParserContext* parserContext) {
@@ -421,6 +427,9 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     }
     if (is_current_token(parserContext, TOKEN_BREAK)) {
         return parse_break_statement(parserContext);
+    }
+    if (is_current_token(parserContext, TOKEN_CONTINUE)) {
+        return parse_continue_statement(parserContext);
     }
     return parse_expression_statement(parserContext);
 }
@@ -687,7 +696,10 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
 
     ASTNode * lhs = parse_logical_or(parserContext);
 
-    if (!is_lvalue(lhs)) {
+    if (lhs == NULL ) {
+        error("lhs must not be null\n");
+    }
+    else if (!is_lvalue(lhs)) {
         return lhs;
     }
 

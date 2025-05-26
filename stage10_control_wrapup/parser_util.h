@@ -12,6 +12,7 @@ ASTNode * create_goto_statement(const char * label);
 ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr);
 ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt);
 ASTNode * create_break_statement_node();
+ASTNode * create_continue_statement_node();
 
 ASTNodeType binary_op_token_to_ast_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);

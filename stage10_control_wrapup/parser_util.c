@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "util.h"
 #include "token.h"
@@ -112,6 +113,14 @@ ASTNode * create_break_statement_node() {
     return node;
 }
 
+ASTNode * create_continue_statement_node() {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_CONTINUE_STMT;
+    return node;
+}
+
+
 bool is_lvalue(ASTNode * node) {
+    assert(((node != NULL) && "node must not be null"));
     return node->type == AST_VAR_EXPR;
 }

@@ -39,6 +39,30 @@ void pop_switch_context() {
     }
 }
 
+typedef struct LoopContext {
+    const char * start_label;
+    const char * end_label;
+    struct LoopContext * next;
+} LoopContext;
+
+static LoopContext * loop_stack = NULL;
+
+void push_loop_context(const char * start_label, const char * end_label) {
+    LoopContext * ctx = malloc(sizeof(LoopContext));
+    ctx->start_label = start_label;
+    ctx->end_label = end_label;
+    ctx->next = loop_stack;
+    loop_stack = ctx;
+}
+
+void pop_loop_context() {
+    if (loop_stack) {
+        LoopContext * old = loop_stack;
+        loop_stack = old->next;
+        free(old);
+    }
+}
+
 const char * current_switch_break_label() {
     if (switch_stack) {
         return switch_stack->break_label;
@@ -105,7 +129,7 @@ void emit_bss_section_header(FILE * out) {
 const char * make_label_text(const char * prefix, int num) {
     size_t buffer_size = strlen(prefix) + 20;
     char * label = malloc(buffer_size);
-    snprintf(label, buffer_size, ".L%s%d", prefix, num);
+    snprintf(label, buffer_size, "%s%d", prefix, num);
     return label;
 }
 
@@ -113,8 +137,16 @@ void emit_label(FILE * out, const char * prefix, int num) {
     emit_line(out, ".L%s%d:\n", prefix, num);
 }
 
+void emit_label_from_text(FILE * out, const char * label) {
+    emit_line(out, ".L%s:\n", label);
+}
+
 void emit_jump(FILE * out, const char * op, const char * prefix, int num) {
     emit_line(out, "%s .L%s%d\n", op, prefix, num);
+}
+
+void emit_jump_from_text(FILE * out, const char * op, const char * label) {
+    emit_line(out, "%s .L%s\n", op, label);
 }
 
 void emit_assert_extension_statement(FILE * out, ASTNode * node) {
@@ -347,19 +379,29 @@ void emit_if_statement(FILE * out, ASTNode * node) {
 }
 
 void emit_while_statement(FILE* out, ASTNode * node) {
-    int id = label_id++;
+
+    const char * loop_start_label = make_label_text("while_start", label_id++);
+    const char * loop_end_label = make_label_text("while_end", label_id++);
+
+    emit_tree_node(out, node->switch_stmt.expr);
+    emit_line(out, "push rax   ; save switch expression\n");
+
+    push_loop_context(loop_start_label, loop_end_label);
+    
+    //int id = label_id++;
+    
     // start label
-    emit_label(out, "while_start", id);
+    emit_label_from_text(out, loop_start_label);
     // eval cond
     emit_tree_node(out, node->while_stmt.cond);
     // cmp to zero
     emit_line(out, "cmp eax, 0\n");
     // jmp to end if condition not met
-    emit_line(out, "je .Lwhile_end%d\n", id);
+    emit_jump_from_text(out, "je", loop_end_label);
     emit_tree_node(out, node->while_stmt.body);
     // jmp to start
-    emit_line(out, "jmp .Lwhile_start%d\n", id);
-    emit_label(out, "while_end", id); 
+    emit_jump_from_text(out, "jmp", loop_start_label);
+    emit_label_from_text(out, loop_end_label); 
 }
 
 void emit_do_while_statement(FILE * out, ASTNode * node) {
@@ -442,9 +484,18 @@ void emit_sub_assignment(FILE *out, ASTNode * node) {
 }
 
 void emit_for_statement(FILE * out, ASTNode * node) {
-    int label_start = label_id++;
-    int label_cond = label_id++;
-    int label_end = label_id++;
+
+    const char * start_label = make_label_text("for_start", label_id++);
+    const char * end_label = make_label_text("for_end", label_id++);
+    const char * condition_label = make_label_text("for_condition", label_id++);
+    const char * continue_label = make_label_text("for_continue", label_id++);
+
+    push_loop_context(continue_label, end_label);
+
+
+    // int label_start = label_id++;
+    // int label_cond = label_id++;
+    // int label_end = label_id++;
 
     // initializer
     if (node->for_stmt.init_expr) {
@@ -452,11 +503,14 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     }
 
     // jump to condition check
-    emit_jump(out, "jmp", "cond", label_cond);
+    emit_jump_from_text(out, "jmp", condition_label);
 
     // loop body start
-    emit_label(out, "start", label_start);
+    emit_label_from_text(out, start_label);
     emit_block(out, node->for_stmt.body, false);
+
+    // emit continue label
+    emit_label_from_text(out, continue_label);
 
     // update expression
     if (node->for_stmt.update_expr) {
@@ -464,18 +518,19 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     }
 
     // loop condition
-    emit_label(out, "cond", label_cond);
+    emit_label_from_text(out, condition_label);
     if (node->for_stmt.cond_expr) {
         emit_tree_node(out, node->for_stmt.cond_expr);
         emit_line(out, "cmp eax, 0\n");
-        emit_jump(out, "je", "end", label_end);     // exit if false
+        emit_jump_from_text(out, "je", end_label);     // exit if false
     }
 
-    emit_jump(out, "jmp", "start", label_start);
+    emit_jump_from_text(out, "jmp", start_label);
     
-    // end label
-    emit_label(out, "end", label_end);
+    // end/break label
+    emit_label_from_text(out, end_label);
 
+    pop_loop_context();
 //    exit_scope();
 }
 
@@ -595,16 +650,25 @@ void emit_case_statement(FILE *out, ASTNode * node) {
 }
 
 const char * get_break_label() {
-//    if (loop_stack) return loop_stack->break_label;    TODO
+    if (loop_stack) return loop_stack->end_label; 
     if (switch_stack) return switch_stack->break_label;
+    return NULL;
+}
+
+const char * get_continue_label() {
+    if (loop_stack) return loop_stack->start_label;
     return NULL;
 }
 
 void emit_break_statement(FILE * out, ASTNode * node) {
     const char * label = get_break_label();
-    emit_line(out, "jmp %s   ; break\n", label);
+    emit_jump_from_text(out, "jmp", label);
 }
 
+void emit_continue_statement(FILE * out, ASTNode * node) {
+    const char * label = get_continue_label();
+    emit_jump_from_text(out, "jmp", label);
+}
 
 void emit_tree_node(FILE * out, ASTNode * node) {
     if (!node) return;
@@ -670,6 +734,9 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_BREAK_STMT:
             emit_break_statement(out, node);
+            break;
+        case AST_CONTINUE_STMT:
+            emit_continue_statement(out, node);
             break;
         case AST_DIV: {
             emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
