@@ -4,9 +4,11 @@
 
 #include "symtab.h"
 #include "util.h"
+#include "type.h"
 
 typedef struct Symbol {
     char* name;
+    Type * type;
     int offset;
     struct Symbol* next;
 } Symbol;
@@ -70,7 +72,7 @@ void exit_scope() {
     free(old);
 }
 
-int add_symbol_with_offset(const char * name, int offset) {
+int add_symbol_with_offset(const char * name, int offset, Type * type) {
     // check if symbol currently exists in current scope only
     // error and exit if so.
     Symbol * sym = current_scope->symbols;
@@ -85,6 +87,7 @@ int add_symbol_with_offset(const char * name, int offset) {
     // add new symbol
     Symbol * new_symbol = malloc(sizeof(Symbol));
     new_symbol->name = my_strdup(name);
+    new_symbol->type = type;
     new_symbol->offset = offset;
 
     new_symbol->next = current_scope->symbols;
@@ -92,13 +95,13 @@ int add_symbol_with_offset(const char * name, int offset) {
     
     // only update for negative offsets which are for local variables
     if (offset < 0) {
-        storage_size += 4;
+        storage_size += type->size;
     }
     return new_symbol->offset;
 
 }
 
-int add_symbol(const char * name) {
+int add_symbol(const char * name, Type * type) {
     // check if symbol currently exists in current scope only
     // error and exit if so.
     Symbol * sym = current_scope->symbols;
@@ -114,11 +117,11 @@ int add_symbol(const char * name) {
     Symbol * new_symbol = malloc(sizeof(Symbol));
     new_symbol->name = my_strdup(name);
     new_symbol->offset = next_offset;
-    next_offset -= 4;
+    next_offset -= type->size;
 
     new_symbol->next = current_scope->symbols;
     current_scope->symbols = new_symbol;
-    storage_size += 4;
+    storage_size += type->size;
     return new_symbol->offset;
 }
 

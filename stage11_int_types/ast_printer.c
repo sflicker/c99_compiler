@@ -8,6 +8,7 @@
 #include "token.h"
 #include "ast.h"
 #include "parser.h"
+#include "type.h"
 #include "ast_printer.h"
 
 void print_ast(ASTNode * node, int indent) {
@@ -246,7 +247,7 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->expr_stmt.expr, indent+1);
             break;
         case AST_VAR_DECL:
-            printf("VariableDeclaration: %s, offset: %d\n", node->var_decl.name, node->var_decl.offset);
+            printf("VariableDeclaration: %s, type: %s, offset: %d\n", node->var_decl.name, type_name(node->var_decl.var_type), node->var_decl.offset);
             if (node->var_decl.init_expr) {
                 print_ast(node->var_decl.init_expr, indent+1);
             }

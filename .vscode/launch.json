@@ -150,7 +150,7 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "build-stage11-int-types",
-        "args": ["tests/test_forward_declaration__42.c"]
+        "args": ["tests/test_max__88.c"]
       }
 
     ]

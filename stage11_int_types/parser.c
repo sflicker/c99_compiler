@@ -185,11 +185,12 @@ ASTNode * parse_param_list(ParserContext * parserContext) {
     struct node_list * param_list = NULL;
 
     do {
-        Token * type_token = expect_type_token(parserContext);
+        Type * type = parse_type(parserContext);
         Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
         ASTNode * param = malloc(sizeof(ASTNode));
         param->type = AST_VAR_DECL;
         param->var_decl.name = param_name->text;
+        param->var_decl.var_type = type;
         param->var_decl.init_expr = NULL;
         param->var_decl.offset = 0;
         if (param_list == NULL) {

@@ -32,10 +32,11 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
                 if (node->function_decl.param_list) {
                     int offset = 16;
                     for(struct node_list * curr = node->function_decl.param_list->param_list.node_list; curr != NULL; curr = curr->next) {
-                        ASTNode * astNode = (ASTNode*)curr->node;
-                        offset = add_symbol_with_offset(astNode->var_decl.name, offset);
+                        ASTNode * astNode = (ASTNode*)curr->node;                        
+                        offset = add_symbol_with_offset(astNode->var_decl.name, offset, astNode->var_decl.var_type);
                         astNode->var_decl.offset = offset;
-                        offset += 8;
+                        offset += astNode->var_decl.var_type->size;
+                        //offset += 8;
                     }
                 }
                 populate_symbol_table(node->function_decl.body, false);
@@ -59,7 +60,7 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             if (make_new_scope) exit_scope();
             break;
         case AST_VAR_DECL:
-            int offset = add_symbol(node->var_decl.name);
+            int offset = add_symbol(node->var_decl.name, node->var_decl.var_type);
             node->var_decl.offset = offset;
             if (node->var_decl.init_expr) {
                 populate_symbol_table(node->var_decl.init_expr, false);

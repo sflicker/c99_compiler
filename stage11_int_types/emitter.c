@@ -549,6 +549,7 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
 
         for (struct node_list * arg = reversed_list;arg != NULL; arg = arg->next) {
             emit_tree_node(out, arg->node);
+//            emit_line(out, "mov [rbp+%d], rax\n", arg->node.var_decl.offset);
             emit_line(out, "push rax\n");
         }
     }
