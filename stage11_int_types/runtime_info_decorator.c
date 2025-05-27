@@ -39,6 +39,9 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
                         //offset += 8;
                     }
                 }
+                Type * param_type;
+                add_function_symbol(node->function_decl.name, node->function_decl.return_type, 
+                    get_node_list_count(node->function_decl.param_list), &param_type);
                 populate_symbol_table(node->function_decl.body, false);
                 node->function_decl.size = get_symbol_total_space();
                 exit_scope();

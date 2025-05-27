@@ -539,18 +539,41 @@ void emit_for_statement(FILE * out, ASTNode * node) {
 //    exit_scope();
 }
 
+void emit_pass_argument(FILE* out, Type * type, int offset, ASTNode * node) {
+    emit_tree_node(out, node);
+
+    switch(type->size) {
+        case 1:
+            emit_line(out, "mov byte [rsp+%d], al\n", offset);
+            break;
+        case 2:
+            emit_line(out, "mov word [rsp+%d], ax\n", offset);
+            break;
+        case 4:
+            emit_line(out, "mov dword [rsp+%d], eax\n", offset);
+            break;
+        case 8:
+            emit_line(out, "mov qword [rsp+%d], rax\n", offset);
+            break;
+        default:
+            error("Unsupported type size %d in emit_pass_argument\n", type->size);
+    }
+}
+
 void emit_function_call(FILE * out, struct ASTNode * node) {
     // if the call has arguments
     // first get a reversed list
     // then emit each arg then push it
     struct node_list * reversed_list = NULL;
     if (node->function_call.argument_expression_list) {
-        reversed_list = reverse_list(node->function_call.argument_expression_list);
-
+ //       reversed_list = reverse_list(node->function_call.argument_expression_list);
+        reversed_list = node->function_call.argument_expression_list;
         for (struct node_list * arg = reversed_list;arg != NULL; arg = arg->next) {
-            emit_tree_node(out, arg->node);
+            ASTNode * argNode = (ASTNode*)arg;
+            emit_pass_argument(out, argNode->var_decl.var_type, argNode->var_decl.offset, argNode);
+ //           emit_tree_node(out, arg->node);
 //            emit_line(out, "mov [rbp+%d], rax\n", arg->node.var_decl.offset);
-            emit_line(out, "push rax\n");
+        //    emit_line(out, "push rax\n");
         }
     }
 
@@ -819,6 +842,9 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_LABELED_STMT:
             emit_label(out, node->labeled_stmt.label, 0);
             emit_tree_node(out, node->labeled_stmt.stmt);
+            break;
+        default:
+            error("Unhandled type %s\n", node->type);
             break;
 
     }

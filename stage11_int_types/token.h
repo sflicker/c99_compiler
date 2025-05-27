@@ -61,12 +61,27 @@ typedef struct {
     int col;
 } Token;
 
-typedef struct {
-    Token * data;
-    int capacity;
-    int count;
+// typedef struct {
+//     Token * data;
+//     int capacity;
+//     int count;
+// } TokenList;
+
+typedef struct TokenData {
+    Token * token;
+    struct TokenData * next;
+} TokenData;
+
+typedef struct TokenList {
+    TokenData * head;
+    TokenData * tail;
 } TokenList;
 
 const char * token_type_name(TokenType type);
+
+void init_token_list(TokenList * list);
+void cleanup_token_list(TokenList * tokenList);
+void add_token(TokenList * list, Token * token);
+Token * make_token(TokenType type, const char * text, int line, int col);
 
 #endif

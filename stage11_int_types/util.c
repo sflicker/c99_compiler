@@ -34,7 +34,7 @@ void error(const char* fmt, ...) {
     exit(1);
 }
 
-int get_node_list_count(struct node_list * node_list) {
+int get_node_list_count(node_list * node_list) {
 
     int arg_count = 0;
     while(node_list) {

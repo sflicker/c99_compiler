@@ -78,30 +78,7 @@ TokenMapEntry single_char_operator_map[] = {
 
 //const int num_keywords = sizeof(keywords)/sizeof(keywords[0]);
 
-Token * make_token(TokenType type, const char * text, int line, int col) {
-    Token * token = malloc(sizeof(Token));
-    token->type = type;
-    token->text = text;
-    token->line = line;
-    token->col = col;
-    return token;
-}
 
-void init_token_list(TokenList * list);
-
-void init_token_list(TokenList * list) {
-    list->capacity = 16;
-    list->count = 0;
-    list->data = malloc(sizeof(Token) * list->capacity);
-}
-
-void add_token(TokenList * list, Token token) {
-    if (list->count >= list->capacity) {
-        list->capacity *= 2;
-        list->data = realloc(list->data, sizeof(Token) * list->capacity);
-    }
-    list->data[list->count++] = token;
-}
 
 // bool is_keyword(const char * word) {
 //     for (int i=0;i<num_keywords; i++) {
@@ -292,17 +269,17 @@ const char * token_type_name(TokenType type) {
 
 
 void add_int_token(TokenList * tokenList, char * numberText, int line, int col) {
-    Token token;
-    token.type = TOKEN_INT_LITERAL;
+    Token * token = malloc(sizeof(Token));
+    token->type = TOKEN_INT_LITERAL;
     int numberTextLen = strlen(numberText);
     char * numberTextCopy = malloc(numberTextLen + 1);
     memcpy(numberTextCopy, numberText, numberTextLen);
     numberTextCopy[numberTextLen] = '\0';
-    token.text = numberTextCopy;
-    token.length = numberTextLen;
-    token.int_value = atoi(numberText);
-    token.line = line;
-    token.col = col;
+    token->text = numberTextCopy;
+    token->length = numberTextLen;
+    token->int_value = atoi(numberText);
+    token->line = line;
+    token->col = col;
     add_token(tokenList, token);
 }
 
@@ -321,17 +298,17 @@ void tokenize_number(TokenizerContext * ctx, TokenList * tokenList) {
 }
 
 void add_identifier_token(TokenList * tokenList, const char * id, int line, int col) {
-    Token token;
-    token.type = TOKEN_IDENTIFIER;
+    Token * token = malloc(sizeof(Token));
+    token->type = TOKEN_IDENTIFIER;
     int idLen = strlen(id);
     char * idCopy = malloc(idLen + 1);
     memcpy(idCopy, id, idLen);
     idCopy[idLen] = '\0';
-    token.text = idCopy;
-    token.length = idLen;
-    token.int_value = 0;
-    token.line = line;
-    token.col = col;
+    token->text = idCopy;
+    token->length = idLen;
+    token->int_value = 0;
+    token->line = line;
+    token->col = col;
     add_token(tokenList, token);
 }
 
@@ -417,7 +394,7 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
             // }
 
             if ((matched_tok = match_keyword(ctx, buffer)) != NULL) {
-                add_token(tokenList, *matched_tok);
+                add_token(tokenList, matched_tok);
             } else {
                 add_identifier_token(tokenList, buffer, line, col);
             }
@@ -435,10 +412,10 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
             // add_int_token(tokenList, buffer);
         }
         else if ((matched_tok = match_two_char_operator(ctx, ctx->curr_char, ctx->next_char)) != NULL) {
-            add_token(tokenList, *matched_tok);
+            add_token(tokenList, matched_tok);
         }
         else if ((matched_tok = match_one_char_operator(ctx, ctx->curr_char)) != NULL) {
-            add_token(tokenList, *matched_tok);
+            add_token(tokenList, matched_tok);
         }
         // else if (ctx->curr_char == '=' && ctx->next_char == '=') {
         //     add_token_by_type(tokenList, TOKEN_EQ);
@@ -536,18 +513,13 @@ void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
         }
     }
 
-    Token eofToken;
-    eofToken.type = TOKEN_EOF;
-    eofToken.text = '\0';
-    eofToken.length = 0;
-    eofToken.line = ctx->line;
-    eofToken.col = ctx->col;
+    Token * eofToken = malloc(sizeof(Token));
+    eofToken->type = TOKEN_EOF;
+    eofToken->text = '\0';
+    eofToken->length = 0;
+    eofToken->line = ctx->line;
+    eofToken->col = ctx->col;
     add_token(tokenList, eofToken);
 
 }
 
-void cleanup_token_list(TokenList * tokenList) {
-    for (int i=0;i<tokenList->count;i++) {
-        free((void*)tokenList->data[i].text);
-    }
-}

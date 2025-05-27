@@ -94,10 +94,12 @@ int main(int argc, char ** argv) {
 
     tokenize(tokenizerContext, &tokenList);
 
+    int i=0;
     // output list
-    for (int i=0;i<tokenList.count;i++) {
-        Token token = tokenList.data[i];
-        token_formatted_output("TOKEN:", token.text, token.type, i, token.line, token.col);
+    for (TokenData * t = tokenList.head; t != NULL; t = t->next) {
+        Token * token = t->token;
+
+        token_formatted_output("TOKEN:", token->text, token->type, ++i, token->line, token->col);
     }
 
     //ParserContext parserContext;

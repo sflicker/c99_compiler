@@ -4,7 +4,9 @@
 #include "token.h"
 
 typedef struct {
-    TokenList* list;
+    TokenData * curr;
+//    TokenData * next;
+//    TokenList* list;
     int pos;
 } ParserContext;
 

@@ -69,6 +69,7 @@ typedef struct ASTNode {
 
         struct {
             const char* name;
+            Type * return_type;
             struct ASTNode* param_list;
             struct ASTNode* body;
             bool declaration_only;

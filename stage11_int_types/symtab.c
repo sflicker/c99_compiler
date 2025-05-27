@@ -13,6 +13,14 @@ typedef struct Symbol {
     struct Symbol* next;
 } Symbol;
 
+typedef struct FunctionSymbol {
+    char * name;
+    Type * return_type;
+    int param_count;
+    Type ** param_types;
+    struct FunctionSymbol* next;
+} FunctionSymbol;
+
 typedef struct Scope {
     Symbol * symbols;
     struct Scope * parent;
@@ -29,6 +37,7 @@ typedef struct Scope {
 // SymbolTable globalSymTable;
 
 Scope * current_scope = NULL;
+FunctionSymbol * functionSymbolList = NULL;
 
 int current_offset = 0;
 int next_offset = -4;
@@ -72,14 +81,32 @@ void exit_scope() {
     free(old);
 }
 
+void add_function_symbol(const char * name, Type * returnType, int param_count, Type ** param_types) {
+    FunctionSymbol * sym = functionSymbolList;
+    while(sym) {
+        if (strcmp(sym->name, name) == 0) {
+            error("Error: redeclaration of '%s' in same scope\n", name);
+        }
+        sym = sym->next;
+    }
+
+    FunctionSymbol * new_symbol = malloc(sizeof(FunctionSymbol));
+    new_symbol->name = my_strdup(name);
+    new_symbol->return_type = returnType;
+    new_symbol->param_count = param_count;
+    new_symbol->param_types = param_types;
+
+    new_symbol->next = functionSymbolList;
+    functionSymbolList = new_symbol;
+}
+
 int add_symbol_with_offset(const char * name, int offset, Type * type) {
     // check if symbol currently exists in current scope only
     // error and exit if so.
     Symbol * sym = current_scope->symbols;
     while(sym) {
         if (strcmp(sym->name, name) == 0) {
-            fprintf(stderr, "Error: redeclaration of '%s' in same scope\n", name);
-            exit(1);
+            error("Error: redeclaration of '%s' in same scope\n", name);
         }
         sym = sym->next;
     }
@@ -117,6 +144,7 @@ int add_symbol(const char * name, Type * type) {
     Symbol * new_symbol = malloc(sizeof(Symbol));
     new_symbol->name = my_strdup(name);
     new_symbol->offset = next_offset;
+    new_symbol->type = type;
     next_offset -= type->size;
 
     new_symbol->next = current_scope->symbols;

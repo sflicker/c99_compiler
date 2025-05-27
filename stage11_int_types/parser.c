@@ -252,6 +252,7 @@ ASTNode * parse_function(ParserContext* parserContext) {
     ASTNode * func = malloc(sizeof(ASTNode));
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = my_strdup(name->text);
+    func->function_decl.return_type = &TYPE_INT_T;    // TODO currently only supporting int return type. extend this
     func->function_decl.body = function_block;
     func->function_decl.param_list = param_list;
     func->function_decl.declaration_only = declaration_only;
