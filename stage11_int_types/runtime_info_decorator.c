@@ -31,8 +31,8 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
                 enter_scope();
                 if (node->function_decl.param_list) {
                     int offset = 16;
-                    for(struct node_list * curr = node->function_decl.param_list->param_list.node_list; curr != NULL; curr = curr->next) {
-                        ASTNode * astNode = (ASTNode*)curr->node;                        
+                    for(int i=0;i<node->function_decl.param_count;i++) {
+                        ASTNode * astNode = node->function_decl.param_list[i];                        
                         offset = add_symbol_with_offset(astNode->var_decl.name, offset, astNode->var_decl.var_type);
                         astNode->var_decl.offset = offset;
                         offset += astNode->var_decl.var_type->size;
