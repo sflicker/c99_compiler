@@ -1,17 +1,37 @@
-CC = gcc
-CFLAGS = -Wall -g -std=c99
-SRC = main.c tokenizer.c parser.c emitter.c symtab.c util.c runtime_info_decorator.c ast_printer.c tokenizer_context.c \
-	parser_util.c parser_context.c type.c token.c
-OBJS = $(SRC:.c=.o)
 
-mimic99: $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) -o mimic99
+CC = gcc
+CFLAGS = -Wall -g -std=c99 -Iinclude
+LDFLAGS =
+
+SRC_DIR = src
+BUILD_DIR = build
+INCLUDE_DIR = include
+
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
+
+TARGET = $(BUILD_DIR)/mimic99
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+#mimic99: $(OBJS)
+#	$(CC) $(OBJS) $(CFLAGS) -o mimic99
 
 test: mimic99
 	./run_all_tests.sh mimic99
 
 clean:
-	rm -f mimic99 $(OBJS) tests/*.s tests/*.o
+	rm -rf $(BUILD_DIR)
+	rm -f tests/*.s tests/*.o
 	@for cfile in tests/test*.c; do \
 		base=$${cfile%.c}; \
 		if [ -f "$$base" ]; then \
@@ -19,4 +39,5 @@ clean:
 			rm -f "$$base"; \
 		fi; \
 	done
-	
+
+.PHONY: all clean	
