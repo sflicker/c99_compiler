@@ -6,6 +6,8 @@
 #include "token.h"
 #include "type.h"
 #include "util.h"
+#include "list_util.h"
+#include "ast_lists.h"
 
 typedef enum {
     AST_RETURN_STMT,
@@ -70,7 +72,8 @@ typedef struct ASTNode {
         struct {
             const char* name;
             Type * return_type;
-            struct ASTNode** param_list;
+            //struct ASTNode** param_list;
+            paramlist param_list;
             int param_count;
             struct ASTNode* body;
             bool declaration_only;
@@ -83,7 +86,8 @@ typedef struct ASTNode {
 
         struct {
             const char * name;
-            struct ASTNode ** argument_expression_list;
+            //struct ASTNode ** argument_expression_list;
+            arglist arg_list;
             int arg_count;
         } function_call;
 
