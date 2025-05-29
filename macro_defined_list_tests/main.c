@@ -2,8 +2,13 @@
 #include <string.h>
 #include "list_util.h"
 
-DEFINE_LINKED_LIST(int, intlist);
-DEFINE_LINKED_LIST(char*, stringlist);
+void dummy_free(int i) {
+
+}
+
+void free_charptr(char * p) {
+    free(p);
+}
 
 char * strdup(const char* s) {
     size_t len = strlen(s) + 1;
@@ -14,9 +19,8 @@ char * strdup(const char* s) {
     return copy;
 }
 
-void free_charptr(char * p) {
-    free(p);
-}
+DEFINE_LINKED_LIST(int, intlist);
+DEFINE_LINKED_LIST(char*, stringlist);
 
 int main() {
 	intlist nums = {0};
@@ -33,12 +37,12 @@ int main() {
         printf("num: %d\n", num);
     }
 
-    intlist_free(&nums, NULL);
+    intlist_free(&nums);
 
     printf("After free, count = %d\n", nums.count);
 
     stringlist names = {0};
-    stringlist_init(&names);
+    stringlist_init(&names, free_charptr);
 
     char * s1 = strdup("Alice");
     char * s2 = strdup("Bob");
@@ -54,7 +58,7 @@ int main() {
     }
 
 //    stringlist_free(&names, (void(*)(char*)) free);
-    stringlist_free(&names, free_charptr);
+    stringlist_free(&names);
 
     return 0;
 }
