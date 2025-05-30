@@ -8,6 +8,7 @@
 #include "util.h"
 #include "list_util.h"
 #include "ast_lists.h"
+#include "ast_list.h"
 
 typedef enum {
     AST_RETURN_STMT,
@@ -65,7 +66,8 @@ typedef struct ASTNode {
         int int_value;
 
         struct {
-            struct ASTNode ** functions;
+            //struct ASTNode ** functions;
+            ASTNode_list * functions;
             int count;
         } translation_unit;
 
@@ -74,6 +76,7 @@ typedef struct ASTNode {
             Type * return_type;
             //struct ASTNode** param_list;
             //paramlist param_list;
+            ASTNode_list * param_list;
             int param_count;
             struct ASTNode* body;
             bool declaration_only;
@@ -105,7 +108,8 @@ typedef struct ASTNode {
         } unary;
 
         struct {
-            struct ASTNode ** statements;
+//            struct ASTNode ** statements;
+            ASTNode_list * statements;
             int count;
             int capacity;
         } block;

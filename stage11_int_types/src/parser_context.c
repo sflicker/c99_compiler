@@ -17,7 +17,8 @@ char nextTokenInfo[128];
 
 void update_current_token_info(ParserContext* ctx) {
 //    Token * currentToken = (ctx->pos < ctx->list->count) ? &ctx->list->data[ctx->pos] : NULL;
-    Token * currentToken = tokenlist_cursor_next(ctx->cursor);
+//    Token * currentToken = tokenlist_cursor_next(ctx->cursor);
+    Token * currentToken = ctx->cursor->current->value;
     if (currentToken != NULL) {
         snprintf(currentTokenInfo, sizeof(currentTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
             ctx->pos,

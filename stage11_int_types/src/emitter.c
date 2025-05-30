@@ -416,9 +416,9 @@ void emit_do_while_statement(FILE * out, ASTNode * node) {
 
 void emit_block(FILE * out, ASTNode * node, bool enterNewScope) {
 
-    for (int i=0;i<node->block.count;i++) {
-        emit_tree_node(out, node->block.statements[i]);
-    }
+    // for (int i=0;i<node->block.count;i++) {
+    //     emit_tree_node(out, node->block.statements[i]);
+    // }
 
 }
 
@@ -597,19 +597,19 @@ void emit_switch_dispatch(FILE* out, ASTNode * node) {
     ASTNode * block = node->switch_stmt.stmt;
     assert(block->type == AST_BLOCK);
 
-    for (int i=0;i<block->block.count;i++) {
-        ASTNode * statement = block->block.statements[i];
-        if (statement->type == AST_CASE_STMT) {
-            statement->case_stmt.label = make_label_text("case", label_id++);
-            emit_line(out, "mov rax, [rsp]\n");
-            emit_line(out, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
-            emit_line(out, "je %s\n", statement->case_stmt.label);
-        }
-        else if (statement->type == AST_DEFAULT_STMT) {
-            statement->default_stmt.label = make_label_text("default", label_id++);
-            emit_line(out, "jmp %s\n", statement->default_stmt.label);
-        }
-    }
+    // for (int i=0;i<block->block.count;i++) {
+    //     ASTNode * statement = block->block.statements[i];
+    //     if (statement->type == AST_CASE_STMT) {
+    //         statement->case_stmt.label = make_label_text("case", label_id++);
+    //         emit_line(out, "mov rax, [rsp]\n");
+    //         emit_line(out, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
+    //         emit_line(out, "je %s\n", statement->case_stmt.label);
+    //     }
+    //     else if (statement->type == AST_DEFAULT_STMT) {
+    //         statement->default_stmt.label = make_label_text("default", label_id++);
+    //         emit_line(out, "jmp %s\n", statement->default_stmt.label);
+    //     }
+    // }
 
 }
 
@@ -618,17 +618,17 @@ void emit_switch_bodies(FILE * out, ASTNode * node) {
     ASTNode * block = node->switch_stmt.stmt;
     assert(block->type == AST_BLOCK);
 
-    for (int i=0;i<block->block.count;i++) {
-        ASTNode * statement = block->block.statements[i];
-        if (statement->type == AST_CASE_STMT) {
-            emit_line(out, "%s:\n", statement->case_stmt.label);
-            emit_tree_node(out, statement->case_stmt.stmt);
-        }
-        else if (statement->type == AST_DEFAULT_STMT) {
-            emit_line(out, "%s:\n", statement->default_stmt.label);
-            emit_tree_node(out, statement->default_stmt.stmt);
-        }
-    }
+    // for (int i=0;i<block->block.count;i++) {
+    //     ASTNode * statement = block->block.statements[i];
+    //     if (statement->type == AST_CASE_STMT) {
+    //         emit_line(out, "%s:\n", statement->case_stmt.label);
+    //         emit_tree_node(out, statement->case_stmt.stmt);
+    //     }
+    //     else if (statement->type == AST_DEFAULT_STMT) {
+    //         emit_line(out, "%s:\n", statement->default_stmt.label);
+    //         emit_tree_node(out, statement->default_stmt.stmt);
+    //     }
+    // }
 }
 
 void emit_switch_statement(FILE * out, ASTNode * node) {
@@ -706,9 +706,9 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_TRANSLATION_UNIT:
         {
             emit_header(out);
-            for (int i=0;i<node->translation_unit.count;i++) {
-                emit_tree_node(out, node->translation_unit.functions[i]);
-            }
+            // for (int i=0;i<node->translation_unit.count;i++) {
+            //     emit_tree_node(out, node->translation_unit.functions[i]);
+            // }
             emit_trailer(out);
             break;
         }

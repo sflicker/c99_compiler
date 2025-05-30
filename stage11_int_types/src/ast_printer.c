@@ -7,6 +7,7 @@
 #include "util.h"
 #include "token.h"
 #include "ast.h"
+#include "ast_list.h"
 #include "parser.h"
 #include "type.h"
 #include "ast_printer.h"
@@ -20,9 +21,13 @@ void print_ast(ASTNode * node, int indent) {
         case AST_TRANSLATION_UNIT:
         {
             printf("TranslationUnit:\n");
-            for (int i=0;i<node->translation_unit.count;i++) {
-               print_ast(node->translation_unit.functions[i], indent+1);
-            }   
+            ASTNode_list * functions = node->translation_unit.functions;
+            for (ASTNode_list_node * n = functions->head ; n ; n = n->next) {
+                print_ast(n->value, indent+1);                
+            }
+            // for (int i=0;i<node->translation_unit.count;i++) {
+            //    print_ast(node->translation_unit.functions[i], indent+1);
+            // }   
             break;
         }
         case AST_FUNCTION_DECL:
@@ -211,9 +216,9 @@ void print_ast(ASTNode * node, int indent) {
             break;
         case AST_BLOCK:
             printf("Block\n");
-            for (int i=0;i<node->block.count;i++) {
-                print_ast(node->block.statements[i], indent+1);
-            }
+            // for (int i=0;i<node->block.count;i++) {
+            //     print_ast(node->block.statements[i], indent+1);
+            // }
             break;
         case AST_BREAK_STMT:
             printf("BreakStatment:\n");

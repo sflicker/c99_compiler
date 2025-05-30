@@ -54,15 +54,23 @@ static inline int name##_cursor_has_next(name##_cursor * cursor) {           \
 }                                                                            \
                                                                              \
 static inline type name##_cursor_next(name##_cursor* cursor) {               \
-    type val = cursor->current->value;                                       \
-    cursor->current = cursor->current->next;                                 \
-    return val;                                                              \
+    if (cursor->current) {                                                   \
+        type val = cursor->current->value;                                   \
+        cursor->current = cursor->current->next;                             \
+        return val;                                                          \
+    }                                                                        \
+    return NULL;                                                             \
 }                                                                            \
                                                                              \
-static inline type name##_cursor_peek_next(name##_cursor * cursor) {           \
-    name##_node * current = cursor->current;                                  \
-    name##_node * next = current->next;                                      \
-    return next->value;                                                      \
+static inline type name##_cursor_peek_next(name##_cursor * cursor) {         \
+    if (cursor->current) {                                                   \
+        name##_node * current = cursor->current;                             \
+        if (current->next) {                                                 \
+            name##_node * next = current->next;                              \
+            return next->value;                                              \
+        }                                                                    \
+    }                                                                        \
+    return NULL;                                                             \
 }                                                                            \
                                                                              \
 static inline void name##_free(name* list) {                                  \

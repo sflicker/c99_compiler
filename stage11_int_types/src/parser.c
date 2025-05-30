@@ -5,8 +5,11 @@
 #include <stdbool.h>
 
 #include "util.h"
+#include "list_util.h"
 #include "token.h"
+#include "ast_list.h"
 #include "ast.h"
+
 #include "parser.h"
 #include "parser_util.h"
 #include "parser_context.h"
@@ -141,7 +144,9 @@ ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 
 ASTNode* parse(tokenlist * tokens) {
     ParserContext * parserContext = create_parser_context(tokens);
-    ASTNode** functions = NULL;
+    //ASTNode** functions = NULL;
+    ASTNode_list * functions = malloc(sizeof(ASTNode_list));
+    ASTNode_list_init(functions, free);
     int capacity = 8;
     int count = 0;
     functions = malloc(sizeof(ASTNode*) * capacity);
@@ -149,11 +154,12 @@ ASTNode* parse(tokenlist * tokens) {
     while (!is_current_token(parserContext, TOKEN_EOF)) {
         // currently only supporting functions as topmost. will need to add file level variables.
         ASTNode * function = parse_external_declaration(parserContext);
-        if (count >= capacity) {
-            capacity *= 2;
-            functions = realloc(functions, sizeof(ASTNode*) * capacity);
-        }
-        functions[count++] = function;
+        ASTNode_list_append(functions, function);
+        // if (count >= capacity) {
+        //     capacity *= 2;
+        //     functions = realloc(functions, sizeof(ASTNode*) * capacity);
+        // }
+        // functions[count++] = function;
     }
 
     ASTNode * node = malloc(sizeof(ASTNode));
@@ -228,7 +234,8 @@ struct node_list * parse_argument_expression_list(ParserContext * parserContext)
 }
 
 ASTNode * parse_function(ParserContext* parserContext) {
-    expect_token(parserContext, TOKEN_INT);
+ //   expect_token(parserContext, TOKEN_INT);
+    Token* returnType = expect_type_token(parserContext);
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
     expect_token(parserContext, TOKEN_LPAREN);
 //    ASTNode *param_list = NULL;
@@ -294,18 +301,21 @@ ASTNode * parse_block(ParserContext* parserContext) {
 
     ASTNode * blockNode = malloc(sizeof(ASTNode));
     blockNode->type = AST_BLOCK;
-    blockNode->block.count = 0;
-    blockNode->block.capacity = 4;
-    blockNode->block.statements = malloc(sizeof(ASTNode*) * blockNode->block.capacity);
+    blockNode->block.statements = malloc(sizeof(ASTNode_list));
+    ASTNode_list_init(blockNode->block.statements, free);
+//    blockNode->block.count = 0;
+//    blockNode->block.capacity = 4;
+//    blockNode->block.statements = malloc(sizeof(ASTNode*) * blockNode->block.capacity);
 
     while(!is_current_token(parserContext, TOKEN_RBRACE)) {
         ASTNode * statement = parse_statement(parserContext);
-        if (blockNode->block.count >= blockNode->block.capacity) {
-            blockNode->block.capacity *= 2;
-            blockNode->block.statements = realloc(
-                blockNode->block.statements, sizeof(ASTNode*) * blockNode->block.capacity);
-        }
-        blockNode->block.statements[blockNode->block.count++] = statement;
+        ASTNode_list_append(blockNode->block.statements, statement);
+    //     if (blockNode->block.count >= blockNode->block.capacity) {
+    //         blockNode->block.capacity *= 2;
+    //         blockNode->block.statements = realloc(
+    //             blockNode->block.statements, sizeof(ASTNode*) * blockNode->block.capacity);
+    //     }
+    //     blockNode->block.statements[blockNode->block.count++] = statement;
     }
         
     expect_token(parserContext, TOKEN_RBRACE);
