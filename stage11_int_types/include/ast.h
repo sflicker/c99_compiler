@@ -73,7 +73,7 @@ typedef struct ASTNode {
             const char* name;
             Type * return_type;
             //struct ASTNode** param_list;
-            paramlist param_list;
+            //paramlist param_list;
             int param_count;
             struct ASTNode* body;
             bool declaration_only;
@@ -87,7 +87,7 @@ typedef struct ASTNode {
         struct {
             const char * name;
             //struct ASTNode ** argument_expression_list;
-            arglist arg_list;
+            //arglist arg_list;
             int arg_count;
         } function_call;
 

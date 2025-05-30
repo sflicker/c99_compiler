@@ -4,14 +4,15 @@
 #include "token.h"
 
 typedef struct {
-    TokenData * curr;
+//    TokenData * curr;
 //    TokenData * next;
 //    TokenList* list;
     int pos;
 } ParserContext;
 
 
-ParserContext* create_parser_context(TokenList * tokenList);
+ParserContext* create_parser_context(tokenlist * tokenList);
+
 Token * peek(ParserContext * parserContext);
 bool is_current_token(ParserContext * parserContext, TokenType type);
 bool is_next_token(ParserContext * parserContext, TokenType type);

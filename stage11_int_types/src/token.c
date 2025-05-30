@@ -10,7 +10,7 @@
 //     list->data = malloc(sizeof(Token) * list->capacity);
 // }
 
-void init_token_list(TokenList * list) {
+void init_token_list(tokenlist * list) {
     list->head = NULL;
     list->tail = NULL;
 }
@@ -23,17 +23,20 @@ void init_token_list(TokenList * list) {
 //     list->data[list->count++] = token;
 // }
 
-void add_token(TokenList * tokenList, Token * token) {
+void add_token(tokenlist * tokenList, Token * token) {
 
-    TokenData * tokenData = malloc(sizeof(TokenData));
-    tokenData->token = token;
-    tokenData->next = NULL;
-    if (tokenList->head == NULL) {
-        tokenList->head = tokenData;
-        tokenList->tail = tokenData;
-    }
-    tokenList->tail->next = tokenData;
-    tokenList->tail = tokenData;
+    tokenlist_append(tokenlist, token);
+
+
+//    TokenData * tokenData = malloc(sizeof(TokenData));
+    // tokenData->token = token;
+    // tokenData->next = NULL;
+    // if (tokenList->head == NULL) {
+    //     tokenList->head = tokenData;
+    //     tokenList->tail = tokenData;
+    // }
+    // tokenList->tail->next = tokenData;
+    // tokenList->tail = tokenData;
 
     // TokenList *curr = list->next;
     // TokenList * newTokenList = malloc(sizeof(TokenList));

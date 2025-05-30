@@ -152,7 +152,18 @@
         "preLaunchTask": "build-stage11-int-types",
         "args": ["tests/test_max__88.c"]
       }
+      ,
+      {
+        "name": "Debug macro tests",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/macro_defined_list_tests/main",
+        "cwd": "${workspaceFolder}/macro_defined_list_tests",
+        "MIMode": "gdb",
+        "stopAtEntry": false,
+        "preLaunchTask": "macro-defined-list-tests"
 
+      }
     ]
   }
 

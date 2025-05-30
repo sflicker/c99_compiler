@@ -441,13 +441,14 @@ void emit_function(FILE * out, ASTNode * node) {
     if (local_space > 0) {
         emit_line(out, "sub rsp, %d\n", local_space);
     }
-    
-    if (node->function_decl.param_list) {
-        for (struct node_list * param = node->function_decl.param_list->param_list.node_list; param != NULL; param = param->next) {
-            ASTNode * var_decl = param->node;
-            emit_var_declaration(out, var_decl);
-        }
-    }
+
+    //TODO FIX THIS
+    // if (node->function_decl.param_list) {
+    //     for (struct node_list * param = node->function_decl.param_list->param_list.node_list; param != NULL; param = param->next) {
+    //         ASTNode * var_decl = param->node;
+    //         emit_var_declaration(out, var_decl);
+    //     }
+    // }
 
     emit_block(out, node->function_decl.body, false);
 
@@ -565,17 +566,17 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
     // first get a reversed list
     // then emit each arg then push it
     struct node_list * reversed_list = NULL;
-    if (node->function_call.argument_expression_list) {
- //       reversed_list = reverse_list(node->function_call.argument_expression_list);
-        reversed_list = node->function_call.argument_expression_list;
-        for (struct node_list * arg = reversed_list;arg != NULL; arg = arg->next) {
-            ASTNode * argNode = (ASTNode*)arg;
-            emit_pass_argument(out, argNode->var_decl.var_type, argNode->var_decl.offset, argNode);
- //           emit_tree_node(out, arg->node);
-//            emit_line(out, "mov [rbp+%d], rax\n", arg->node.var_decl.offset);
-        //    emit_line(out, "push rax\n");
-        }
-    }
+//     if (node->function_call.argument_expression_list) {
+//  //       reversed_list = reverse_list(node->function_call.argument_expression_list);
+//         reversed_list = node->function_call.argument_expression_list;
+//         for (struct node_list * arg = reversed_list;arg != NULL; arg = arg->next) {
+//             ASTNode * argNode = (ASTNode*)arg;
+//             emit_pass_argument(out, argNode->var_decl.var_type, argNode->var_decl.offset, argNode);
+//  //           emit_tree_node(out, arg->node);
+// //            emit_line(out, "mov [rbp+%d], rax\n", arg->node.var_decl.offset);
+//         //    emit_line(out, "push rax\n");
+//         }
+//     }
 
     // call the function
     emit_line(out, "call %s\n", node->function_call.name);

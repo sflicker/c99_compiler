@@ -6,7 +6,7 @@
 
 
 
-void tokenize(TokenizerContext * tokenizerContext, TokenList * tokenList);
+void tokenize(TokenizerContext * tokenizerContext, tokenlist * tokenList);
 //bool is_keyword(const char * word);
 
 #endif

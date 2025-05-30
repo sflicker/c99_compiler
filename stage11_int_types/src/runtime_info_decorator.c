@@ -29,19 +29,19 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
                 set_current_offset(0);
                 reset_storage_size();
                 enter_scope();
-                if (node->function_decl.param_list) {
-                    int offset = 16;
-                    for(int i=0;i<node->function_decl.param_count;i++) {
-                        ASTNode * astNode = node->function_decl.param_list[i];                        
-                        offset = add_symbol_with_offset(astNode->var_decl.name, offset, astNode->var_decl.var_type);
-                        astNode->var_decl.offset = offset;
-                        offset += astNode->var_decl.var_type->size;
-                        //offset += 8;
-                    }
-                }
-                Type * param_type;
-                add_function_symbol(node->function_decl.name, node->function_decl.return_type, 
-                    get_node_list_count(node->function_decl.param_list), &param_type);
+                // if (node->function_decl.param_list) {
+                //     int offset = 16;
+                    // for(int i=0;i<node->function_decl.param_count;i++) {
+                    //     ASTNode * astNode = node->function_decl.param_list[i];                        
+                    //     offset = add_symbol_with_offset(astNode->var_decl.name, offset, astNode->var_decl.var_type);
+                    //     astNode->var_decl.offset = offset;
+                    //     offset += astNode->var_decl.var_type->size;
+                    //     //offset += 8;
+                    // }
+//                }
+                //Type * param_type;
+                // add_function_symbol(node->function_decl.name, node->function_decl.return_type, 
+                //     get_node_list_count(node->function_decl.param_list), &param_type);
                 populate_symbol_table(node->function_decl.body, false);
                 node->function_decl.size = get_symbol_total_space();
                 exit_scope();
@@ -140,10 +140,10 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             break;
 
         case AST_FUNCTION_CALL: {
-            for (struct node_list * curr = node->function_call.argument_expression_list; curr != NULL; curr = curr->next) {
-                ASTNode * node = (ASTNode*)curr->node;
-                populate_symbol_table(node, false);
-            }
+            // for (struct node_list * curr = node->function_call.argument_expression_list; curr != NULL; curr = curr->next) {
+            //     ASTNode * node = (ASTNode*)curr->node;
+            //     populate_symbol_table(node, false);
+            // }
             break;
         }
         case AST_ARG_LIST:

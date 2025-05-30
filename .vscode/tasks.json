@@ -121,7 +121,16 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       },
-
+      {
+        "label": "macro-defined-list-tests",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cmd": "${workspaceFolder}/macro_defined_list_tests"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      },
     ]
   }
 

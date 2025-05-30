@@ -364,7 +364,7 @@ void swallow_comment(TokenizerContext * ctx) {
 }
 
 
-void tokenize(TokenizerContext * ctx, TokenList * tokenList) {
+void tokenize(TokenizerContext * ctx, tokenlist * tokenList) {
     
     init_token_list(tokenList);
     Token * matched_tok = NULL;

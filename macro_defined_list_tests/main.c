@@ -42,8 +42,17 @@ int main() {
 
     printf("List Count: %d\n", nums.count);
 
+    printf("iterating with for\n");
     for (intlist_node * n = nums.head; n;n = n->next) {
         int num = n->value;
+        printf("num: %d\n", num);
+    }
+
+    printf("iterating with while and cursor\n");
+    intlist_cursor cur;
+    intlist_cursor_init(&cur, &nums);
+    while(intlist_cursor_has_next(&cur)) {
+        int num = intlist_cursor_next(&cur);
         printf("num: %d\n", num);
     }
 

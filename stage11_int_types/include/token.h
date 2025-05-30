@@ -1,6 +1,8 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#include "list_util.h"
+
 typedef enum {
     TOKEN_INT,
     TOKEN_CHAR,
@@ -67,21 +69,23 @@ typedef struct {
 //     int count;
 // } TokenList;
 
-typedef struct TokenData {
-    Token * token;
-    struct TokenData * next;
-} TokenData;
+// typedef struct TokenData {
+//     Token * token;
+//     struct TokenData * next;
+// } TokenData;
 
-typedef struct TokenList {
-    TokenData * head;
-    TokenData * tail;
-} TokenList;
+// typedef struct TokenList {
+//     TokenData * head;
+//     TokenData * tail;
+// } TokenList;
+
+DEFINE_LINKED_LIST(Token*, tokenlist);
 
 const char * token_type_name(TokenType type);
 
-void init_token_list(TokenList * list);
-void cleanup_token_list(TokenList * tokenList);
-void add_token(TokenList * list, Token * token);
+void init_token_list(tokenlist * list);
+void cleanup_token_list(tokenlist * tokenList);
+void add_token(tokenlist * list, Token * token);
 Token * make_token(TokenType type, const char * text, int line, int col);
 
 #endif

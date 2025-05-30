@@ -3,9 +3,12 @@
 
 #include <stdlib.h>
 
-// type = base type (e.g., ASTNode*), name = prefix (e.g., arglist)
+// Helper to expand free_fn only if it's not NULL
+#define FREE_IF_DEFINED(fn, val)                                 \
+    do { if ((fn) != NULL) fn(val); } while (0)
 
-#define DEFINE_LINKED_LIST(type, name)                                        \
+// type = base type (e.g., ASTNode*), name = prefix (e.g., arglist)
+#define DEFINE_LINKED_LIST(type, name)                               \
                                                                               \
 typedef struct name##_node {                                                 \
     type value;                                                              \
@@ -16,11 +19,13 @@ typedef struct {                                                              \
     name##_node* head;                                                       \
     name##_node* tail;                                                       \
     int count;                                                               \
+    void (*free_fn)(type);                                                   \
 } name;                                                                      \
                                                                               \
-static inline void name##_init(name* list) {                                  \
+static inline void name##_init(name* list, void(*fn)(type)) {                \
     list->head = list->tail = NULL;                                          \
     list->count = 0;                                                         \
+    list->free_fn = fn;                                                      \
 }                                                                             \
                                                                               \
 static inline void name##_append(name* list, type value) {                    \
@@ -35,23 +40,18 @@ static inline void name##_append(name* list, type value) {                    \
     list->tail = node;                                                       \
     list->count++;                                                           \
 }                                                                             \
-                                                                              \
-static inline void name##_free(name* list, void (*free_fn)(type)) {          \
-    name##_node* curr = list->head;                                          \
-    while (curr) {                                                           \
+                                                                             \
+static inline void name##_free(name* list) {                                  \
+    name##_node * curr = list->head;                                         \
+    while(curr) {                                                            \
         name##_node* next = curr->next;                                      \
-        if (free_fn) free_fn(curr->value);                                   \
+        if (list->free_fn) list->free_fn(curr->value);                       \
         free(curr);                                                          \
         curr = next;                                                         \
     }                                                                        \
     list->head = list->tail = NULL;                                          \
     list->count = 0;                                                         \
-}                                                                             
-                                                                              
-/* foreach macro usage: name##_foreach(list, it) { ... use it ... } */       
-#define name##_foreach(listptr, it)                                           \
-    for (name##_node* it##_node = (listptr)->head;                           \
-         it##_node != NULL && ((it = it##_node->value), 1);                  \
-         it##_node = it##_node->next)                                        \
+                                                                             \
+}                                                                            \
 
 #endif // LIST_UTIL_H

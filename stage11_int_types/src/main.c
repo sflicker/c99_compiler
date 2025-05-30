@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "list_util.h"
 #include "ast.h"
 #include "token.h"
 #include "util.h"
@@ -87,7 +88,7 @@ int main(int argc, char ** argv) {
 
     const char * program_text = read_text_file(program_file);
     TokenizerContext * tokenizerContext = init_tokenizer_context(program_text);
-    TokenList tokenList;
+    tokenlist tokenList;
 
     printf("Compiling\n\n%s\n\n", program_text);
 
@@ -107,12 +108,12 @@ int main(int argc, char ** argv) {
 
 //    ASTNode * translation_unit = parse(&parserContext);
 
-    ASTNode * astNode = parse(&tokenList);
+    // ASTNode * astNode = parse(&tokenList);
 
-    populate_symbol_table(astNode, true);
-    print_ast(astNode, 0);
+    // populate_symbol_table(astNode, true);
+    // print_ast(astNode, 0);
 
-    emit(astNode, output_file);
+    // emit(astNode, output_file);
 
     // TODO THIS NEEDS TO BE FIXED and OTHER CLEAN AS WELL.
     // cleanup_token_list(&tokenList);

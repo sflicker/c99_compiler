@@ -231,10 +231,10 @@ ASTNode * parse_function(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_INT);
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
     expect_token(parserContext, TOKEN_LPAREN);
-    ASTNode *param_list = NULL;
+//    ASTNode *param_list = NULL;
 
     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-        param_list = parse_param_list(parserContext);
+  //      param_list = parse_param_list(parserContext);
     }
 
     expect_token(parserContext, TOKEN_RPAREN);
@@ -252,9 +252,9 @@ ASTNode * parse_function(ParserContext* parserContext) {
     ASTNode * func = malloc(sizeof(ASTNode));
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = my_strdup(name->text);
-    func->function_decl.return_type = &TYPE_INT_T;    // TODO currently only supporting int return type. extend this
+//    func->function_decl.return_type = &TYPE_INT_T;    // TODO currently only supporting int return type. extend this
     func->function_decl.body = function_block;
-    func->function_decl.param_list = param_list;
+//    func->function_decl.param_list = param_list;
     func->function_decl.declaration_only = declaration_only;
     return func;
 }
@@ -825,9 +825,9 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         Token * tok = advance_parser(parserContext);
         if (is_current_token(parserContext, TOKEN_LPAREN)) {
             advance_parser(parserContext);
-            struct node_list * argument_expression_list = NULL; 
+//            struct node_list * argument_expression_list = NULL; 
             if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-                argument_expression_list = parse_argument_expression_list(parserContext);
+  //              argument_expression_list = parse_argument_expression_list(parserContext);
                 expect_token(parserContext, TOKEN_RPAREN);
             }
             else {
@@ -839,7 +839,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
             ASTNode * node = malloc(sizeof(ASTNode));
             node->type = AST_FUNCTION_CALL;
             node->function_call.name = my_strdup(tok->text);
-            node->function_call.argument_expression_list = argument_expression_list;
+//            node->function_call.argument_expression_list = argument_expression_list;
 //            node->function_call.num_args = arg_count;
             return node;
         }

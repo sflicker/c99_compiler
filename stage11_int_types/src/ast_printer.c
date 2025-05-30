@@ -27,14 +27,15 @@ void print_ast(ASTNode * node, int indent) {
         }
         case AST_FUNCTION_DECL:
             printf("FunctionDecl: %s, size: %d\n", node->function_decl.name, node->function_decl.size);
-            if (node->function_decl.param_list) {
-                print_ast(node->function_decl.param_list, indent+1);
+           // if (node->function_decl.param_list) {
+                //TODO print the param_list
+                //print_ast(node->function_decl.param_list, indent+1);
                 // struct node_list * node_list = node->function_decl.param_list;
                 // while(node_list) {
                 //     print_ast(node_list->node, indent+1);
                 //     node_list = node_list->next;
                 // }
-            }
+           // }
             if (node->function_decl.body) {
                 print_ast(node->function_decl.body, indent+1);
             }
@@ -56,13 +57,14 @@ void print_ast(ASTNode * node, int indent) {
         }
         case AST_FUNCTION_CALL:
             printf("FunctionCall: %s\n", node->function_call.name);
-            if (node->function_call.argument_expression_list) {
-                struct node_list * arg = node->function_call.argument_expression_list;
-                while(arg) {
-                    print_ast(arg->node, indent + 1);
-                    arg = arg->next;
-                }
-            }
+            //if (node->function_call.argument_expression_list) {
+                //TODO PRINT ARG LIST
+                // struct node_list * arg = node->function_call.argument_expression_list;
+                // while(arg) {
+                //     print_ast(arg->node, indent + 1);
+                //     arg = arg->next;
+                // }
+            //}
             break;
         // case AST_ARG_LIST: {
         //     printf("ArgumentList:\n");

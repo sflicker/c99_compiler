@@ -21,6 +21,10 @@ typedef struct {                                                              \
     int count;                                                               \
     void (*free_fn)(type);                                                   \
 } name;                                                                      \
+                                                                             \
+typedef struct {                                                             \
+    name##_node* current;                                                    \
+} name##_cursor;                                                             \
                                                                               \
 static inline void name##_init(name* list, void(*fn)(type)) {                \
     list->head = list->tail = NULL;                                          \
@@ -40,6 +44,20 @@ static inline void name##_append(name* list, type value) {                    \
     list->tail = node;                                                       \
     list->count++;                                                           \
 }                                                                             \
+                                                                             \
+static inline void name##_cursor_init(name##_cursor* cursor, name *list) {   \
+    cursor->current = list->head;                                            \
+}                                                                            \
+                                                                             \
+static inline int name##_cursor_has_next(name##_cursor * cursor) {           \
+    return cursor->current != NULL;                                          \
+}                                                                            \
+                                                                             \
+static inline type name##_cursor_next(name##_cursor* cursor) {               \
+    type val = cursor->current->value;                                       \
+    cursor->current = cursor->current->next;                                 \
+    return val;                                                              \
+}                                                                            \
                                                                              \
 static inline void name##_free(name* list) {                                  \
     name##_node * curr = list->head;                                         \
