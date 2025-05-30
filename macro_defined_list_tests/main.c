@@ -19,8 +19,18 @@ char * strdup(const char* s) {
     return copy;
 }
 
+typedef struct {
+    char * text;
+    int type;
+} Token;
+
+void free_token(Token * token) {
+    free(token->text);
+}
+
 DEFINE_LINKED_LIST(int, intlist);
 DEFINE_LINKED_LIST(char*, stringlist);
+DEFINE_LINKED_LIST(Token*, tokenlist);
 
 int main() {
 	intlist nums = {0};
@@ -59,6 +69,20 @@ int main() {
 
 //    stringlist_free(&names, (void(*)(char*)) free);
     stringlist_free(&names);
+
+    Token * token = malloc(sizeof(Token));
+    token->text = strdup("Sample");
+    token->type = 1;
+
+    tokenlist tokens;
+    tokenlist_init(&tokens, free_token);
+    tokenlist_append(&tokens, token);
+    printf("Tokens:\n");
+    for( tokenlist_node * node = tokens.head;node;node = node->next) {
+        Token * tok = node->value;
+        printf("Token: %d, %s\n", tok->type, tok->text);
+    }
+    tokenlist_free(&tokens);
 
     return 0;
 }
