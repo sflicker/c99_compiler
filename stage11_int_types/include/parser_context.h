@@ -1,12 +1,14 @@
 #ifndef __PARSER_CONTEXT_H__
 #define __PARSER_CONTEXT_H__
 
+#include "list_util.h"
 #include "token.h"
 
 typedef struct {
 //    TokenData * curr;
 //    TokenData * next;
 //    TokenList* list;
+    tokenlist_cursor * cursor;
     int pos;
 } ParserContext;
 

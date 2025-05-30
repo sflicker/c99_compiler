@@ -16,8 +16,6 @@
 #include "ast_printer.h"
 #include "tokenizer_context.h"
 
-
-
 void token_formatted_output(const char * label, const char * text, TokenType tokenType, int num, int line, int col) {
     char left[64];
     char right[64];
@@ -88,17 +86,17 @@ int main(int argc, char ** argv) {
 
     const char * program_text = read_text_file(program_file);
     TokenizerContext * tokenizerContext = init_tokenizer_context(program_text);
-    tokenlist tokenList;
+    tokenlist tokens;
 
     printf("Compiling\n\n%s\n\n", program_text);
 
 
-    tokenize(tokenizerContext, &tokenList);
+    tokenize(tokenizerContext, &tokens);
 
     int i=0;
     // output list
-    for (TokenData * t = tokenList.head; t != NULL; t = t->next) {
-        Token * token = t->token;
+    for (tokenlist_node * node = tokens.head; node != NULL; node = node->next) {
+        Token * token = node->value;
 
         token_formatted_output("TOKEN:", token->text, token->type, ++i, token->line, token->col);
     }

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
+#include "list_util.h"
 #include "token.h"
 #include "tokenizer.h"
 #include "util.h"
@@ -268,7 +269,7 @@ const char * token_type_name(TokenType type) {
 // }
 
 
-void add_int_token(TokenList * tokenList, char * numberText, int line, int col) {
+void add_int_token(tokenlist * tokens, char * numberText, int line, int col) {
     Token * token = malloc(sizeof(Token));
     token->type = TOKEN_INT_LITERAL;
     int numberTextLen = strlen(numberText);
@@ -280,10 +281,10 @@ void add_int_token(TokenList * tokenList, char * numberText, int line, int col) 
     token->int_value = atoi(numberText);
     token->line = line;
     token->col = col;
-    add_token(tokenList, token);
+    add_token(tokens, token);
 }
 
-void tokenize_number(TokenizerContext * ctx, TokenList * tokenList) {
+void tokenize_number(TokenizerContext * ctx, tokenlist * tokens) {
     char buffer[128];
     int i=0;
     int line = ctx->line;
@@ -293,11 +294,11 @@ void tokenize_number(TokenizerContext * ctx, TokenList * tokenList) {
         advance(ctx);
     }
     buffer[i++] = '\0';
-    add_int_token(tokenList, buffer, line, col);
+    add_int_token(tokens, buffer, line, col);
 
 }
 
-void add_identifier_token(TokenList * tokenList, const char * id, int line, int col) {
+void add_identifier_token(tokenlist * tokens, const char * id, int line, int col) {
     Token * token = malloc(sizeof(Token));
     token->type = TOKEN_IDENTIFIER;
     int idLen = strlen(id);
@@ -309,7 +310,7 @@ void add_identifier_token(TokenList * tokenList, const char * id, int line, int 
     token->int_value = 0;
     token->line = line;
     token->col = col;
-    add_token(tokenList, token);
+    add_token(tokens, token);
 }
 
 // void add_punctuator_token(TokenList * tokenList, const char * punctuatorText) {

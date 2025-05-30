@@ -1,8 +1,7 @@
 #include <stdlib.h>
 
+#include "list_util.h"
 #include "token.h"
-
-
 
 // void init_token_list(TokenList * list) {
 //     list->capacity = 16;
@@ -23,9 +22,9 @@ void init_token_list(tokenlist * list) {
 //     list->data[list->count++] = token;
 // }
 
-void add_token(tokenlist * tokenList, Token * token) {
+void add_token(tokenlist * tokens, Token * token) {
 
-    tokenlist_append(tokenlist, token);
+    tokenlist_append(tokens, token);
 
 
 //    TokenData * tokenData = malloc(sizeof(TokenData));
@@ -53,17 +52,21 @@ Token * make_token(TokenType type, const char * text, int line, int col) {
     return token;
 }
 
-void cleanup_token_list(TokenList * tokenList) {
+void cleanup_token_list(tokenlist * tokens) {
     // for (int i=0;i<tokenList->count;i++) {
     //     free((void*)tokenList->data[i].text);
     //}
-    TokenData * tokenData = tokenList->head;
-    while(tokenData) {
-        Token * token = tokenData->token;
+
+    for (tokenlist_node * node = tokens->head; node; node = node->next) {
+
+    // TokenData * tokenData = tokens->head;
+    // while(tokenData) {
+        //Token * token = tokenData->token;
+        Token * token = node->value;
         free((void*)token->text);
-        TokenData * curr = tokenData;
-        tokenData = tokenData->next;
-        free(curr);
+//        TokenData * curr = tokenData;
+//        tokenData = tokenData->next;
+        free(token);
     }
 
 }

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "util.h"
+#include "list_util.h"
 #include "token.h"
 #include "ast.h"
 #include "parser.h"
@@ -16,7 +17,7 @@ char nextTokenInfo[128];
 
 void update_current_token_info(ParserContext* ctx) {
 //    Token * currentToken = (ctx->pos < ctx->list->count) ? &ctx->list->data[ctx->pos] : NULL;
-    Token * currentToken = ctx->curr->token;
+    Token * currentToken = tokenlist_cursor_next(ctx->cursor);
     if (currentToken != NULL) {
         snprintf(currentTokenInfo, sizeof(currentTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
             ctx->pos,
@@ -27,9 +28,9 @@ void update_current_token_info(ParserContext* ctx) {
     }
 
 //    Token * nextToken = (ctx->pos+1 < ctx->list->count) ? &ctx->list->data[ctx->pos+1] : NULL;
-    TokenData * curr = ctx->curr;
-    TokenData * next = curr->next;
-    Token * nextToken = next->token;
+//    TokenData * curr = ctx->curr;
+//    TokenData * next = curr->next;
+    Token * nextToken = tokenlist_cursor_peek_next(ctx->cursor);
     if (nextToken != NULL) {
         snprintf(nextTokenInfo, sizeof(nextTokenInfo), "POS: %d, TOKEN: %s, TEXT: %s", 
             ctx->pos+1,
@@ -40,9 +41,9 @@ void update_current_token_info(ParserContext* ctx) {
     }
 }
 
-ParserContext* create_parser_context(TokenList * tokenList) {
+ParserContext* create_parser_context(tokenlist* tokens) {
     ParserContext * parserContext = malloc(sizeof(ParserContext));
-    parserContext->curr = tokenList->head;
+    tokenlist_cursor_init(parserContext->cursor, tokens);
     parserContext->pos = 0;
     update_current_token_info(parserContext);
     return parserContext;
@@ -50,25 +51,25 @@ ParserContext* create_parser_context(TokenList * tokenList) {
 
 Token * peek(ParserContext * parserContext) {
 //    return &parserContext->list->data[parserContext->pos];
-    return parserContext->curr->token;
+    return parserContext->cursor->current->value;
 }
 
 bool is_current_token(ParserContext * parserContext, TokenType type) {
 //    return parserContext->list->data[parserContext->pos].type == type;
-    return parserContext->curr->token->type == type;
+    return parserContext->cursor->current->value->type == type;
 }
 
 //TODO need a check so this doesn't cause an out of bounds
 bool is_next_token(ParserContext * parserContext, TokenType type) {
 //    return parserContext->list->data[parserContext->pos+1].type == type;
-    TokenData * next = parserContext->curr->next;
-    return next->token->type == type;
+    Token * nextToken = tokenlist_cursor_peek_next(parserContext->cursor);
+    return nextToken->type == type;
 }
 
 Token * advance_parser(ParserContext * parserContext) {
     Token * token = peek(parserContext);
 
-    parserContext->curr = parserContext->curr->next;
+    tokenlist_cursor_next(parserContext->cursor);
     parserContext->pos++;
     update_current_token_info(parserContext);
     return token;
@@ -76,7 +77,7 @@ Token * advance_parser(ParserContext * parserContext) {
 
 bool match_token(ParserContext * parserContext, TokenType type) {
 //    if (parserContext->list->data[parserContext->pos].type == type) {
-    if (parserContext->curr->token->type == type) {
+    if (parserContext->cursor->current->value->type == type) {
         advance_parser(parserContext);
         return true;
     }
@@ -115,9 +116,9 @@ const char * get_current_token_type(ParserContext * parserContext) {
 }
 
 int get_current_token_line(ParserContext * parserContext) {
-    return (peek(parserContext))->line;
+    return parserContext->cursor->current->value->line;
 }
 
 int get_current_token_col(ParserContext * parserContext) {
-    return (peek(parserContext))->col;
+    return parserContext->cursor->current->value->col;
 }

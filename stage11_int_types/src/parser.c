@@ -139,8 +139,8 @@ ASTNode * parse_logical_and(ParserContext * parserContext);
 ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
 ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 
-ASTNode* parse(TokenList * tokenList) {
-    ParserContext * parserContext = create_parser_context(tokenList);
+ASTNode* parse(tokenlist * tokens) {
+    ParserContext * parserContext = create_parser_context(tokens);
     ASTNode** functions = NULL;
     int capacity = 8;
     int count = 0;
