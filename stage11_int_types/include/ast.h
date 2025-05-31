@@ -72,7 +72,7 @@ typedef struct ASTNode {
         } translation_unit;
 
         struct {
-            const char* name;
+            char* name;
             Type * return_type;
             //struct ASTNode** param_list;
             //paramlist param_list;
@@ -83,12 +83,13 @@ typedef struct ASTNode {
             int size;
         } function_decl;
 
-        struct {
-            struct node_list * node_list;
-        } param_list;
+        // struct {
+        //     struct node_list * node_list;
+        // } param_list;
 
         struct {
-            const char * name;
+            char * name;
+            ASTNode_list * arg_list;
             //struct ASTNode ** argument_expression_list;
             //arglist arg_list;
             int arg_count;
@@ -138,40 +139,40 @@ typedef struct ASTNode {
 
         struct {
             Type * var_type;
-            const char* name;
+            char* name;
             struct ASTNode * init_expr; // NULL if no initializer
             int offset;
         } var_decl;
 
         struct {
-            const char * name;
+            char * name;
             int offset;
             struct ASTNode * expr;
         } assignment;
 
         struct {
-            const char * name;
+            char * name;
             int offset;
         } var_expr;
 
         struct {
-            const char * label;
+            char * label;
             struct ASTNode * stmt;
         } labeled_stmt;
 
         struct {
             struct ASTNode * constExpression;
             struct ASTNode * stmt;
-            const char * label;
+         //   char * label;
         } case_stmt;
 
         struct {
             struct ASTNode * stmt;
-            const char * label;
+            char * label;
         } default_stmt;
 
         struct {
-            const char * label;
+            char * label;
         } goto_stmt;
 
         struct {
@@ -186,5 +187,7 @@ typedef struct ASTNode {
         
     };
 } ASTNode;
+
+void free_astnode(ASTNode * node);
 
 #endif

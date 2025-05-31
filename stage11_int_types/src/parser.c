@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include <string.h>
 #include <stdbool.h>
 
@@ -150,7 +151,7 @@ ASTNode* parse(tokenlist * tokens) {
     ParserContext * parserContext = create_parser_context(tokens);
     //ASTNode** functions = NULL;
     ASTNode_list * functions = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(functions, nop_free_astnode);
+    ASTNode_list_init(functions, free_astnode);
 //    int capacity = 8;
     int count = 0;
 //    functions = malloc(sizeof(ASTNode*) * capacity);
@@ -199,7 +200,7 @@ ASTNode * parse_param_list(ParserContext * parserContext) {
         Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
         ASTNode * param = malloc(sizeof(ASTNode));
         param->type = AST_VAR_DECL;
-        param->var_decl.name = param_name->text;
+        param->var_decl.name = strdup(param_name->text);
         param->var_decl.var_type = type;
         param->var_decl.init_expr = NULL;
         param->var_decl.offset = 0;
@@ -220,11 +221,11 @@ ASTNode * parse_param_list(ParserContext * parserContext) {
 
 
 
-struct ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
+ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
 //    struct node_list * arg_list = NULL;
 
     ASTNode_list * arg_list = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(arg_list, free);
+    ASTNode_list_init(arg_list, free_astnode);
   
     
     //TODO replace node_list with ASTNode_list
@@ -267,7 +268,7 @@ ASTNode * parse_function(ParserContext* parserContext) {
 
     ASTNode * func = malloc(sizeof(ASTNode));
     func->type = AST_FUNCTION_DECL;
-    func->function_decl.name = my_strdup(name->text);
+    func->function_decl.name = strdup(name->text);
 //    func->function_decl.return_type = &TYPE_INT_T;    // TODO currently only supporting int return type. extend this
     func->function_decl.body = function_block;
 //    func->function_decl.param_list = param_list;
@@ -311,7 +312,7 @@ ASTNode * parse_block(ParserContext* parserContext) {
     ASTNode * blockNode = malloc(sizeof(ASTNode));
     blockNode->type = AST_BLOCK;
     blockNode->block.statements = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(blockNode->block.statements, free);
+    ASTNode_list_init(blockNode->block.statements, free_astnode);
 //    blockNode->block.count = 0;
 //    blockNode->block.capacity = 4;
 //    blockNode->block.statements = malloc(sizeof(ASTNode*) * blockNode->block.capacity);
@@ -722,7 +723,7 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_VAR_DECL;
     node->var_decl.var_type = type;
-    node->var_decl.name = my_strdup(name->text);
+    node->var_decl.name = strdup(name->text);
     node->var_decl.init_expr = expr;
     node->var_decl.offset = 0;
     return node;
@@ -752,7 +753,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         
         ASTNode * node =  malloc(sizeof(ASTNode));
         node->type = AST_ASSIGNMENT;
-        node->assignment.name = my_strdup(lhs->var_expr.name);
+        node->assignment.name = strdup(lhs->var_expr.name);
         node->assignment.expr = rhs;
         node->assignment.offset = 0;
         return node;
@@ -763,7 +764,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         ASTNode * rhs = parse_expression(parserContext);
         ASTNode * node =  malloc(sizeof(ASTNode));
         node->type = AST_COMPOUND_ADD_ASSIGN;
-        node->assignment.name = my_strdup(lhs->var_expr.name);
+        node->assignment.name = strdup(lhs->var_expr.name);
         node->assignment.expr = rhs;
         node->assignment.offset = 0;
         return node;
@@ -773,7 +774,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
             ASTNode * rhs = parse_expression(parserContext);
             ASTNode * node =  malloc(sizeof(ASTNode));
             node->type = AST_COMPOUND_SUB_ASSIGN;
-            node->assignment.name = my_strdup(lhs->var_expr.name);
+            node->assignment.name = strdup(lhs->var_expr.name);
             node->assignment.expr = rhs;
             node->assignment.offset = 0;
             return node;    
@@ -857,7 +858,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
 //            expect_token(parserContext, TOKEN_RPAREN);
             ASTNode * node = malloc(sizeof(ASTNode));
             node->type = AST_FUNCTION_CALL;
-            node->function_call.name = my_strdup(tok->text);
+            node->function_call.name = strdup(tok->text);
 //            node->function_call.argument_expression_list = argument_expression_list;
 //            node->function_call.num_args = arg_count;
             return node;
@@ -865,7 +866,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         else {
             ASTNode * node = malloc(sizeof(ASTNode));
             node->type = AST_VAR_EXPR;
-            node->var_expr.name = my_strdup(tok->text);
+            node->var_expr.name = strdup(tok->text);
             node->var_expr.offset = 0;
             return node;
         }

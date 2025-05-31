@@ -63,7 +63,7 @@ ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodySt
 ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_LABELED_STMT;
-    node->labeled_stmt.label = label;
+    node->labeled_stmt.label = strdup(label);
     node->labeled_stmt.stmt = stmt;
     return node;
 }

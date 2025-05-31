@@ -12,7 +12,9 @@
 // struct node_list * reverse_list(node_list * head);
 // void free_node_list(struct node_list * list);
 
-char * my_strdup(const char* s);
+//char * strdup(const char* s);
 void error(const char* fmt, ...);
+char* change_extension(const char* source_file, const char* new_ext);
+const char * read_text_file(const char* filename);
 
 #endif

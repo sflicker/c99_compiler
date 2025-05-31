@@ -26,55 +26,6 @@ void token_formatted_output(const char * label, const char * text, TokenType tok
 
 /* main and related */
 
-const char * read_text_file(const char* filename) {
-    FILE * file = fopen(filename, "r");
-    if (!file) {
-        perror("fopen");
-        exit(1);
-    }
-
-    fseek(file, 0, SEEK_END);
-    long filesize = ftell(file);
-    rewind(file);
-
-    char * buffer = malloc(filesize + 1);
-    if (!buffer) {
-        perror("malloc");
-        fclose(file);
-        exit(1);
-    }
-
-    size_t read_size = fread(buffer, 1, filesize, file);
-    if (read_size != filesize) {
-        fprintf(stderr, "fread failed\n");
-        fclose(file);
-        free(buffer);
-        exit(1);
-    }
-
-    buffer[filesize] = '\0';
-    fclose(file);
-    return buffer;
-
-}
-
-char* change_extension(const char* source_file, const char* new_ext) {
-    const char* dot = strrchr(source_file, '.'); // find last dot
-    size_t base_length = (dot) ? (size_t)(dot - source_file) : strlen(source_file);
-
-    size_t new_length = base_length + strlen(new_ext);
-    char* out_file = malloc(new_length + 1); // +1 for '\0'
-    if (!out_file) {
-        perror("malloc");
-        exit(1);
-    }
-
-    memcpy(out_file, source_file, base_length);
-    strcpy(out_file + base_length, new_ext);
-
-    return out_file;
-}
-
 int main(int argc, char ** argv) {
 
     if (argc < 2) {
@@ -87,11 +38,6 @@ int main(int argc, char ** argv) {
     const char * program_text = read_text_file(program_file);
     printf("Compiling\n\n%s\n\n", program_text);
 
-     TokenizerContext * tokenizerContext = init_tokenizer_context(program_text);
-    // tokenlist tokens;
-
-    // tokenize(tokenizerContext, &tokens);
-
     tokenlist * tokens = tokenize(program_text);
 
     int i=0;
@@ -103,6 +49,7 @@ int main(int argc, char ** argv) {
     }
 
     ASTNode * astNode = parse(tokens);
+    tokenlist_free(tokens);
 
     populate_symbol_table(astNode, true);
     print_ast(astNode, 0);

@@ -9,14 +9,63 @@
 #include "token.h"
 #include "ast.h"
 
-char * my_strdup(const char* s) {
-    size_t len = strlen(s) + 1;
-    char * copy = malloc(len);
-    if (copy) {
-        memcpy(copy, s, len);
+const char * read_text_file(const char* filename) {
+    FILE * file = fopen(filename, "r");
+    if (!file) {
+        perror("fopen");
+        exit(1);
     }
-    return copy;
+
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    rewind(file);
+
+    char * buffer = malloc(filesize + 1);
+    if (!buffer) {
+        perror("malloc");
+        fclose(file);
+        exit(1);
+    }
+
+    size_t read_size = fread(buffer, 1, filesize, file);
+    if (read_size != filesize) {
+        fprintf(stderr, "fread failed\n");
+        fclose(file);
+        free(buffer);
+        exit(1);
+    }
+
+    buffer[filesize] = '\0';
+    fclose(file);
+    return buffer;
+
 }
+
+char* change_extension(const char* source_file, const char* new_ext) {
+    const char* dot = strrchr(source_file, '.'); // find last dot
+    size_t base_length = (dot) ? (size_t)(dot - source_file) : strlen(source_file);
+
+    size_t new_length = base_length + strlen(new_ext);
+    char* out_file = malloc(new_length + 1); // +1 for '\0'
+    if (!out_file) {
+        perror("malloc");
+        exit(1);
+    }
+
+    memcpy(out_file, source_file, base_length);
+    strcpy(out_file + base_length, new_ext);
+
+    return out_file;
+}
+
+// char * my_strdup(const char* s) {
+//     size_t len = strlen(s) + 1;
+//     char * copy = malloc(len);
+//     if (copy) {
+//         memcpy(copy, s, len);
+//     }
+//     return copy;
+// }
 
 void error(const char* fmt, ...) {
     va_list args;

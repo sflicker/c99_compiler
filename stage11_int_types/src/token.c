@@ -43,7 +43,7 @@ void add_token(tokenlist * tokens, Token * token) {
     // newTokenList
 }
 
-Token * make_token(TokenType type, const char * text, int line, int col) {
+Token * make_token(TokenType type, char * text, int line, int col) {
     Token * token = malloc(sizeof(Token));
     token->type = type;
     token->text = text;
@@ -69,4 +69,9 @@ void cleanup_token_list(tokenlist * tokens) {
         free(token);
     }
 
+}
+
+void free_token(Token * token) {
+    free(token->text);
+    free(token);
 }

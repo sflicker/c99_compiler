@@ -374,7 +374,7 @@ void swallow_comment(TokenizerContext * ctx) {
 tokenlist * tokenize(const char * text) {
 
     tokenlist * tokens = malloc(sizeof(tokenlist));
-    tokenlist_init(tokens, free);
+    tokenlist_init(tokens, free_token);
 
     TokenizerContext * ctx = init_tokenizer_context(text);
     
@@ -423,6 +423,6 @@ tokenlist * tokenize(const char * text) {
     }
 
     add_eof_token(tokens, ctx->line, ctx->col);
-
+    return tokens;
 }
 

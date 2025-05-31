@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -Wall -g -std=c99 -Iinclude
+CFLAGS = -Wall -g -std=gnu99 -Iinclude
 LDFLAGS =
 
 SRC_DIR = src
