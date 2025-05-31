@@ -142,14 +142,18 @@ ASTNode * parse_logical_and(ParserContext * parserContext);
 ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
 ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 
+void nop_free_astnode(ASTNode * node) {
+
+}
+
 ASTNode* parse(tokenlist * tokens) {
     ParserContext * parserContext = create_parser_context(tokens);
     //ASTNode** functions = NULL;
     ASTNode_list * functions = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(functions, free);
-    int capacity = 8;
+    ASTNode_list_init(functions, nop_free_astnode);
+//    int capacity = 8;
     int count = 0;
-    functions = malloc(sizeof(ASTNode*) * capacity);
+//    functions = malloc(sizeof(ASTNode*) * capacity);
 
     while (!is_current_token(parserContext, TOKEN_EOF)) {
         // currently only supporting functions as topmost. will need to add file level variables.
@@ -216,17 +220,22 @@ ASTNode * parse_param_list(ParserContext * parserContext) {
 
 
 
-struct node_list * parse_argument_expression_list(ParserContext * parserContext) {
-    struct node_list * arg_list = NULL;
+struct ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
+//    struct node_list * arg_list = NULL;
+
+    ASTNode_list * arg_list = malloc(sizeof(ASTNode_list));
+    ASTNode_list_init(arg_list, free);
+  
     
+    //TODO replace node_list with ASTNode_list
     do {
         ASTNode * expression = parse_expression(parserContext);
         if (arg_list == NULL) {
-            arg_list = create_node_list(expression);
+            //arg_list = create_node_list(expression);
 //            add_node_list(arg_list, expression);
         }
         else {
-            add_node_list(arg_list, expression);
+//            add_node_list(arg_list, expression);
         }
 
     } while (match_token(parserContext, TOKEN_COMMA));
@@ -246,7 +255,7 @@ ASTNode * parse_function(ParserContext* parserContext) {
 
     expect_token(parserContext, TOKEN_RPAREN);
     bool declaration_only;
-    ASTNode* function_block = NULL;
+    ASTNode * function_block = NULL;
     if (is_current_token(parserContext, TOKEN_LBRACE)) {
         function_block = parse_block(parserContext);
         declaration_only = false;

@@ -1,6 +1,7 @@
 #ifndef LIST_UTIL_H
 #define LIST_UTIL_H
 
+#include <stdio.h>
 #include <stdlib.h>
 
 // Helper to expand free_fn only if it's not NULL
@@ -33,16 +34,22 @@ static inline void name##_init(name* list, void(*fn)(type)) {                \
 }                                                                             \
                                                                               \
 static inline void name##_append(name* list, type value) {                    \
+    printf("Creating Node\n");                                               \
+    printf("Sizeof Node %zu\n", sizeof(name##_node));                         \
     name##_node* node = malloc(sizeof(name##_node));                         \
+    printf("Assassing value to node\n");                                     \
     node->value = value;                                                     \
     node->next = NULL;                                                       \
+    printf("Setting Next Pointer\n");                                        \
     if (list->tail) {                                                        \
         list->tail->next = node;                                             \
     } else {                                                                 \
         list->head = node;                                                   \
     }                                                                        \
     list->tail = node;                                                       \
+    printf("Updating Count\n");                                              \
     list->count++;                                                           \
+    printf("Returning\n");                                                   \
 }                                                                             \
                                                                              \
 static inline void name##_cursor_init(name##_cursor* cursor, name *list) {   \

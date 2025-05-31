@@ -53,11 +53,11 @@ void print_ast(ASTNode * node, int indent) {
             //      paramCurr = paramCurr->param_list.next;
             //  }
             //  break;
-            struct node_list * node_list = node->param_list.node_list;
-            while(node_list) {
-                print_ast(node_list->node, indent+1);
-                node_list = node_list->next;
-            }
+            // struct node_list * node_list = node->param_list.node_list;
+            // while(node_list) {
+            //     print_ast(node_list->node, indent+1);
+            //     node_list = node_list->next;
+            // }
             break;
         }
         case AST_FUNCTION_CALL:
@@ -216,6 +216,9 @@ void print_ast(ASTNode * node, int indent) {
             break;
         case AST_BLOCK:
             printf("Block\n");
+            for (ASTNode_list_node * n = node->block.statements->head; n; n = n->next) {
+                print_ast(n->value, indent+1);
+            }
             // for (int i=0;i<node->block.count;i++) {
             //     print_ast(node->block.statements[i], indent+1);
             // }

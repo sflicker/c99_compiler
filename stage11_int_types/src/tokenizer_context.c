@@ -20,9 +20,7 @@ TokenizerContext * init_tokenizer_context(const char * text) {
 }
 
 char advance(TokenizerContext * context) {
-    context->pos++;
-    context->curr_char = context->text[context->pos];
-    context->next_char = context->text[(context->pos)+1];
+
     if (context->curr_char == '\n') {
         context->line++;
         context->col=1;
@@ -30,6 +28,10 @@ char advance(TokenizerContext * context) {
     else {
         context->col++;
     }
+    context->pos++;
+    context->curr_char = context->text[context->pos];
+    context->next_char = context->text[(context->pos)+1];
+
     return context->curr_char;
 }
 

@@ -34,61 +34,61 @@ void error(const char* fmt, ...) {
     exit(1);
 }
 
-int get_node_list_count(node_list * node_list) {
+// int get_node_list_count(node_list * node_list) {
 
-    int arg_count = 0;
-    while(node_list) {
-        arg_count++;
-        node_list = node_list->next;
-    }
-    return arg_count;
-}
+//     int arg_count = 0;
+//     while(node_list) {
+//         arg_count++;
+//         node_list = node_list->next;
+//     }
+//     return arg_count;
+// }
 
-struct node_list * create_node_list(void * node) {
-    struct node_list * list = malloc(sizeof(node_list));
-    list->node = node;
-    list->next = NULL;
-    return list;
-}
+// struct node_list * create_node_list(void * node) {
+//     struct node_list * list = malloc(sizeof(node_list));
+//     list->node = node;
+//     list->next = NULL;
+//     return list;
+// }
 
-void add_node_list(struct node_list * list, void * node) {
-    struct node_list * curr = list;
-    // move to end
-    while(curr->next) {
-        curr = curr->next;
-    }
+// void add_node_list(struct node_list * list, void * node) {
+//     struct node_list * curr = list;
+//     // move to end
+//     while(curr->next) {
+//         curr = curr->next;
+//     }
 
-    // if current node has a NULL node just assign it.
-    if (!curr->node) {
-        curr->node = node;
-    }
-    else {
-        // otherwise create a new list node and link the current to it.
-        struct node_list * next = malloc(sizeof(node_list));
-        curr->next = next;
-        next->next = NULL;
-        next->node = node;
-    }
+//     // if current node has a NULL node just assign it.
+//     if (!curr->node) {
+//         curr->node = node;
+//     }
+//     else {
+//         // otherwise create a new list node and link the current to it.
+//         struct node_list * next = malloc(sizeof(node_list));
+//         curr->next = next;
+//         next->next = NULL;
+//         next->node = node;
+//     }
 
-}
+// }
 
-struct node_list * reverse_list(node_list * head) {
-    struct node_list * reversed = NULL;
+// struct node_list * reverse_list(node_list * head) {
+//     struct node_list * reversed = NULL;
 
-    for (struct node_list * current = head; current != NULL; current = current->next) {
-        struct node_list * new_node = create_node_list(current->node);
-//        new_node->node = current->node;
-        new_node->next = reversed;
-        reversed = new_node;
-    }
-    return reversed;
-}
+//     for (struct node_list * current = head; current != NULL; current = current->next) {
+//         struct node_list * new_node = create_node_list(current->node);
+// //        new_node->node = current->node;
+//         new_node->next = reversed;
+//         reversed = new_node;
+//     }
+//     return reversed;
+// }
 
-void free_node_list(struct node_list * list) {
-    while(list != NULL) {
-        struct node_list * next = list->next;
-        free(list);
-        list = next;
-    }
-}
+// void free_node_list(struct node_list * list) {
+//     while(list != NULL) {
+//         struct node_list * next = list->next;
+//         free(list);
+//         list = next;
+//     }
+// }
 

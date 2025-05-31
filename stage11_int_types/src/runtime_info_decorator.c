@@ -19,6 +19,9 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
         {   
+            for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
+                populate_symbol_table(n->value, true);
+            }
             // for (int i=0;i<node->translation_unit.count;i++) {
             //     populate_symbol_table(node->translation_unit.functions[i], true);
             // }
@@ -55,6 +58,10 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
         }
         case AST_BLOCK:
             if (make_new_scope) enter_scope();
+
+            for (ASTNode_list_node * n = node->block.statements->head; n; n = n->next) {
+                populate_symbol_table(n->value, true);
+            }
 
             // for (int i=0;i<node->block.count;i++) {
             //     populate_symbol_table(node->block.statements[i], true);

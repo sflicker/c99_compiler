@@ -44,6 +44,7 @@ void update_current_token_info(ParserContext* ctx) {
 
 ParserContext* create_parser_context(tokenlist* tokens) {
     ParserContext * parserContext = malloc(sizeof(ParserContext));
+    parserContext->cursor = malloc(sizeof(tokenlist_cursor));
     tokenlist_cursor_init(parserContext->cursor, tokens);
     parserContext->pos = 0;
     update_current_token_info(parserContext);

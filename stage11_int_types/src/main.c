@@ -85,33 +85,29 @@ int main(int argc, char ** argv) {
     const char * output_file = change_extension(program_file, ".s");
 
     const char * program_text = read_text_file(program_file);
-    TokenizerContext * tokenizerContext = init_tokenizer_context(program_text);
-    tokenlist tokens;
-
     printf("Compiling\n\n%s\n\n", program_text);
 
+     TokenizerContext * tokenizerContext = init_tokenizer_context(program_text);
+    // tokenlist tokens;
 
-    tokenize(tokenizerContext, &tokens);
+    // tokenize(tokenizerContext, &tokens);
+
+    tokenlist * tokens = tokenize(program_text);
 
     int i=0;
     // output list
-    for (tokenlist_node * node = tokens.head; node != NULL; node = node->next) {
+    for (tokenlist_node * node = tokens->head; node != NULL; node = node->next) {
         Token * token = node->value;
 
         token_formatted_output("TOKEN:", token->text, token->type, ++i, token->line, token->col);
     }
 
-    //ParserContext parserContext;
-    //initialize_parser(&parserContext, &tokens);
+    ASTNode * astNode = parse(tokens);
 
-//    ASTNode * translation_unit = parse(&parserContext);
+    populate_symbol_table(astNode, true);
+    print_ast(astNode, 0);
 
-     ASTNode * astNode = parse(&tokens);
-
-    // populate_symbol_table(astNode, true);
-    // print_ast(astNode, 0);
-
-    // emit(astNode, output_file);
+    emit(astNode, output_file);
 
     // TODO THIS NEEDS TO BE FIXED and OTHER CLEAN AS WELL.
     // cleanup_token_list(&tokenList);
