@@ -73,6 +73,7 @@ ASTNode * create_ast_case_statement_node(ASTNode * constantExpression, ASTNode *
     node->type = AST_CASE_STMT;
     node->case_stmt.constExpression = constantExpression;
     node->case_stmt.stmt = stmt;
+    node->case_stmt.label = NULL;
     return node;
 }
 
@@ -86,7 +87,7 @@ ASTNode * create_ast_default_statement_node(ASTNode * stmt) {
 ASTNode * create_goto_statement(const char * label) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_GOTO_STMT;
-    node->goto_stmt.label = label;
+    node->goto_stmt.label = strdup(label);
 
     return node;
 }

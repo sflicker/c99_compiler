@@ -126,7 +126,7 @@ void emit_bss_section_header(FILE * out) {
     emit_line(out, "\n");
 }
 
-const char * make_label_text(const char * prefix, int num) {
+char * make_label_text(const char * prefix, int num) {
     size_t buffer_size = strlen(prefix) + 20;
     char * label = malloc(buffer_size);
     snprintf(label, buffer_size, "%s%d", prefix, num);
@@ -416,9 +416,9 @@ void emit_do_while_statement(FILE * out, ASTNode * node) {
 
 void emit_block(FILE * out, ASTNode * node, bool enterNewScope) {
 
-    // for (int i=0;i<node->block.count;i++) {
-    //     emit_tree_node(out, node->block.statements[i]);
-    // }
+    for (ASTNode_list_node * n = node->block.statements->head; n; n = n->next) {
+        emit_tree_node(out, n->value);
+    }
 
 }
 
@@ -578,18 +578,18 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
 //         }
 //     }
 
-    // call the function
-    emit_line(out, "call %s\n", node->function_call.name);
+    // // call the function
+    // emit_line(out, "call %s\n", node->function_call.name);
 
-    // clean up arguments
-    int total_arg_size = get_node_list_count(reversed_list) * 8;
-    if (total_arg_size > 0) {
-        emit_line(out, "add rsp, %d\n", total_arg_size);
-    }
+    // // clean up arguments
+    // int total_arg_size = get_node_list_count(reversed_list) * 8;
+    // if (total_arg_size > 0) {
+    //     emit_line(out, "add rsp, %d\n", total_arg_size);
+    // }
 
-    if (reversed_list) {
-        free_node_list(reversed_list);
-    }
+    // if (reversed_list) {
+    //     free_node_list(reversed_list);
+    // }
 }
 
 void emit_switch_dispatch(FILE* out, ASTNode * node) {
@@ -597,20 +597,19 @@ void emit_switch_dispatch(FILE* out, ASTNode * node) {
     ASTNode * block = node->switch_stmt.stmt;
     assert(block->type == AST_BLOCK);
 
-    // for (int i=0;i<block->block.count;i++) {
-    //     ASTNode * statement = block->block.statements[i];
-    //     if (statement->type == AST_CASE_STMT) {
-    //         statement->case_stmt.label = make_label_text("case", label_id++);
-    //         emit_line(out, "mov rax, [rsp]\n");
-    //         emit_line(out, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
-    //         emit_line(out, "je %s\n", statement->case_stmt.label);
-    //     }
-    //     else if (statement->type == AST_DEFAULT_STMT) {
-    //         statement->default_stmt.label = make_label_text("default", label_id++);
-    //         emit_line(out, "jmp %s\n", statement->default_stmt.label);
-    //     }
-    // }
-
+    for (ASTNode_list_node * n = block->block.statements->head; n; n = n->next) {
+        ASTNode * statement = n->value;        
+        if (statement->type == AST_CASE_STMT) {
+            statement->case_stmt.label = make_label_text("case", label_id++);
+            emit_line(out, "mov rax, [rsp]\n");
+            emit_line(out, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
+            emit_line(out, "je %s\n", statement->case_stmt.label);
+        }
+        else if (statement->type == AST_DEFAULT_STMT) {
+            statement->default_stmt.label = make_label_text("default", label_id++);
+            emit_line(out, "jmp %s\n", statement->default_stmt.label);
+        }
+    }
 }
 
 void emit_switch_bodies(FILE * out, ASTNode * node) {
@@ -661,7 +660,7 @@ void emit_switch_statement(FILE * out, ASTNode * node) {
 void emit_case_statement(FILE *out, ASTNode * node) {
     int case_label_id = label_id++;
     const char * case_label = make_label_text("case", case_label_id);
-    node->case_stmt.label = case_label;
+    node->case_stmt.label = strdup(case_label);
 
     // load switch value back from the stack
     emit_line(out, "mov rax, [rsp] ; reload switch expr\n");
@@ -706,9 +705,9 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_TRANSLATION_UNIT:
         {
             emit_header(out);
-            // for (int i=0;i<node->translation_unit.count;i++) {
-            //     emit_tree_node(out, node->translation_unit.functions[i]);
-            // }
+            for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
+                 emit_tree_node(out, n->value);
+            }
             emit_trailer(out);
             break;
         }

@@ -9,7 +9,7 @@
 #include "token.h"
 #include "ast.h"
 
-const char * read_text_file(const char* filename) {
+char * read_text_file(const char* filename) {
     FILE * file = fopen(filename, "r");
     if (!file) {
         perror("fopen");

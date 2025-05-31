@@ -22,9 +22,20 @@ set -e
 
 # compile C to ASM
 echo "Compile..."
-if ! ./$PROG "$SRC"; then
-    echo "Compiler crash or error."
-    exit 99
+if valgrind --leak-check=full --error-exitcode=2 ./$PROG "$SRC"; then
+    echo "✅ Compilation succeeded with no leaks"
+else
+    exit_code=$?
+
+    if [ $exit_code -eq 1 ]; then
+        echo "❌ Compiler crash or error. (exit 1)"
+        exit 99
+    elif [ $exit_code -eq 2 ]; then
+        echo "❌ Valgrind detected memory errors (exit 2)"
+        exit 90
+    elif [ $exit_code -ne 0 ]; then
+        echo "❌ Unexpected exit code: $exit_code"
+    fi
 fi
 
 echo "Assemble..."

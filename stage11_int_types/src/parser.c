@@ -171,6 +171,7 @@ ASTNode* parse(tokenlist * tokens) {
     node->type = AST_TRANSLATION_UNIT;
     node->translation_unit.functions = functions;
     node->translation_unit.count = count;
+    free_parser_context(parserContext);
     return node;
 }
 
@@ -192,8 +193,8 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
         return parse_function(parserContext);
 }
 
-ASTNode * parse_param_list(ParserContext * parserContext) {
-    struct node_list * param_list = NULL;
+ASTNode_list * parse_param_list(ParserContext * parserContext) {
+    ASTNode_list * param_list = NULL;
 
     do {
         Type * type = parse_type(parserContext);
@@ -205,42 +206,66 @@ ASTNode * parse_param_list(ParserContext * parserContext) {
         param->var_decl.init_expr = NULL;
         param->var_decl.offset = 0;
         if (param_list == NULL) {
-            param_list = create_node_list(param);
+            param_list = malloc(sizeof(ASTNode_list));
+            ASTNode_list_init(param_list, free_astnode);
+            ASTNode_list_append(param_list, param);
+ //           param_list = create_node_list(param);
 //            add_node_list(param_list, param);
         }
         else {
-            add_node_list(param_list, param);
+            ASTNode_list_append(param_list, param);
+//            add_node_list(param_list, param);
         }
 
     } while (match_token(parserContext, TOKEN_COMMA));
-    ASTNode * ast_param_list = malloc(sizeof(ASTNode));
-    ast_param_list->type = AST_PARAM_LIST;
-    ast_param_list->param_list.node_list = param_list;
-    return ast_param_list;
+    // ASTNode * ast_param_list = malloc(sizeof(ASTNode));
+    // ast_param_list->type = AST_PARAM_LIST;
+    // ast_param_list->param_list.node_list = param_list;
+    // return ast_param_list;
+    return param_list;
 }
 
 
 
 ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
-//    struct node_list * arg_list = NULL;
 
     ASTNode_list * arg_list = malloc(sizeof(ASTNode_list));
     ASTNode_list_init(arg_list, free_astnode);
-  
     
-    //TODO replace node_list with ASTNode_list
     do {
         ASTNode * expression = parse_expression(parserContext);
-        if (arg_list == NULL) {
+        ASTNode_list_append(arg_list, expression);
+//        if (arg_list == NULL) {
             //arg_list = create_node_list(expression);
 //            add_node_list(arg_list, expression);
-        }
-        else {
+//        }
+//        else {
 //            add_node_list(arg_list, expression);
-        }
+//        }
 
     } while (match_token(parserContext, TOKEN_COMMA));
     return arg_list;
+}
+
+Type * get_type(Token* token) {
+    switch (token->type) {
+        case TOKEN_INT: 
+            return &TYPE_INT_T;
+            break;
+        case TOKEN_CHAR:
+            return &TYPE_CHAR_T;
+            break;
+        case TOKEN_SHORT:
+            return &TYPE_SHORT_T;
+            break;
+        case TOKEN_LONG:
+            return &TYPE_LONG_T;
+            break;
+        default:
+            error("Invalid TYPE Token\n");
+            break;
+    }
+    return NULL;
 }
 
 ASTNode * parse_function(ParserContext* parserContext) {
@@ -248,10 +273,10 @@ ASTNode * parse_function(ParserContext* parserContext) {
     Token* returnType = expect_type_token(parserContext);
     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
     expect_token(parserContext, TOKEN_LPAREN);
-//    ASTNode *param_list = NULL;
+    ASTNode_list *param_list = NULL;
 
     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-  //      param_list = parse_param_list(parserContext);
+        param_list = parse_param_list(parserContext);
     }
 
     expect_token(parserContext, TOKEN_RPAREN);
@@ -269,9 +294,9 @@ ASTNode * parse_function(ParserContext* parserContext) {
     ASTNode * func = malloc(sizeof(ASTNode));
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = strdup(name->text);
-//    func->function_decl.return_type = &TYPE_INT_T;    // TODO currently only supporting int return type. extend this
+    func->function_decl.return_type = get_type(returnType);
     func->function_decl.body = function_block;
-//    func->function_decl.param_list = param_list;
+    func->function_decl.param_list = param_list;
     func->function_decl.declaration_only = declaration_only;
     return func;
 }

@@ -163,7 +163,7 @@ typedef struct ASTNode {
         struct {
             struct ASTNode * constExpression;
             struct ASTNode * stmt;
-         //   char * label;
+            char * label;
         } case_stmt;
 
         struct {

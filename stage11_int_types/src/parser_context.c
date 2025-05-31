@@ -51,6 +51,11 @@ ParserContext* create_parser_context(tokenlist* tokens) {
     return parserContext;
 }
 
+void free_parser_context(ParserContext* parserContext) {
+    free(parserContext->cursor);
+    free(parserContext);
+}
+
 Token * peek(ParserContext * parserContext) {
 //    return &parserContext->list->data[parserContext->pos];
     return parserContext->cursor->current->value;

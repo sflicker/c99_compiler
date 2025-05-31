@@ -14,6 +14,8 @@ typedef struct {
 
 
 ParserContext* create_parser_context(tokenlist * tokenList);
+void free_parser_context(ParserContext* parserContext);
+
 
 Token * peek(ParserContext * parserContext);
 bool is_current_token(ParserContext * parserContext, TokenType type);

@@ -423,6 +423,7 @@ tokenlist * tokenize(const char * text) {
     }
 
     add_eof_token(tokens, ctx->line, ctx->col);
+    free_tokenizer_context(ctx);
     return tokens;
 }
 

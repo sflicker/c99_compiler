@@ -1,6 +1,7 @@
 *.o
 *.s
 *.out
+*.txt
 
 mimic99
 

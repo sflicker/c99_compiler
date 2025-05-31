@@ -1,7 +1,9 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "list_util.h"
 #include "token.h"
+#include "util.h"
 
 // void init_token_list(TokenList * list) {
 //     list->capacity = 16;
@@ -43,10 +45,10 @@ void add_token(tokenlist * tokens, Token * token) {
     // newTokenList
 }
 
-Token * make_token(TokenType type, char * text, int line, int col) {
+Token * make_token(TokenType type, const char * text, int line, int col) {
     Token * token = malloc(sizeof(Token));
     token->type = type;
-    token->text = text;
+    token->text = strdup(text);
     token->line = line;
     token->col = col;
     return token;

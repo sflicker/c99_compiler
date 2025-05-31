@@ -15,6 +15,6 @@
 //char * strdup(const char* s);
 void error(const char* fmt, ...);
 char* change_extension(const char* source_file, const char* new_ext);
-const char * read_text_file(const char* filename);
+char * read_text_file(const char* filename);
 
 #endif

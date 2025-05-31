@@ -6,17 +6,17 @@ void free_astnode(ASTNode * node) {
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
             ASTNode_list_free(node->translation_unit.functions);
+            free(node->translation_unit.functions);
             break;
 
         case AST_VAR_DECL:
             free(node->var_decl.name);
-            if (node->var_decl.init_expr) {
-                free_astnode(node->var_decl.init_expr);
-            }
+            free_astnode(node->var_decl.init_expr);
         break;
 
 
         case AST_FUNCTION_DECL:
+            free(node->function_decl.name);
             ASTNode_list_free(node->function_decl.param_list);
             free_astnode(node->function_decl.body);
             break;
@@ -31,6 +31,7 @@ void free_astnode(ASTNode * node) {
 
         case AST_BLOCK:
             ASTNode_list_free(node->block.statements);
+            free(node->block.statements);
             break;
 
         case AST_IF_STMT:
@@ -77,6 +78,7 @@ void free_astnode(ASTNode * node) {
             break;
 
         case AST_CASE_STMT:
+            free(node->case_stmt.label);
             free_astnode(node->case_stmt.constExpression);
             free_astnode(node->case_stmt.stmt);
             break;
@@ -112,6 +114,10 @@ void free_astnode(ASTNode * node) {
         case AST_UNARY_POST_INC:
         case AST_UNARY_POST_DEC:
             free_astnode(node->unary.operand);            
+            break;
+
+        case AST_INT_LITERAL:
+            // DO NOTHING
             break;
 
         default: 

@@ -19,6 +19,10 @@ TokenizerContext * init_tokenizer_context(const char * text) {
     return context;
 }
 
+void free_tokenizer_context(TokenizerContext * ctx) {
+    free(ctx);
+}
+
 char advance(TokenizerContext * context) {
 
     if (context->curr_char == '\n') {
@@ -30,7 +34,13 @@ char advance(TokenizerContext * context) {
     }
     context->pos++;
     context->curr_char = context->text[context->pos];
-    context->next_char = context->text[(context->pos)+1];
+
+    if (context->text[context->pos] != '\0') {
+        context->next_char = context->text[context->pos + 1];
+    }
+    else {
+        context->next_char = '\0';
+    }
 
     return context->curr_char;
 }

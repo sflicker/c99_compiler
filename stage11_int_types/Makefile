@@ -27,8 +27,8 @@ $(BUILD_DIR):
 #mimic99: $(OBJS)
 #	$(CC) $(OBJS) $(CFLAGS) -o mimic99
 
-test: mimic99
-	./run_all_tests.sh mimic99
+test: $(TARGET)
+	./run_all_tests.sh $(TARGET)
 
 clean:
 	rm -rf $(BUILD_DIR)

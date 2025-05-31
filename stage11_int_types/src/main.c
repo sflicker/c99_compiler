@@ -33,9 +33,9 @@ int main(int argc, char ** argv) {
         return 1;
     }
     const char * program_file = argv[1];
-    const char * output_file = change_extension(program_file, ".s");
+    char * output_file = change_extension(program_file, ".s");
 
-    const char * program_text = read_text_file(program_file);
+    char * program_text = read_text_file(program_file);
     printf("Compiling\n\n%s\n\n", program_text);
 
     tokenlist * tokens = tokenize(program_text);
@@ -49,7 +49,9 @@ int main(int argc, char ** argv) {
     }
 
     ASTNode * astNode = parse(tokens);
+    
     tokenlist_free(tokens);
+    free(tokens);
 
     populate_symbol_table(astNode, true);
     print_ast(astNode, 0);
@@ -58,5 +60,9 @@ int main(int argc, char ** argv) {
 
     // TODO THIS NEEDS TO BE FIXED and OTHER CLEAN AS WELL.
     // cleanup_token_list(&tokenList);
-    
+
+    free_astnode(astNode);
+    free(output_file);
+    free(program_text);
+    exit(0);
 }                             

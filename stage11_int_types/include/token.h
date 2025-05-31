@@ -86,7 +86,7 @@ const char * token_type_name(TokenType type);
 void init_token_list(tokenlist * list);
 void cleanup_token_list(tokenlist * tokenList);
 void add_token(tokenlist * list, Token * token);
-Token * make_token(TokenType type, char * text, int line, int col);
+Token * make_token(TokenType type, const char * text, int line, int col);
 void free_token(Token * token);
 
 #endif

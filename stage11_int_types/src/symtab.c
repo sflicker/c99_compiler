@@ -91,7 +91,7 @@ void add_function_symbol(const char * name, Type * returnType, int param_count, 
     }
 
     FunctionSymbol * new_symbol = malloc(sizeof(FunctionSymbol));
-    new_symbol->name = my_strdup(name);
+    new_symbol->name = strdup(name);
     new_symbol->return_type = returnType;
     new_symbol->param_count = param_count;
     new_symbol->param_types = param_types;
@@ -113,7 +113,7 @@ int add_symbol_with_offset(const char * name, int offset, Type * type) {
 
     // add new symbol
     Symbol * new_symbol = malloc(sizeof(Symbol));
-    new_symbol->name = my_strdup(name);
+    new_symbol->name = strdup(name);
     new_symbol->type = type;
     new_symbol->offset = offset;
 
@@ -142,7 +142,7 @@ int add_symbol(const char * name, Type * type) {
 
     // add new symbol
     Symbol * new_symbol = malloc(sizeof(Symbol));
-    new_symbol->name = my_strdup(name);
+    new_symbol->name = strdup(name);
     new_symbol->offset = next_offset;
     new_symbol->type = type;
     next_offset -= type->size;
