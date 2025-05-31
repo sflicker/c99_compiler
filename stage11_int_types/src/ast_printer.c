@@ -45,8 +45,8 @@ void print_ast(ASTNode * node, int indent) {
                 print_ast(node->function_decl.body, indent+1);
             }
             break;
-        case AST_PARAM_LIST: {
-             printf("ParameterList:\n");
+        //case AST_PARAM_LIST: {
+          //   printf("ParameterList:\n");
             //  ASTNode * paramCurr = node;
             //  while(paramCurr) {
             //      print_ast(paramCurr->param_list.param, indent + 1);
@@ -58,8 +58,8 @@ void print_ast(ASTNode * node, int indent) {
             //     print_ast(node_list->node, indent+1);
             //     node_list = node_list->next;
             // }
-            break;
-        }
+        //    break;
+        //}
         case AST_FUNCTION_CALL:
             printf("FunctionCall: %s\n", node->function_call.name);
             //if (node->function_call.argument_expression_list) {

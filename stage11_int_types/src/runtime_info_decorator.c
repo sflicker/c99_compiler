@@ -50,12 +50,12 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
                 exit_scope();
                 break;
             }
-        case AST_PARAM_LIST: {
-            // for (struct node_list * node_list = node->param_list.node_list; node_list != NULL; node_list = node_list->next) {
-            //     populate_symbol_table(node_list->node, false);
-            // }
-            break;
-        }
+        // case AST_PARAM_LIST: {
+        //     // for (struct node_list * node_list = node->param_list.node_list; node_list != NULL; node_list = node_list->next) {
+        //     //     populate_symbol_table(node_list->node, false);
+        //     // }
+        //     break;
+        // }
         case AST_BLOCK:
             if (make_new_scope) enter_scope();
 
@@ -153,9 +153,9 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             // }
             break;
         }
-        case AST_ARG_LIST:
-            // TODO
-            break;
+        // case AST_ARG_LIST:
+        //     // TODO
+        //     break;
 
         case AST_INT_LITERAL:
             // DO NOTHING

@@ -22,7 +22,7 @@ set -e
 
 # compile C to ASM
 echo "Compile..."
-if valgrind --leak-check=full --error-exitcode=2 ./$PROG "$SRC"; then
+if valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=2 ./$PROG "$SRC"; then
     echo "✅ Compilation succeeded with no leaks"
 else
     exit_code=$?
@@ -35,6 +35,7 @@ else
         exit 90
     elif [ $exit_code -ne 0 ]; then
         echo "❌ Unexpected exit code: $exit_code"
+        exit $exit_code
     fi
 fi
 

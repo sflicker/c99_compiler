@@ -2,6 +2,7 @@
 *.s
 *.out
 *.txt
+*.log
 
 mimic99
 

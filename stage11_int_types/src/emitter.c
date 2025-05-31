@@ -380,8 +380,8 @@ void emit_if_statement(FILE * out, ASTNode * node) {
 
 void emit_while_statement(FILE* out, ASTNode * node) {
 
-    const char * loop_start_label = make_label_text("while_start", label_id++);
-    const char * loop_end_label = make_label_text("while_end", label_id++);
+    char * loop_start_label = make_label_text("while_start", label_id++);
+    char * loop_end_label = make_label_text("while_end", label_id++);
 
     emit_tree_node(out, node->switch_stmt.expr);
     emit_line(out, "push rax   ; save switch expression\n");
@@ -402,6 +402,10 @@ void emit_while_statement(FILE* out, ASTNode * node) {
     // jmp to start
     emit_jump_from_text(out, "jmp", loop_start_label);
     emit_label_from_text(out, loop_end_label); 
+
+    free(loop_start_label);
+    free(loop_end_label);
+
 }
 
 void emit_do_while_statement(FILE * out, ASTNode * node) {
@@ -491,13 +495,12 @@ void emit_sub_assignment(FILE *out, ASTNode * node) {
 
 void emit_for_statement(FILE * out, ASTNode * node) {
 
-    const char * start_label = make_label_text("for_start", label_id++);
-    const char * end_label = make_label_text("for_end", label_id++);
-    const char * condition_label = make_label_text("for_condition", label_id++);
-    const char * continue_label = make_label_text("for_continue", label_id++);
+    char * start_label = make_label_text("for_start", label_id++);
+    char * end_label = make_label_text("for_end", label_id++);
+    char * condition_label = make_label_text("for_condition", label_id++);
+    char * continue_label = make_label_text("for_continue", label_id++);
 
     push_loop_context(continue_label, end_label);
-
 
     // int label_start = label_id++;
     // int label_cond = label_id++;
@@ -537,7 +540,14 @@ void emit_for_statement(FILE * out, ASTNode * node) {
     emit_label_from_text(out, end_label);
 
     pop_loop_context();
+
 //    exit_scope();
+
+    free(start_label);
+    free(end_label);
+    free(condition_label);
+    free(continue_label);
+
 }
 
 void emit_pass_argument(FILE* out, Type * type, int offset, ASTNode * node) {
@@ -634,7 +644,7 @@ void emit_switch_statement(FILE * out, ASTNode * node) {
     assert(node->type == AST_SWITCH_STMT);
     int label_end = label_id++;
 
-    const char * break_label = make_label_text("switch_end", label_end);
+    char * break_label = make_label_text("switch_end", label_end);
 
     emit_tree_node(out, node->switch_stmt.expr);
     emit_line(out, "push rax   ; save switch expression\n");
@@ -655,11 +665,12 @@ void emit_switch_statement(FILE * out, ASTNode * node) {
 
     pop_switch_context();
 
+    free(break_label);
 }
 
 void emit_case_statement(FILE *out, ASTNode * node) {
     int case_label_id = label_id++;
-    const char * case_label = make_label_text("case", case_label_id);
+    char * case_label = make_label_text("case", case_label_id);
     node->case_stmt.label = strdup(case_label);
 
     // load switch value back from the stack
@@ -676,6 +687,7 @@ void emit_case_statement(FILE *out, ASTNode * node) {
 
     emit_line(out, "jmp %s\n", switch_stack->break_label);
 
+    free(case_label);
 }
 
 const char * get_break_label() {

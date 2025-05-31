@@ -43,7 +43,9 @@ for cfile in tests/test*.c; do
     remainder="${filename#*__}"
     expected="${remainder%.c}"
 
+    echo ""
     echo "----------------------------"
+    echo ""
     echo "🔍 Running test for $testname (expecting $expected)..."
     
     # assuming all tests should have an exit code of 42 to pass for now

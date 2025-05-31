@@ -3,6 +3,7 @@
 #include "ast.h"
 
 void free_astnode(ASTNode * node) {
+    if (!node) return;
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
             ASTNode_list_free(node->translation_unit.functions);
@@ -18,11 +19,13 @@ void free_astnode(ASTNode * node) {
         case AST_FUNCTION_DECL:
             free(node->function_decl.name);
             ASTNode_list_free(node->function_decl.param_list);
+            free(node->function_decl.param_list);
             free_astnode(node->function_decl.body);
             break;
 
         case AST_FUNCTION_CALL:
             ASTNode_list_free(node->function_call.arg_list);
+            free(node->function_call.arg_list);
             break;
 
         case AST_RETURN_STMT:
@@ -59,6 +62,8 @@ void free_astnode(ASTNode * node) {
             break;
 
         case AST_ASSIGNMENT:
+        case AST_COMPOUND_ADD_ASSIGN:
+        case AST_COMPOUND_SUB_ASSIGN:
             free(node->assignment.name);
             free_astnode(node->assignment.expr);
             break;
@@ -102,6 +107,8 @@ void free_astnode(ASTNode * node) {
         case AST_LESS_EQUAL:
         case AST_GREATER_THAN:
         case AST_GREATER_EQUAL:
+        case AST_LOGICAL_AND:
+        case AST_LOGICAL_OR:
             free_astnode(node->binary.lhs);
             free_astnode(node->binary.rhs);
             break;
@@ -116,12 +123,19 @@ void free_astnode(ASTNode * node) {
             free_astnode(node->unary.operand);            
             break;
 
+        case AST_DO_WHILE_STMT:
+            free_astnode(node->do_while_stmt.expr);
+            free_astnode(node->do_while_stmt.stmt);
+            break;
+
+        case AST_CONTINUE_STMT:
+        case AST_BREAK_STMT:
         case AST_INT_LITERAL:
             // DO NOTHING
             break;
 
         default: 
-            error("Invalid AST Node Type\n");
+            error("Invalid AST Node Type: %d\n", node->type);
             break;
     }
     free(node);

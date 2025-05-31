@@ -17,5 +17,6 @@ char advance(TokenizerContext * context);
 TokenizerContext * init_tokenizer_context(const char * text);
 // TokenList * get_tokens(TokenizerContext * context);
 // Token * get_next_token(TokenizerContext * context);
+void free_tokenizer_context(TokenizerContext * ctx);
 
 #endif
