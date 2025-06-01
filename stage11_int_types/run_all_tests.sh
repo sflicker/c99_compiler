@@ -6,6 +6,14 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+USE_VALGRIND=0
+
+#parse optional --memcheck flag
+if [ "$1" == "--memcheck" ]; then
+    USE_VALGRIND=1
+    shift
+fi
+
 PROG=$1
 
 echo "Cleaning previous runs..."
@@ -49,8 +57,13 @@ for cfile in tests/test*.c; do
     echo "🔍 Running test for $testname (expecting $expected)..."
     
     # assuming all tests should have an exit code of 42 to pass for now
-    OUTPUT=$(./run_test.sh "$cfile" "$expected" $PROG)
-    STATUS=$?
+    if [ $USE_VALGRIND -eq 1 ]; then
+        OUTPUT=$(./run_test.sh --memcheck "$cfile" "$expected" $PROG)
+        STATUS=$?
+    else 
+        OUTPUT=$(./run_test.sh "$cfile" "$expected" $PROG)
+        STATUS=$?
+    fi
 
     echo "STATUS: $STATUS"
 

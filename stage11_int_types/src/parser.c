@@ -870,9 +870,9 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         Token * tok = advance_parser(parserContext);
         if (is_current_token(parserContext, TOKEN_LPAREN)) {
             advance_parser(parserContext);
-//            struct node_list * argument_expression_list = NULL; 
+            ASTNode_list * argument_expression_list = NULL; 
             if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-  //              argument_expression_list = parse_argument_expression_list(parserContext);
+                argument_expression_list = parse_argument_expression_list(parserContext);
                 expect_token(parserContext, TOKEN_RPAREN);
             }
             else {
@@ -884,7 +884,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
             ASTNode * node = malloc(sizeof(ASTNode));
             node->type = AST_FUNCTION_CALL;
             node->function_call.name = strdup(tok->text);
-//            node->function_call.argument_expression_list = argument_expression_list;
+            node->function_call.arg_list = argument_expression_list;
 //            node->function_call.num_args = arg_count;
             return node;
         }

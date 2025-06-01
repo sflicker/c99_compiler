@@ -30,6 +30,9 @@ $(BUILD_DIR):
 test: $(TARGET)
 	./run_all_tests.sh $(TARGET)
 
+memcheck: $(TARGET)
+	./run_all_tests.sh --memcheck $(TARGET)
+
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f tests/*.s tests/*.o

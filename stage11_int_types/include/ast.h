@@ -77,7 +77,7 @@ typedef struct ASTNode {
             //struct ASTNode** param_list;
             //paramlist param_list;
             ASTNode_list * param_list;
-            int param_count;
+            //int param_count;
             struct ASTNode* body;
             bool declaration_only;
             int size;
@@ -92,7 +92,7 @@ typedef struct ASTNode {
             ASTNode_list * arg_list;
             //struct ASTNode ** argument_expression_list;
             //arglist arg_list;
-            int arg_count;
+            //int arg_count;
         } function_call;
 
         struct {

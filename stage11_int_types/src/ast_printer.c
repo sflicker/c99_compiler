@@ -32,6 +32,12 @@ void print_ast(ASTNode * node, int indent) {
         }
         case AST_FUNCTION_DECL:
             printf("FunctionDecl: %s, size: %d\n", node->function_decl.name, node->function_decl.size);
+            if (node->function_decl.param_list) {
+                printf("ParameterList:\n");
+                for (ASTNode_list_node * n = node->function_decl.param_list->head;n;n=n->next) {
+                    print_ast(n->value, indent+1);
+                }
+            }
            // if (node->function_decl.param_list) {
                 //TODO print the param_list
                 //print_ast(node->function_decl.param_list, indent+1);
@@ -62,6 +68,11 @@ void print_ast(ASTNode * node, int indent) {
         //}
         case AST_FUNCTION_CALL:
             printf("FunctionCall: %s\n", node->function_call.name);
+            if (node->function_call.arg_list) {
+                for (ASTNode_list_node *n = node->function_call.arg_list->head;n;n=n->next) {
+                    print_ast(n->value, indent+1);
+                }
+            }
             //if (node->function_call.argument_expression_list) {
                 //TODO PRINT ARG LIST
                 // struct node_list * arg = node->function_call.argument_expression_list;

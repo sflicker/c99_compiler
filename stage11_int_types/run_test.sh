@@ -1,8 +1,21 @@
 #! /bin/bash
 
+USE_VALGRIND=0
+
+#parse optional --memcheck flag
+if [ "$1" == "--memcheck" ]; then
+    USE_VALGRIND=1
+    shift
+fi
+
 SRC=$1
 EXPECTED=$2
 PROG=$3
+
+if [ -z "$SRC" ] || [ -z "$EXPECTED" ] || [ -z "$PROG" ]; then
+    echo "Usage: $0 [--memcheck] source.c expected program"
+    exit 1
+fi
 
 UNSIGNED_EXPECTED=$(( (EXPECTED + 256) % 256 ))
 
@@ -21,8 +34,16 @@ echo EXE_FILE=$EXE_FILE
 set -e
 
 # compile C to ASM
+CMD="./$PROG $SRC"
+if [ "$USE_VALGRIND" -eq 1 ]; then
+    echo "🔍 Running under Valgrind: $CMD"
+    CMD="valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=2 $CMD"
+fi
+
+echo "Command: $CMD"
+
 echo "Compile..."
-if valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=2 ./$PROG "$SRC"; then
+if $CMD; then
     echo "✅ Compilation succeeded with no leaks"
 else
     exit_code=$?
