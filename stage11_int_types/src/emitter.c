@@ -13,10 +13,43 @@
 void emit_tree_node(FILE * out, ASTNode * node);
 void emit_var_declaration(FILE *out, ASTNode * node);
 
+// Register order for integer/pointer args in AMD64
+static const char* ARG_REGS[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
+const int ARG_REG_COUNT=6;
+
 bool emit_print_int_extension = false;
 
 static int label_id = 0;
 
+typedef struct FunctionExitContext {
+    char * exit_label;
+    struct FunctionExitContext * next;
+} FunctionExitContext;
+
+static FunctionExitContext * functionExitStack = NULL;
+
+void push_function_exit_context(const char * exit_label) {
+    FunctionExitContext * ctx = malloc(sizeof(FunctionExitContext));
+    ctx->exit_label = strdup(exit_label);
+    ctx->next = functionExitStack;
+    functionExitStack = ctx;
+}
+
+void pop_function_exit_context() {
+    if (functionExitStack) {
+        FunctionExitContext * old = functionExitStack;
+        functionExitStack = old->next;
+        free(old->exit_label);
+        free(old);
+    }
+}
+
+char * get_function_exit_label() {
+    if (functionExitStack) {
+        return functionExitStack->exit_label;
+    }
+    return NULL;
+}
 typedef struct SwitchContext {
     const char * break_label;
     struct SwitchContext * next;
@@ -26,7 +59,7 @@ static SwitchContext * switch_stack = NULL;
 
 void push_switch_context(const char * break_label) {
     SwitchContext * ctx = malloc(sizeof(SwitchContext));
-    ctx->break_label = break_label;
+    ctx->break_label = strdup(break_label);
     ctx->next = switch_stack;
     switch_stack = ctx;
 }
@@ -433,6 +466,9 @@ void emit_function(FILE * out, ASTNode * node) {
         return;
     }
 
+    char * func_end_label = make_label_text("func_end", label_id++);
+    push_function_exit_context(func_end_label);
+
     emit_text_section_header(out);
 
     int local_space = node->function_decl.size;
@@ -446,6 +482,12 @@ void emit_function(FILE * out, ASTNode * node) {
         emit_line(out, "sub rsp, %d\n", local_space);
     }
 
+    if (node->function_decl.param_list) {
+        for (ASTNode_list_node * n=node->function_decl.param_list->head;n;n=n->next) {
+            emit_var_declaration(out, n->value);
+        }
+    }
+
     //TODO FIX THIS
     // if (node->function_decl.param_list) {
     //     for (struct node_list * param = node->function_decl.param_list->param_list.node_list; param != NULL; param = param->next) {
@@ -456,8 +498,12 @@ void emit_function(FILE * out, ASTNode * node) {
 
     emit_block(out, node->function_decl.body, false);
 
+    emit_label_from_text(out, func_end_label);
     emit_line(out, "leave\n");
     emit_line(out, "ret\n");
+
+    pop_function_exit_context();
+    free(func_end_label);
 }
 
 void emit_var_declaration(FILE *out, ASTNode * node) {
@@ -575,7 +621,20 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
     // if the call has arguments
     // first get a reversed list
     // then emit each arg then push it
-    struct node_list * reversed_list = NULL;
+    //struct node_list * reversed_list = NULL;
+
+    int arg_count=0;
+    if (node->function_call.arg_list) {
+        for (ASTNode_list_node *n = node->function_call.arg_list->head;n;n=n->next) {
+            ASTNode * argNode = n->value;
+            emit_tree_node(out, argNode);
+            if (arg_count<ARG_REG_COUNT) {
+                char * reg = ARG_REGS[arg_count];
+                emit_line(out, "mov %s, rax\n", reg);
+            }  //TODO SUPPORT MORE THAN 6 arguments using the stack
+        }
+    }
+
 //     if (node->function_call.argument_expression_list) {
 //  //       reversed_list = reverse_list(node->function_call.argument_expression_list);
 //         reversed_list = node->function_call.argument_expression_list;
@@ -589,7 +648,7 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
 //     }
 
     // // call the function
-    // emit_line(out, "call %s\n", node->function_call.name);
+    emit_line(out, "call %s\n", node->function_call.name);
 
     // // clean up arguments
     // int total_arg_size = get_node_list_count(reversed_list) * 8;
@@ -740,8 +799,11 @@ void emit_tree_node(FILE * out, ASTNode * node) {
             break;
         case AST_RETURN_STMT:
             emit_tree_node(out, node->return_stmt.expr);
-            emit_line(out, "leave\n");
-            emit_line(out, "ret\n");
+            if (functionExitStack && functionExitStack->exit_label) {
+                emit_jump_from_text(out, "jmp", functionExitStack->exit_label);
+            }
+            // emit_line(out, "leave\n");
+            // emit_line(out, "ret\n");
             break;
         case AST_FUNCTION_CALL:
             emit_function_call(out, node);

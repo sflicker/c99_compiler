@@ -9,7 +9,7 @@
     do { if ((fn) != NULL) fn(val); } while (0)
 
 // type = base type (e.g., ASTNode*), name = prefix (e.g., arglist)
-#define DEFINE_LINKED_LIST(type, name)                               \
+#define DEFINE_LINKED_LIST(type, name)                                       \
                                                                               \
 typedef struct name##_node {                                                 \
     type value;                                                              \
@@ -86,6 +86,6 @@ static inline void name##_free(name* list) {                                  \
     list->head = list->tail = NULL;                                          \
     list->count = 0;                                                         \
                                                                              \
-}                                                                            \
+}
 
 #endif // LIST_UTIL_H

@@ -1,5 +1,5 @@
 int echo(int a) {
-    _print(a);
+//    _print(a);
 	return a;
 }
 

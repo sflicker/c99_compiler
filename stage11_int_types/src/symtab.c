@@ -195,7 +195,16 @@ int lookup_symbol(const char* name) {
 
 int get_symbol_total_space() {
 
-    return storage_size;
+    int size = storage_size;
+    // round up to a 16 byte
+    if (size > 0) {
+        int remainder = storage_size % 16;
+        if (remainder > 0) {
+            size = storage_size + (16 - remainder);
+        }
+    }
+
+    return size;
 
     // TODO COULD MAKE THIS TAKE A PARAMETER THAN SCAN THE TREE BELOW FOR NOW JUST RETURN 64
 
