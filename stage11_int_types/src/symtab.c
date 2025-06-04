@@ -6,25 +6,7 @@
 #include "util.h"
 #include "type.h"
 
-typedef struct Symbol {
-    char* name;
-    Type * type;
-    Address addr;
-    struct Symbol* next;
-} Symbol;
 
-typedef struct FunctionSymbol {
-    char * name;
-    Type * return_type;
-    int param_count;
-    TypePtr_list * param_types;
-    struct FunctionSymbol* next;
-} FunctionSymbol;
-
-typedef struct Scope {
-    Symbol * symbols;
-    struct Scope * parent;
-} Scope;
 
 // #define MAX_SYMBOLS 128
 
@@ -100,35 +82,35 @@ void add_function_symbol(const char * name, Type * returnType, int param_count, 
     functionSymbolList = new_symbol;
 }
 
-int add_symbol_with_offset(const char * name, int offset, Type * type) {
-    // check if symbol currently exists in current scope only
-    // error and exit if so.
-    Symbol * sym = current_scope->symbols;
-    while(sym) {
-        if (strcmp(sym->name, name) == 0) {
-            error("Error: redeclaration of '%s' in same scope\n", name);
-        }
-        sym = sym->next;
-    }
+// int add_symbol_with_offset(const char * name, int offset, Type * type) {
+//     // check if symbol currently exists in current scope only
+//     // error and exit if so.
+//     Symbol * sym = current_scope->symbols;
+//     while(sym) {
+//         if (strcmp(sym->name, name) == 0) {
+//             error("Error: redeclaration of '%s' in same scope\n", name);
+//         }
+//         sym = sym->next;
+//     }
 
-    // add new symbol
-    Symbol * new_symbol = malloc(sizeof(Symbol));
-    new_symbol->name = strdup(name);
-    new_symbol->type = type;
-    new_symbol->offset = offset;
+//     // add new symbol
+//     Symbol * new_symbol = malloc(sizeof(Symbol));
+//     new_symbol->name = strdup(name);
+//     new_symbol->type = type;
+// //    new_symbol->offset = offset;
 
-    new_symbol->next = current_scope->symbols;
-    current_scope->symbols = new_symbol;
+//     new_symbol->next = current_scope->symbols;
+//     current_scope->symbols = new_symbol;
     
-    // only update for negative offsets which are for local variables
-    if (offset < 0) {
-        storage_size += type->size;
-    }
-    return new_symbol->offset;
+//     // only update for negative offsets which are for local variables
+//     if (offset < 0) {
+//         storage_size += type->size;
+//     }
+//     return new_symbol->offset;
 
-}
+// }
 
-int add_symbol(const char * name, Type * type) {
+Symbol * add_symbol(const char * name, Type * type) {
     // check if symbol currently exists in current scope only
     // error and exit if so.
     Symbol * sym = current_scope->symbols;
@@ -143,14 +125,14 @@ int add_symbol(const char * name, Type * type) {
     // add new symbol
     Symbol * new_symbol = malloc(sizeof(Symbol));
     new_symbol->name = strdup(name);
-    new_symbol->offset = next_offset;
+  //  new_symbol->offset = next_offset;
     new_symbol->type = type;
     next_offset -= type->size;
 
     new_symbol->next = current_scope->symbols;
     current_scope->symbols = new_symbol;
     storage_size += type->size;
-    return new_symbol->offset;
+    return new_symbol;
 }
 
 //int add_symbol(const char * name) {
@@ -180,11 +162,11 @@ int add_symbol(const char * name, Type * type) {
 //     exit(1);
 // }
 
-Address lookup_symbol(const char* name) {
+Symbol * lookup_symbol(const char* name) {
     for (Scope * scope = current_scope; scope != NULL; scope = scope->parent) {
         for (Symbol * sym = scope->symbols; sym != NULL; sym = sym->next) {
             if (strcmp(sym->name, name) == 0) {
-                return sym->address;
+                return sym;
             }
         }
     }

@@ -273,7 +273,8 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->expr_stmt.expr, indent+1);
             break;
         case AST_VAR_DECL:
-            printf("VariableDeclaration: %s, type: %s, offset: %d\n", node->var_decl.name, type_name(node->var_decl.var_type), node->var_decl.addr);
+//            printf("VariableDeclaration: %s, type: %s/*, offset: %d*/ \n", node->var_decl.name, type_name(node->var_decl.var_type) /*, node->var_decl.addr */);
+            printf("VariableDeclaration: %s, type: %s\n", node->var_decl.name, type_name(node->var_decl.var_type));
             if (node->var_decl.init_expr) {
                 print_ast(node->var_decl.init_expr, indent+1);
             }
@@ -291,7 +292,8 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->assignment.expr, indent+1);
             break;
         case AST_VAR_REF:
-            printf("VariableExpression: %s, offset: %d\n", node->var_ref.name, node->var_ref.addr.stack_offset);
+//            printf("VariableExpression: %s /*, offset: %d */ \n", node->var_ref.name /*, node->var_ref.addr.stack_offset*/);
+            printf("VariableExpression: %s\n", node->var_ref.name);
             break;
         default:        
             error("Unknown AST Node Type: %d\n", node->type);

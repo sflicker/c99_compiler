@@ -92,4 +92,6 @@ typedef struct ASTNode ASTNode;
 
 DEFINE_LINKED_LIST(ASTNode*, ASTNode_list);
 
+
+
 #endif // LIST_UTIL_H

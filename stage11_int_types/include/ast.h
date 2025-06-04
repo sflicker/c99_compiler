@@ -60,19 +60,19 @@ typedef enum {
     AST_PRINT_EXTENSION_STATEMENT
 } ASTNodeType;
 
-typedef enum {
-    ADDR_REGISTER,
-    ADDR_STACK,
-    ADDR_UNASSIGNED
-} AddressKind;
+// typedef enum {
+//     ADDR_REGISTER,
+//     ADDR_STACK,
+//     ADDR_UNASSIGNED
+// } AddressKind;
 
-typedef struct Address {
-    AddressKind kind;
-    union {
-        int stack_offset;
-        int reg_index;
-    };
-} Address;
+// typedef struct Address {
+//     AddressKind kind;
+//     union {
+//         int stack_offset;
+//         int reg_index;
+//     };
+// } Address;
 
 typedef struct ASTNode {
     ASTNodeType type;
@@ -113,13 +113,13 @@ typedef struct ASTNode {
             Type * var_type;
             char* name;
             struct ASTNode * init_expr; // NULL if no initializer
-            Address addr;
+//            Address addr;
         } var_decl;
 
         struct {
             char * name;
 //            int offset;
-            Address addr;
+//            Address addr;
         } var_ref;
 
         struct {
@@ -167,7 +167,7 @@ typedef struct ASTNode {
 
         struct {
             char * name;
-            Address addr;
+//            Address addr;
             struct ASTNode * expr;
         } assignment;
 

@@ -5,12 +5,30 @@
 
 //void init_symbol_table();
 
+typedef struct Symbol {
+    char* name;
+    Type * type;
+//    Address addr;
+    struct Symbol* next;
+} Symbol;
 
+typedef struct FunctionSymbol {
+    char * name;
+    Type * return_type;
+    int param_count;
+    TypePtr_list * param_types;
+    struct FunctionSymbol* next;
+} FunctionSymbol;
 
-int add_symbol(const char * name, Type * type);
-int add_symbol_with_offset(const char * name, int offset, Type * type);
+typedef struct Scope {
+    Symbol * symbols;
+    struct Scope * parent;
+} Scope;
+
+Symbol * add_symbol(const char * name, Type * type);
+//Symbol * add_symbol_with_offset(const char * name, int offset, Type * type);
 void add_function_symbol(const char * name, Type * returnType, int param_count, TypePtr_list * param_types);
-Address lookup_symbol(const char * name);
+Symbol * lookup_symbol(const char * name);
 int get_symbol_total_space();
 void enter_scope();
 void exit_scope();
