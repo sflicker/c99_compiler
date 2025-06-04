@@ -68,8 +68,8 @@ void free_astnode(ASTNode * node) {
             free_astnode(node->assignment.expr);
             break;
 
-        case AST_VAR_EXPR:
-            free(node->var_expr.name);
+        case AST_VAR_REF:
+            free(node->var_ref.name);
             break;
 
         case AST_LABELED_STMT:

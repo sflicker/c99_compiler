@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "ast.h"
 #include "emitter.h"
 #include "token.h"
 #include "util.h"
@@ -27,6 +28,25 @@ typedef struct FunctionExitContext {
 } FunctionExitContext;
 
 static FunctionExitContext * functionExitStack = NULL;
+
+char * create_variable_reference(Address * addr) {
+    if (addr->kind == ADDR_STACK) {
+        int size = 20;
+        char * label = malloc(size);
+        snprintf(label, size, "[rbp%+d]", addr->stack_offset);
+        return label;
+    }
+    else if (addr->kind == ADDR_REGISTER) {
+        int size = 5;
+        char * label = malloc(size);
+        snprintf(label, size, "%s", ARG_REGS[addr->reg_index]);
+        return label;
+    }
+    else {
+        error("Variable Reference Addresses Must Be Assigned Before Usage\n");
+    }
+    return NULL;
+}
 
 void push_function_exit_context(const char * exit_label) {
     FunctionExitContext * ctx = malloc(sizeof(FunctionExitContext));
@@ -350,35 +370,37 @@ void emit_unary(FILE *out, ASTNode * node) {
             emit_line(out, "movzx eax, al\n");
             break;
         case AST_UNARY_PRE_INC: {
-            int offset = node->unary.operand->var_expr.offset;
-            emit_line(out, "mov eax, [rbp%+d]\n", offset);            
+            char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
+//            emit_line(out, "mov eax, [rbp%+d]\n", offset);            
+            emit_line(out, "mov eax, %s\n", reference_label);            
             emit_line(out, "add eax, 1\n");
-            emit_line(out, "mov [rbp%+d], eax\n", offset);
+            emit_line(out, "mov %s, eax\n", reference_label);
             break;
         }
         case AST_UNARY_PRE_DEC: {
-            int offset = node->unary.operand->var_expr.offset;
-            emit_line(out, "mov eax, [rbp%+d]\n", offset);            
+            char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
+            //int offset = node->unary.operand->var_ref->offset;
+            emit_line(out, "mov eax, %s\n", reference_label);            
             emit_line(out, "sub eax, 1\n");
-            emit_line(out, "mov [rbp%+d], eax\n", offset);
+            emit_line(out, "mov %s, eax\n", reference_label);
         break;
         }
         case AST_UNARY_POST_INC: {
-            int offset = node->unary.operand->var_expr.offset;
-            emit_line(out, "mov eax, [rbp%+d]\n", offset);
+            char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
+            emit_line(out, "mov eax, %s\n", reference_label);
             emit_line(out, "mov ecx, eax\n");
             emit_line(out, "add eax, 1\n");
-            emit_line(out, "mov [rbp%+d], eax\n", offset);
+            emit_line(out, "mov %s, eax\n", reference_label);
             emit_line(out, "mov eax, ecx\n");
             break;
         }
         case AST_UNARY_POST_DEC: {
 //            int offset = lookup_symbol(node->unary.operand->var_expr.name);
-            int offset = node->unary.operand->var_expr.offset;
-            emit_line(out, "mov eax, [rbp%+d]\n", offset);
+            char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
+            emit_line(out, "mov eax, %s\n", reference_label);
             emit_line(out, "mov ecx, eax\n");
             emit_line(out, "sub eax, 1\n");
-            emit_line(out, "mov [rbp%+d], eax\n", offset);
+            emit_line(out, "mov %s, eax\n", reference_label);
             emit_line(out, "mov eax, ecx\n");
             break;
         }
@@ -508,35 +530,35 @@ void emit_function(FILE * out, ASTNode * node) {
 
 void emit_var_declaration(FILE *out, ASTNode * node) {
     if (node->var_decl.init_expr) {
-        int offset = node->var_decl.offset;
+        char * reference_label = create_variable_reference(&node->var_decl.addr);
         emit_tree_node(out, node->var_decl.init_expr);
-        emit_line(out, "mov [rbp%+d], eax\n", offset);
+        emit_line(out, "mov %s, eax\n", reference_label);
     }
 }
 
 void emit_assignment(FILE * out, ASTNode* node) {
     emit_tree_node(out, node->assignment.expr);
-    int offset = node->assignment.offset;
-    emit_line(out, "mov [rbp%+d], eax\n", offset);
+    char * reference_label = create_variable_reference(&node->assignment.addr);
+    emit_line(out, "mov %s, eax\n", reference_label);
 }
 
 void emit_add_assignment(FILE *out, ASTNode * node) {
-    int offset = node->assignment.offset;
-    emit_line(out, "mov eax, [rbp%+d]\n", offset);
+    char * reference_label = create_variable_reference(&node->assignment.addr);
+    emit_line(out, "mov eax, %s\n", reference_label);
     emit_line(out, "push rax\n");
     emit_tree_node(out, node->assignment.expr);
     emit_line(out, "pop rcx\n");
     emit_line(out, "add eax, ecx\n");
-    emit_line(out, "mov [rbp%+d], eax\n", offset);
+    emit_line(out, "mov %s, eax\n", reference_label);
 }
 
 void emit_sub_assignment(FILE *out, ASTNode * node) {
-    int offset = node->assignment.offset;
+    char * reference_label  = create_variable_reference(&node->assignment.addr);
     emit_tree_node(out, node->assignment.expr);
     emit_line(out, "mov ecx, eax\n");
-    emit_line(out, "mov eax, [rbp%+d]\n", offset);
+    emit_line(out, "mov eax, %s\n", reference_label);
     emit_line(out, "sub eax, ecx\n");
-    emit_line(out, "mov [rbp%+d], eax\n", offset);
+    emit_line(out, "mov %s, eax\n", reference_label);
 }
 
 void emit_for_statement(FILE * out, ASTNode * node) {
@@ -596,21 +618,21 @@ void emit_for_statement(FILE * out, ASTNode * node) {
 
 }
 
-void emit_pass_argument(FILE* out, Type * type, int offset, ASTNode * node) {
+void emit_pass_argument(FILE* out, Type * type, Address * addr, ASTNode * node) {
     emit_tree_node(out, node);
-
+    char * reference_label = create_variable_reference(addr);
     switch(type->size) {
         case 1:
-            emit_line(out, "mov byte [rsp+%d], al\n", offset);
+            emit_line(out, "mov byte %s, al\n", reference_label);
             break;
         case 2:
-            emit_line(out, "mov word [rsp+%d], ax\n", offset);
+            emit_line(out, "mov word %s, ax\n", reference_label);
             break;
         case 4:
-            emit_line(out, "mov dword [rsp+%d], eax\n", offset);
+            emit_line(out, "mov dword %s, eax\n", reference_label);
             break;
         case 8:
-            emit_line(out, "mov qword [rsp+%d], rax\n", offset);
+            emit_line(out, "mov qword %s, rax\n", reference_label);
             break;
         default:
             error("Unsupported type size %d in emit_pass_argument\n", type->size);
@@ -629,7 +651,7 @@ void emit_function_call(FILE * out, struct ASTNode * node) {
             ASTNode * argNode = n->value;
             emit_tree_node(out, argNode);
             if (arg_count<ARG_REG_COUNT) {
-                char * reg = ARG_REGS[arg_count];
+                const char * reg = ARG_REGS[arg_count];
                 emit_line(out, "mov %s, rax\n", reg);
             }  //TODO SUPPORT MORE THAN 6 arguments using the stack
         }
@@ -902,8 +924,8 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_INT_LITERAL:
             emit_line(out, "mov eax, %d\n", node->int_value);
             break;
-        case AST_VAR_EXPR:
-            int offset = node->var_expr.offset;
+        case AST_VAR_REF:
+            int offset = node->var_ref.addr.stack_offset;
             emit_line(out, "mov eax, [rbp%+d]\n", offset);
             break;
         case AST_FOR_STMT:

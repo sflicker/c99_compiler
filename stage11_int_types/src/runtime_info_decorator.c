@@ -4,11 +4,12 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "ast.h"
 #include "emitter.h"
 #include "token.h"
+#include "type.h"
 #include "symtab.h"
 #include "util.h"
-
 
 void populate_symbol_table(ASTNode * node, bool make_new_scope) {
 
@@ -32,12 +33,17 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
                 set_current_offset(0);
                 reset_storage_size();
                 enter_scope();
-                if (node->function_decl.param_list) {
+                TypePtr_list * type_list = NULL;
+                if (node->function_decl.param_list && node->function_decl.param_list->count > 0) {
+                    type_list = malloc(sizeof(TypePtr_list));
+                    TypePtr_list_init(type_list, free_type);
+
                     int offset = 16;
                     for (ASTNode_list_node * n = node->function_decl.param_list->head;n;n=n->next) {
                         ASTNode * astNode = n->value;
                         add_symbol(astNode->var_decl.name, astNode->var_decl.var_type);
                         offset += astNode->var_decl.var_type->size;
+                        TypePtr_list_append(type_list, astNode->var_decl.var_type);
                     }
                     //for(int i=0;i<node->function_decl.param_count;i++) {
                     //     ASTNode * astNode = node->function_decl.param_list[i];                        
@@ -48,8 +54,8 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
                     // }
                 }
                 //Type * param_type;
-                // add_function_symbol(node->function_decl.name, node->function_decl.return_type, 
-                //     get_node_list_count(node->function_decl.param_list), &param_type);
+                add_function_symbol(node->function_decl.name, node->function_decl.return_type, 
+                     ((node->function_decl.param_list != NULL) ? node->function_decl.param_list->count : 0), type_list);
                 populate_symbol_table(node->function_decl.body, false);
                 node->function_decl.size = get_symbol_total_space();
                 exit_scope();
@@ -76,7 +82,7 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
             break;
         case AST_VAR_DECL:
             int offset = add_symbol(node->var_decl.name, node->var_decl.var_type);
-            node->var_decl.offset = offset;
+            node->var_decl.addr = offset;
             if (node->var_decl.init_expr) {
                 populate_symbol_table(node->var_decl.init_expr, false);
             }
@@ -85,7 +91,7 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
         case AST_COMPOUND_ADD_ASSIGN:
         case AST_COMPOUND_SUB_ASSIGN: {
 //            add_symbol(node->assignment.name);
-            int offset = lookup_symbol(node->assignment.name);
+            Address addr = lookup_symbol(node->assignment.name);
             node->assignment.offset = offset;
             populate_symbol_table(node->assignment.expr, false);
             break;
@@ -115,9 +121,9 @@ void populate_symbol_table(ASTNode * node, bool make_new_scope) {
         case AST_UNARY_PLUS:
             populate_symbol_table(node->unary.operand, true);
             break;
-        case AST_VAR_EXPR: {
-            int offset = lookup_symbol(node->var_expr.name);
-            node->var_expr.offset = offset;
+        case AST_VAR_REF: {
+            Address addr = lookup_symbol(node->var_ref.name);
+            node->var_ref.addr = offset;
             break;
         }
 

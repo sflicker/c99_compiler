@@ -32,7 +32,7 @@ typedef enum {
     AST_BLOCK,
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
-    AST_VAR_EXPR,
+    AST_VAR_REF,
     AST_ASSIGNMENT,
     AST_COMPOUND_ADD_ASSIGN,
     AST_COMPOUND_SUB_ASSIGN,
@@ -59,6 +59,20 @@ typedef enum {
     AST_ASSERT_EXTENSION_STATEMENT,
     AST_PRINT_EXTENSION_STATEMENT
 } ASTNodeType;
+
+typedef enum {
+    ADDR_REGISTER,
+    ADDR_STACK,
+    ADDR_UNASSIGNED
+} AddressKind;
+
+typedef struct Address {
+    AddressKind kind;
+    union {
+        int stack_offset;
+        int reg_index;
+    };
+} Address;
 
 typedef struct ASTNode {
     ASTNodeType type;
@@ -96,6 +110,26 @@ typedef struct ASTNode {
         } function_call;
 
         struct {
+            Type * var_type;
+            char* name;
+            struct ASTNode * init_expr; // NULL if no initializer
+            Address addr;
+        } var_decl;
+
+        struct {
+            char * name;
+//            int offset;
+            Address addr;
+        } var_ref;
+
+        struct {
+//            struct ASTNode ** statements;
+            ASTNode_list * statements;
+            int count;
+            int capacity;
+        } block;
+
+        struct {
             struct ASTNode * expr;
         } return_stmt;
 
@@ -108,12 +142,6 @@ typedef struct ASTNode {
             struct ASTNode * operand;
         } unary;
 
-        struct {
-//            struct ASTNode ** statements;
-            ASTNode_list * statements;
-            int count;
-            int capacity;
-        } block;
 
         struct {
             struct ASTNode * cond;
@@ -138,22 +166,10 @@ typedef struct ASTNode {
         } expr_stmt;
 
         struct {
-            Type * var_type;
-            char* name;
-            struct ASTNode * init_expr; // NULL if no initializer
-            int offset;
-        } var_decl;
-
-        struct {
             char * name;
-            int offset;
+            Address addr;
             struct ASTNode * expr;
         } assignment;
-
-        struct {
-            char * name;
-            int offset;
-        } var_expr;
 
         struct {
             char * label;

@@ -3,8 +3,8 @@
 
 #include "list_util.h"
 
-typedef struct ASTNode ASTNode;
+// typedef struct ASTNode ASTNode;
 
-DEFINE_LINKED_LIST(ASTNode*, ASTNode_list);
+// DEFINE_LINKED_LIST(ASTNode*, ASTNode_list);
 
 #endif

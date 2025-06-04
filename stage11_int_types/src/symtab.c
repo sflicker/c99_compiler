@@ -9,7 +9,7 @@
 typedef struct Symbol {
     char* name;
     Type * type;
-    int offset;
+    Address addr;
     struct Symbol* next;
 } Symbol;
 
@@ -17,7 +17,7 @@ typedef struct FunctionSymbol {
     char * name;
     Type * return_type;
     int param_count;
-    Type ** param_types;
+    TypePtr_list * param_types;
     struct FunctionSymbol* next;
 } FunctionSymbol;
 
@@ -81,7 +81,7 @@ void exit_scope() {
     free(old);
 }
 
-void add_function_symbol(const char * name, Type * returnType, int param_count, Type ** param_types) {
+void add_function_symbol(const char * name, Type * returnType, int param_count, TypePtr_list * param_types) {
     FunctionSymbol * sym = functionSymbolList;
     while(sym) {
         if (strcmp(sym->name, name) == 0) {
@@ -180,11 +180,11 @@ int add_symbol(const char * name, Type * type) {
 //     exit(1);
 // }
 
-int lookup_symbol(const char* name) {
+Address lookup_symbol(const char* name) {
     for (Scope * scope = current_scope; scope != NULL; scope = scope->parent) {
         for (Symbol * sym = scope->symbols; sym != NULL; sym = sym->next) {
             if (strcmp(sym->name, name) == 0) {
-                return sym->offset;
+                return sym->address;
             }
         }
     }

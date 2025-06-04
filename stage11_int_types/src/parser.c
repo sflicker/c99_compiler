@@ -204,7 +204,7 @@ ASTNode_list * parse_param_list(ParserContext * parserContext) {
         param->var_decl.name = strdup(param_name->text);
         param->var_decl.var_type = type;
         param->var_decl.init_expr = NULL;
-        param->var_decl.offset = 0;
+        param->var_decl.addr.kind = ADDR_UNASSIGNED;
         if (param_list == NULL) {
             param_list = malloc(sizeof(ASTNode_list));
             ASTNode_list_init(param_list, free_astnode);
@@ -750,7 +750,7 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
     node->var_decl.var_type = type;
     node->var_decl.name = strdup(name->text);
     node->var_decl.init_expr = expr;
-    node->var_decl.offset = 0;
+    node->var_decl.addr.kind = ADDR_UNASSIGNED;
     return node;
 }
 
@@ -778,9 +778,9 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         
         ASTNode * node =  malloc(sizeof(ASTNode));
         node->type = AST_ASSIGNMENT;
-        node->assignment.name = strdup(lhs->var_expr.name);
+        node->assignment.name = strdup(lhs->var_ref.name);
         node->assignment.expr = rhs;
-        node->assignment.offset = 0;
+        node->assignment.addr.kind = ADDR_UNASSIGNED;
         return node;
     }
     else if (is_current_token(parserContext, TOKEN_PLUS_EQUAL)) {
@@ -789,9 +789,9 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         ASTNode * rhs = parse_expression(parserContext);
         ASTNode * node =  malloc(sizeof(ASTNode));
         node->type = AST_COMPOUND_ADD_ASSIGN;
-        node->assignment.name = strdup(lhs->var_expr.name);
+        node->assignment.name = strdup(lhs->var_ref.name);
         node->assignment.expr = rhs;
-        node->assignment.offset = 0;
+        node->assignment.addr.kind = ADDR_UNASSIGNED;
         return node;
     }
     else if (is_current_token(parserContext, TOKEN_MINUS_EQUAL)) {
@@ -799,9 +799,9 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
             ASTNode * rhs = parse_expression(parserContext);
             ASTNode * node =  malloc(sizeof(ASTNode));
             node->type = AST_COMPOUND_SUB_ASSIGN;
-            node->assignment.name = strdup(lhs->var_expr.name);
+            node->assignment.name = strdup(lhs->var_ref.name);
             node->assignment.expr = rhs;
-            node->assignment.offset = 0;
+            node->assignment.addr.kind = ADDR_UNASSIGNED;
             return node;    
     }
     else {
@@ -890,9 +890,9 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         }
         else {
             ASTNode * node = malloc(sizeof(ASTNode));
-            node->type = AST_VAR_EXPR;
-            node->var_expr.name = strdup(tok->text);
-            node->var_expr.offset = 0;
+            node->type = AST_VAR_REF;
+            node->var_ref.name = strdup(tok->text);
+            node->var_ref.addr.kind = ADDR_UNASSIGNED;
             return node;
         }
     }

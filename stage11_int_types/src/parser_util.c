@@ -123,5 +123,5 @@ ASTNode * create_continue_statement_node() {
 
 bool is_lvalue(ASTNode * node) {
     assert(((node != NULL) && "node must not be null"));
-    return node->type == AST_VAR_EXPR;
+    return node->type == AST_VAR_REF;
 }

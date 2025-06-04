@@ -9,8 +9,8 @@
 
 int add_symbol(const char * name, Type * type);
 int add_symbol_with_offset(const char * name, int offset, Type * type);
-void add_function_symbol(const char * name, Type * returnType, int param_count, Type ** param_types);
-int lookup_symbol(const char * name);
+void add_function_symbol(const char * name, Type * returnType, int param_count, TypePtr_list * param_types);
+Address lookup_symbol(const char * name);
 int get_symbol_total_space();
 void enter_scope();
 void exit_scope();
