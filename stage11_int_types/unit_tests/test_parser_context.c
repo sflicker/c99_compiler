@@ -39,6 +39,24 @@ void test_peek() {
     tokenlist_free(tokens);
 }
 
+void test_peek_next() {
+    // setup
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    // test
+    Token * token = peek_next(ctx);
+
+    // verify
+    TEST_ASSERT("Verifying token type", token->type == TOKEN_IDENTIFIER);
+    TEST_ASSERT("Verifying token text", strcmp("main", token->text)==0);
+    
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
 void test_is_current_token() {
     // setup
     tokenlist * tokens = tokenize(program_text);
@@ -82,10 +100,107 @@ void test_advance_parser() {
 
 }
 
+void test_match_token__false() {
+    // setup
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    // Test. this should not match. function should return 
+    // false and parser should remain at the same position
+    bool matched = match_token(ctx, TOKEN_EOF);
+
+    TEST_ASSERT("Verifying Result", !matched);
+    TEST_ASSERT("Verifying maintained position", ctx->pos == 0);
+
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
+void test_match_token__true() {
+    // setup
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    // Test. this should match. function should return 
+    // true and parser should move to the next position
+    bool matched = match_token(ctx, TOKEN_INT);
+
+    TEST_ASSERT("Verifying Result", matched);
+    TEST_ASSERT("Verifying maintained position", ctx->pos == 1);
+
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
+void test_is_current_token_a_type() {
+    // setup
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    // Test. this should match
+    bool matched = is_current_token_a_type(ctx);
+
+    TEST_ASSERT("Verifying Result", matched);
+
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
+void test_expect_token() {
+    // setup
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    Token * token = expect_token(ctx, TOKEN_INT);
+
+    // returned token should have the expected type
+    TEST_ASSERT("Verifying Result", token->type == TOKEN_INT);
+
+    // context should advance after finding the expected token
+    TEST_ASSERT("Verifying correct current type", peek(ctx)->type == TOKEN_IDENTIFIER);
+
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
+void test_expect_type_token() {
+    // setup
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    Token * token = expect_type_type(ctx);
+
+        // returned token should have the expected type
+    TEST_ASSERT("Verifying Result", token->type == TOKEN_INT);
+
+    // context should advance after finding the expected token
+    TEST_ASSERT("Verifying correct current type", peek(ctx)->type == TOKEN_IDENTIFIER);
+
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
 int main() {
     test_create_parser_context();
     test_peek();
+    test_peek_next();
     test_is_current_token();
     test_is_next_token();
     test_advance_parser();
+    test_match_token__false();
+    test_match_token__true();
+    test_is_current_token_a_type();
+    test_expect_token();
+    test_expect_type_token();
+    
 }

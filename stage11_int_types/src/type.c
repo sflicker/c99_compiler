@@ -1,3 +1,4 @@
+
 #include "type.h"
 
 int sizeof_type(Type * type) {

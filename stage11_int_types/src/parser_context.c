@@ -100,7 +100,8 @@ bool is_current_token_a_type(ParserContext * parserContext) {
 Token* expect_token(ParserContext * parserContext, TokenType expected) {
     Token * token = peek(parserContext);
     if (token->type == expected) {
-        return advance_parser(parserContext);
+        advance_parser(parserContext);
+        return token;
     }
 
     error("unexpected token at POS: %d, expected: %s, actual: %s\n", parserContext->pos, token_type_name(expected), token_type_name(token->type));
