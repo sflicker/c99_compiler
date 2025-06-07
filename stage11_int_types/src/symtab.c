@@ -4,7 +4,7 @@
 
 #include "symtab.h"
 #include "util.h"
-#include "type.h"
+#include "ctype.h"
 
 
 
@@ -63,7 +63,7 @@ void exit_scope() {
     free(old);
 }
 
-void add_function_symbol(const char * name, Type * returnType, int param_count, TypePtr_list * param_types) {
+void add_function_symbol(const char * name, CType * returnCType, int param_count, CTypePtr_list * param_types) {
     FunctionSymbol * sym = functionSymbolList;
     while(sym) {
         if (strcmp(sym->name, name) == 0) {
@@ -74,7 +74,7 @@ void add_function_symbol(const char * name, Type * returnType, int param_count, 
 
     FunctionSymbol * new_symbol = malloc(sizeof(FunctionSymbol));
     new_symbol->name = strdup(name);
-    new_symbol->return_type = returnType;
+    new_symbol->return_ctype = returnCType;
     new_symbol->param_count = param_count;
     new_symbol->param_types = param_types;
 
@@ -110,7 +110,7 @@ void add_function_symbol(const char * name, Type * returnType, int param_count, 
 
 // }
 
-Symbol * add_symbol(const char * name, Type * type) {
+Symbol * add_symbol(const char * name, CType * ctype) {
     // check if symbol currently exists in current scope only
     // error and exit if so.
     Symbol * sym = current_scope->symbols;
@@ -126,12 +126,12 @@ Symbol * add_symbol(const char * name, Type * type) {
     Symbol * new_symbol = malloc(sizeof(Symbol));
     new_symbol->name = strdup(name);
   //  new_symbol->offset = next_offset;
-    new_symbol->type = type;
-    next_offset -= type->size;
+    new_symbol->ctype = ctype;
+    next_offset -= ctype->size;
 
     new_symbol->next = current_scope->symbols;
     current_scope->symbols = new_symbol;
-    storage_size += type->size;
+    storage_size += ctype->size;
     return new_symbol;
 }
 

@@ -142,7 +142,7 @@ void test_is_current_token_a_type() {
     ParserContext * ctx = create_parser_context(tokens);
 
     // Test. this should match
-    bool matched = is_current_token_a_type(ctx);
+    bool matched = is_current_token_a_ctype(ctx);
 
     TEST_ASSERT("Verifying Result", matched);
 
@@ -171,12 +171,12 @@ void test_expect_token() {
 
 }
 
-void test_expect_type_token() {
+void test_expect_ctype_token() {
     // setup
     tokenlist * tokens = tokenize(program_text);
     ParserContext * ctx = create_parser_context(tokens);
 
-    Token * token = expect_type_type(ctx);
+    Token * token = expect_ctype_token(ctx);
 
         // returned token should have the expected type
     TEST_ASSERT("Verifying Result", token->type == TOKEN_INT);
@@ -201,6 +201,6 @@ int main() {
     test_match_token__true();
     test_is_current_token_a_type();
     test_expect_token();
-    test_expect_type_token();
+    test_expect_ctype_token();
     
 }

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "token.h"
-#include "type.h"
+#include "ctypes.h"
 #include "util.h"
 #include "list_util.h"
 #include "ast_lists.h"
@@ -87,7 +87,7 @@ typedef struct ASTNode {
 
         struct {
             char* name;
-            Type * return_type;
+            CType * return_ctype;
             //struct ASTNode** param_list;
             //paramlist param_list;
             ASTNode_list * param_list;
@@ -110,7 +110,7 @@ typedef struct ASTNode {
         } function_call;
 
         struct {
-            Type * var_type;
+            CType * var_ctype;
             char* name;
             struct ASTNode * init_expr; // NULL if no initializer
 //            Address addr;

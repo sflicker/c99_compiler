@@ -89,7 +89,7 @@ bool match_token(ParserContext * parserContext, TokenType type) {
     return false;
 }
 
-bool is_current_token_a_type(ParserContext * parserContext) {
+bool is_current_token_a_ctype(ParserContext * parserContext) {
 
     return is_current_token(parserContext, TOKEN_INT) ||
         is_current_token(parserContext, TOKEN_CHAR) ||
@@ -108,9 +108,11 @@ Token* expect_token(ParserContext * parserContext, TokenType expected) {
     return NULL;
 }
 
-Token * expect_type_token(ParserContext * ctx) {
-    if (is_current_token_a_type(ctx)) {
-        return advance_parser(ctx);
+Token * expect_ctype_token(ParserContext * ctx) {
+    if (is_current_token_a_ctype(ctx)) {
+        Token * token = peek(ctx);
+        advance_parser(ctx);
+        return token;
     }
 
     error("unexpected type token at POS: %d, expected: %s, actual: %s\n", ctx->pos, "int|char|short|long", token_type_name(peek(ctx)->type));

@@ -25,7 +25,7 @@ Token* expect_token(ParserContext * parserContext, TokenType expected);
 const char * get_current_token_type(ParserContext * parserContext);
 int get_current_token_line(ParserContext * parserContext);
 int get_current_token_col(ParserContext * parserContext);
-bool is_current_token_a_type(ParserContext * parserContext);
-Token * expect_type_token(ParserContext * ctx);
+bool is_current_token_a_ctype(ParserContext * parserContext);
+Token * expect_ctype_token(ParserContext * ctx);
 
 #endif

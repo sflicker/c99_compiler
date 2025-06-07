@@ -9,7 +9,7 @@
 #include "ast.h"
 #include "ast_list.h"
 #include "parser.h"
-#include "type.h"
+#include "ctype.h"
 #include "ast_printer.h"
 
 void print_indent(int indent) {
@@ -274,7 +274,7 @@ void print_ast(ASTNode * node, int indent) {
             break;
         case AST_VAR_DECL:
 //            printf("VariableDeclaration: %s, type: %s/*, offset: %d*/ \n", node->var_decl.name, type_name(node->var_decl.var_type) /*, node->var_decl.addr */);
-            printf("VariableDeclaration: %s, type: %s\n", node->var_decl.name, type_name(node->var_decl.var_type));
+            printf("VariableDeclaration: %s, ctype: %s\n", node->var_decl.name, ctype_name(node->var_decl.var_ctype));
             if (node->var_decl.init_expr) {
                 print_ast(node->var_decl.init_expr, indent+1);
             }
