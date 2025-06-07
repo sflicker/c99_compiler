@@ -119,14 +119,14 @@ Token * expect_ctype_token(ParserContext * ctx) {
     return NULL;
 }
 
-const char * get_current_token_type(ParserContext * parserContext) {
+const char * get_current_token_type_name(ParserContext * parserContext) {
     return token_type_name(peek(parserContext)->type);
 }
 
 int get_current_token_line(ParserContext * parserContext) {
-    return parserContext->cursor->current->value->line;
+    return peek(parserContext)->line;
 }
 
 int get_current_token_col(ParserContext * parserContext) {
-    return parserContext->cursor->current->value->col;
+    return peek(parserContext)->col;
 }

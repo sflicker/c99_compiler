@@ -812,7 +812,7 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         return lhs;
     }
     error("Expected assignment operator. actual=%s at line=%d, col=%d\n", 
-            get_current_token_type(parserContext), get_current_token_line(parserContext), get_current_token_col(parserContext));
+            get_current_token_type_name(parserContext), get_current_token_line(parserContext), get_current_token_col(parserContext));
     return NULL;  // should never reach because error exits. this is to remove a warning
 }
 

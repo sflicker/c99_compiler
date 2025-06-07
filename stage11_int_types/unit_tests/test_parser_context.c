@@ -136,7 +136,7 @@ void test_match_token__true() {
 
 }
 
-void test_is_current_token_a_type() {
+void test_is_current_token_a_ctype() {
     // setup
     tokenlist * tokens = tokenize(program_text);
     ParserContext * ctx = create_parser_context(tokens);
@@ -190,6 +190,43 @@ void test_expect_ctype_token() {
 
 }
 
+void test_get_current_token_type_name() {
+    // setup
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    const char * type_name = get_current_token_type_name(ctx);
+
+    TEST_ASSERT("Verifying Result", strcmp("INT", type_name) == 0);
+
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
+void test_get_current_token_line() {
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    TEST_ASSERT("Verifying correct line", peek(ctx)->line == 1);
+
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+}
+
+void test_get_current_token_col() {
+    tokenlist * tokens = tokenize(program_text);
+    ParserContext * ctx = create_parser_context(tokens);
+
+    TEST_ASSERT("Verifying correct col", peek(ctx)->col == 1);
+
+    // cleanup
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+}
+
 int main() {
     test_create_parser_context();
     test_peek();
@@ -199,8 +236,10 @@ int main() {
     test_advance_parser();
     test_match_token__false();
     test_match_token__true();
-    test_is_current_token_a_type();
+    test_is_current_token_a_ctype();
     test_expect_token();
     test_expect_ctype_token();
-    
+    test_get_current_token_type_name();
+    test_get_current_token_line();
+    test_get_current_token_col();
 }
