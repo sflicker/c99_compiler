@@ -3,73 +3,71 @@
 #include <string.h>
 #include <assert.h>
 
+#include "test_assert.h"
+
+#include "token.h"
 #include "tokenizer.h"
+#include "tokenizer_context.h"
 
-const char * program_text = 
-    "int main() {\n"
-    "    return 42;\n"
-    "}";
+void basic_test() {
 
-TokenType expected_tokens[] = { 
-                    TOKEN_INT, 
-                    TOKEN_IDENTIFIER, 
-                    TOKEN_LPAREN, 
-                    TOKEN_RPAREN,
-                    TOKEN_LBRACE,
-                    TOKEN_RETURN,
-                    TOKEN_INT_LITERAL,
-                    TOKEN_SEMICOLON,
-                    TOKEN_RBRACE,
-                    TOKEN_EOF
-                };
+    const char * program_text = 
+        "int main() {\n"
+        "    return 42;\n"
+        "}";
+
+    TokenType expected_tokens[] = { 
+        TOKEN_INT, 
+        TOKEN_IDENTIFIER, 
+        TOKEN_LPAREN, 
+        TOKEN_RPAREN,
+        TOKEN_LBRACE,
+        TOKEN_RETURN,
+        TOKEN_INT_LITERAL,
+        TOKEN_SEMICOLON,
+        TOKEN_RBRACE,
+        TOKEN_EOF
+    };
+
+    tokenlist * tokens = tokenize(program_text);
+    tokenlist_cursor * cursor=malloc(sizeof(tokenlist_cursor));
+    tokenlist_cursor_init(cursor, tokens);
+    int count = 0;
+    char buffer[128];
+    while(tokenlist_cursor_has_next(cursor)) {
+        snprintf(buffer, sizeof(buffer), "Verifing Token is of type: %s", token_type_name(expected_tokens[count]));
+        TEST_ASSERT(buffer, expected_tokens[count] == cursor->current->value->type);
+        count++;
+        tokenlist_cursor_next(cursor);
+    }
+}
+
+void test_match_keyword(const char * text, TokenType expectedType) {
+    char msg_buf[128];
+    snprintf(msg_buf, sizeof(msg_buf), "Attempting to match keyword: %s", text);
+
+    TokenizerContext * ctx = init_tokenizer_context(text);
+    Token * token = match_keyword(ctx, text);
+    TEST_ASSERT(msg_buf, expectedType == token->type);
+    
+    free_tokenizer_context(ctx);
+}
+
+void test_match_keywords() {
+    test_match_keyword("int", TOKEN_INT);
+    test_match_keyword("for", TOKEN_FOR);
+    test_match_keyword("switch", TOKEN_SWITCH);
+    test_match_keyword("while", TOKEN_WHILE);
+    test_match_keyword("case", TOKEN_CASE);
+    test_match_keyword("do", TOKEN_DO);
+    test_match_keyword("if", TOKEN_IF);
+    test_match_keyword("else", TOKEN_ELSE);
+}
 
 int main() {
-  tokenlist * tokens = tokenize(program_text);
-  tokenlist_cursor * cursor=malloc(sizeof(tokenlist_cursor));
-  tokenlist_cursor_init(cursor, tokens);
-  int count = 0;
-  while(tokenlist_cursor_has_next(cursor)) {
-    printf("%d %s\n", count, cursor->current->value->text);
-    assert(expected_tokens[count] == cursor->current->value->type);
-    count++;
-    tokenlist_cursor_next(cursor);
-  }
-
-//   assert(strcmp("int", cursor->current->value->text) == 0);
-//   assert(TOKEN_INT == cursor->current->value->type);
-  
-//   tokenlist_cursor_next(cursor);
-  
-//   assert(strcmp("main", cursor->current->value->text) == 0);
-//   assert(TOKEN_IDENTIFIER == cursor->current->value->type);
-
-//   tokenlist_cursor_next(cursor);
-  
-//   assert(TOKEN_LPAREN == cursor->current->value->type);
-
-//   tokenlist_cursor_next(cursor);
-  
-//   assert(TOKEN_RPAREN == cursor->current->value->type);
-
-//   tokenlist_cursor_next(cursor);
-  
-//   assert(TOKEN_LBRACE == cursor->current->value->type);
-
-//   tokenlist_cursor_next(cursor);
-   
-//   assert(TOKEN_RETURN == cursor->current->value->type);
-
-//   tokenlist_cursor_next(cursor);
-   
-//   assert(TOKEN_INT_LITERAL == cursor->current->value->type);
-//   assert(strcmp("42", cursor->current->value->text) == 0);
-
-//   tokenlist_cursor_next(cursor);
-   
-//   assert(TOKEN_SEMICOLON == cursor->current->value->type);
-
-//   tokenlist_cursor_next(cursor);
-   
-//   assert(TOKEN_RBRACE == cursor->current->value->type);
-
+    printf("Starting test_tokenizer\n");
+    basic_test();
+    test_match_keywords();
+    printf("Finished test_tokenizer\n");
 }
+

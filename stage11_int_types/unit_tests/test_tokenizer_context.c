@@ -13,6 +13,7 @@ const char * program =
 
 
 int main() {
+    printf("Starting test_tokenizer_context\n");
     TokenizerContext * ctx = init_tokenizer_context(program);
     assert(ctx->line == 1);
     assert(ctx->col == 1);

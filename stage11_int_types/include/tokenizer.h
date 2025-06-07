@@ -6,8 +6,8 @@
 
 
 
-//void tokenize(TokenizerContext * tokenizerContext, tokenlist * tokenList);
 tokenlist * tokenize(const char * text);
-//bool is_keyword(const char * word);
+
+Token * match_keyword(TokenizerContext * ctx, const char * text);
 
 #endif
