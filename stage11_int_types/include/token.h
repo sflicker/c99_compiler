@@ -73,6 +73,7 @@ void add_token(tokenlist * list, Token * token);
 Token * make_token(TokenType type, const char * text, int line, int col);
 Token * make_int_token(char * numberText, int line, int col);
 Token * make_eof_token(int line, int col);
+Token * make_identifier_token(const char * id, int line, int col);
 
 void free_token(Token * token);
 

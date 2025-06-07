@@ -26,6 +26,43 @@
          printf(COLOR_GREEN "Passed\n" COLOR_RESET); \
     } while (0)
 
+#define TEST_ASSERT_EQ_INT(msg, expected, actual) \
+    do { \
+        printf("%s... ", msg); \
+        fflush(stdout); \
+        if ((expected) != (actual)) { \
+            printf(COLOR_RED "FAILED\n" COLOR_RESET); \
+            fprintf(stderr, "    Expected: %d\n    Actual:   %d\n", (expected), (actual)); \
+            exit(1); \
+        } else { \
+            printf(COLOR_GREEN "Passed\n" COLOR_RESET); \
+        } \
+    } while (0)
 
+#define TEST_ASSERT_EQ_STR(msg, expected, actual) \
+    do { \
+        printf("%s... ", msg); \
+        fflush(stdout); \
+        if (strcmp((expected), (actual)) != 0) { \
+            printf(COLOR_RED "FAILED\n" COLOR_RESET); \
+            fprintf(stderr, "    Expected: \"%s\"\n    Actual:   \"%s\"\n", (expected), (actual)); \
+            exit(1); \
+        } else { \
+            printf(COLOR_GREEN "Passed\n" COLOR_RESET); \
+        } \
+    } while (0)
+
+#define TEST_ASSERT_NOT_NULL(msg, ptr) \
+    do { \
+        printf("%s... ", msg); \
+        fflush(stdout); \
+        if ((ptr) == NULL) { \
+            printf(COLOR_RED "FAILED\n" COLOR_RESET); \
+            fprintf(stderr, "    Pointer is NULL\n"); \
+            exit(1); \
+        } else { \
+            printf(COLOR_GREEN "Passed\n" COLOR_RESET); \
+        } \
+    } while (0)
 
 #endif

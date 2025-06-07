@@ -108,12 +108,10 @@ Token * match_one_char_operator(TokenizerContext * ctx, char c) {
     return NULL;
 }
 
-
 void add_eof_token(tokenlist * tokens, int line, int col) {
     Token * eofToken = make_eof_token(line, col);
     add_token(tokens, eofToken);
 }
-
 
 void tokenize_number(TokenizerContext * ctx, tokenlist * tokens) {
     char buffer[128];
@@ -130,17 +128,9 @@ void tokenize_number(TokenizerContext * ctx, tokenlist * tokens) {
 }
 
 void add_identifier_token(tokenlist * tokens, const char * id, int line, int col) {
-    Token * token = malloc(sizeof(Token));
-    token->type = TOKEN_IDENTIFIER;
-    int idLen = strlen(id);
-    char * idCopy = malloc(idLen + 1);
-    memcpy(idCopy, id, idLen);
-    idCopy[idLen] = '\0';
-    token->text = idCopy;
-    token->length = idLen;
-    token->int_value = 0;
-    token->line = line;
-    token->col = col;
+    
+    Token * token = make_identifier_token(id, line, col);
+
     add_token(tokens, token);
 }
 

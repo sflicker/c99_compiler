@@ -19,6 +19,7 @@ Token * make_token(TokenType type, const char * text, int line, int col) {
     token->type = type;
     token->text = strdup(text);
     token->length = strlen(text);
+    token->int_value = 0;
     token->line = line;
     token->col = col;
     return token;
@@ -34,6 +35,17 @@ Token * make_int_token(char * numberText, int line, int col) {
     token->text = numberTextCopy;
     token->length = numberTextLen;
     token->int_value = atoi(numberText);
+    token->line = line;
+    token->col = col;
+    return token;
+}
+
+Token * make_identifier_token(const char * id, int line, int col) {
+    Token * token = malloc(sizeof(Token));
+    token->type = TOKEN_IDENTIFIER;
+    token->text = strdup(id);
+    token->length = strlen(id);
+    token->int_value = 0;
     token->line = line;
     token->col = col;
     return token;

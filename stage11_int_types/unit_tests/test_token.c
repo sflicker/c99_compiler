@@ -28,6 +28,7 @@ void test_make_token() {
     TEST_ASSERT("Verifying token has correct type", token->type == TOKEN_RETURN);
     TEST_ASSERT("Verifying token has correct text", strcmp("return", token->text)==0);
     TEST_ASSERT("Verifying token has correct text length", strlen("return") == token->length);
+    TEST_ASSERT("Verifying int value is 0", token->int_value == 0);
     TEST_ASSERT("Verifying token has correct positions", token->line == 1 && token->col == 1);
 }
 
@@ -37,6 +38,16 @@ void test_make_int_token() {
     TEST_ASSERT("Verifying token has correct text", strcmp("42", token->text)==0);
     TEST_ASSERT("Verifying token has correct text length", strlen("42") == token->length);
     TEST_ASSERT("Verifying token has correct int value", token->int_value == 42);
+    TEST_ASSERT("Verifying token has correct positions", token->line == 1 && token->col == 1);
+}
+
+void test_make_identifier_token() {
+    const char * id = "main";
+    Token * token = make_identifier_token(id, 1, 1);
+    TEST_ASSERT("Verifying token has correct type", token->type == TOKEN_IDENTIFIER);
+    TEST_ASSERT("Verifying token has correct text", strcmp(id, token->text)==0);
+    TEST_ASSERT("Verifying token has correct text length", strlen(id) == token->length);
+    TEST_ASSERT("Verifying token has correct int value", token->int_value == 0);
     TEST_ASSERT("Verifying token has correct positions", token->line == 1 && token->col == 1);
 }
 
@@ -50,6 +61,7 @@ int main() {
     test_add_token();
     test_make_token();
     test_make_int_token();
+    test_make_identifier_token();
     test_token_type_name();
     printf("Finished test_token\n");
 }
