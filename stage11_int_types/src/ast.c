@@ -96,19 +96,20 @@ void free_astnode(ASTNode * node) {
             free(node->goto_stmt.label);
             break;
 
-        case AST_ADD:
-        case AST_SUB:
-        case AST_MUL:
-        case AST_DIV:
-        case AST_MOD:
-        case AST_EQUAL:
-        case AST_NOT_EQUAL:
-        case AST_LESS_THAN:
-        case AST_LESS_EQUAL:
-        case AST_GREATER_THAN:
-        case AST_GREATER_EQUAL:
-        case AST_LOGICAL_AND:
-        case AST_LOGICAL_OR:
+        // case AST_ADD:
+        // case AST_SUB:
+        // case AST_MUL:
+        // case AST_DIV:
+        // case AST_MOD:
+        // case AST_EQUAL:
+        // case AST_NOT_EQUAL:
+        // case AST_LESS_THAN:
+        // case AST_LESS_EQUAL:
+        // case AST_GREATER_THAN:
+        // case AST_GREATER_EQUAL:
+        // case AST_LOGICAL_AND:
+        // case AST_LOGICAL_OR:
+        case AST_BINARY_EXPR:
             free_astnode(node->binary.lhs);
             free_astnode(node->binary.rhs);
             break;
@@ -139,4 +140,23 @@ void free_astnode(ASTNode * node) {
             break;
     }
     free(node);
+}
+
+const char * get_binary_op_name(BinaryOperator op) {
+    switch (op) {
+        case BINOP_ADD: return "ADD"; break;
+        case BINOP_SUB: return "SUB"; break;
+        case BINOP_MUL: return "MUL"; break;
+        case BINOP_DIV: return "DIV"; break;
+        case BINOP_MOD: return "MOD"; break;
+        case BINOP_EQ: return "EQ"; break;
+        case BINOP_NE: return "NE"; break;
+        case BINOP_GT: return "GT"; break;
+        case BINOP_GE: return "GE"; break;
+        case BINOP_LT: return "LT"; break;
+        case BINOP_LE: return "LE"; break;
+        case BINOP_LOGICAL_OR: return "OR"; break;
+        case BINOP_LOGICAL_AND: return "AND"; break;
+    }
+    return NULL;
 }

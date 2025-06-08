@@ -117,31 +117,6 @@
 //Token* advance_parser(ParserContext * parserContext);
 //bool match_token(ParserContext* p, TokenType type);
 
-ASTNode * parse_external_declaration(ParserContext * parserContext);
-ASTNode * parse_function(ParserContext * parserContext);
-ASTNode * parse_statement(ParserContext* parserContext);
-ASTNode * parse_return_statement(ParserContext * parserContext);
-ASTNode * parse_block(ParserContext* parserContext);
-ASTNode * parse_if_statement(ParserContext * parserContext);
-ASTNode * parse_expression_statement(ParserContext * parserContext);
-ASTNode * parse_expression(ParserContext* parserContext);
-ASTNode * parse_equality_expression(ParserContext * parserContext);
-ASTNode * parse_relational_expression(ParserContext * parserContext);
-ASTNode * parse_additive_expression(ParserContext * parserContext);
-ASTNode * parse_term(ParserContext * parserContext);
-ASTNode * parse_unary_expression(ParserContext * parserContext);
-ASTNode * parse_postfix_expression(ParserContext * parserContext);
-ASTNode * parse_expression(ParserContext * parserContext);
-ASTNode * parse_primary(ParserContext * parserContext);
-ASTNode * parse_var_declaration(ParserContext * parserContext);
-ASTNode * parse_assignment_statement(ParserContext * parserContext);
-ASTNode * parse_while_statement(ParserContext * parserContext);
-ASTNode * parse_for_statement(ParserContext * parserContext);
-ASTNode * parse_assignment_expression(ParserContext * parserContext);
-ASTNode * parse_logical_or(ParserContext * parserContext);
-ASTNode * parse_logical_and(ParserContext * parserContext);
-ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
-ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 
 void nop_free_astnode(ASTNode * node) {
 
@@ -602,9 +577,9 @@ ASTNode * parse_return_statement(ParserContext* parserContext) {
 }
 
 ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
-    ASTNodeType nodeType = binary_op_token_to_ast_type(op);
     ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = nodeType;
+    node->type = AST_BINARY_EXPR;
+    node->binary.op = binary_op_token_to_ast_binop_type(op);;
     node->binary.lhs = lhs;
     node->binary.rhs = rhs;
     return node;    
@@ -622,7 +597,8 @@ ASTNode * parse_logical_or(ParserContext * parserContext) {
         ASTNode * rhs = parse_logical_and(parserContext);
         ASTNode * node = malloc(sizeof(ASTNode));
 
-        node->type = AST_LOGICAL_OR;
+        node->type = AST_BINARY_EXPR;
+        node->binary.op = BINOP_LOGICAL_OR;
         node->binary.lhs = lhs;
         node->binary.rhs = rhs;
         lhs = node;
@@ -636,8 +612,8 @@ ASTNode * parse_logical_and(ParserContext * parserContext) {
     while (match_token(parserContext, TOKEN_LOGICAL_AND)) {
         ASTNode * rhs = parse_equality_expression(parserContext);
         ASTNode * node = malloc(sizeof(ASTNode));
-
-        node->type = AST_LOGICAL_AND;
+        node->type = AST_BINARY_EXPR;
+        node->binary.op = BINOP_LOGICAL_AND;
         node->binary.lhs = lhs;
         node->binary.rhs = rhs;
         lhs = node;
@@ -726,7 +702,8 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
      || is_current_token(parserContext, TOKEN_BANG)
      || is_current_token(parserContext, TOKEN_INCREMENT) 
      || is_current_token(parserContext, TOKEN_DECREMENT)) {
-                Token * currentToken = advance_parser(parserContext);
+                Token * currentToken = peek(parserContext);
+                advance_parser(parserContext);
 
                 ASTNode * operand = parse_unary_expression(parserContext);
                 ASTNode * node = create_unary_node(unary_op_token_to_ast_type(currentToken->type), operand);
@@ -858,7 +835,8 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
 ASTNode * parse_primary(ParserContext * parserContext) {
 
     if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
-        Token * tok = advance_parser(parserContext);
+        Token * tok = peek(parserContext);
+        advance_parser(parserContext);
         ASTNode * node = malloc(sizeof(ASTNode));
         node->type = AST_INT_LITERAL;
         node->int_value = tok->int_value;

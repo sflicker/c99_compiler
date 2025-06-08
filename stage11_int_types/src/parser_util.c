@@ -18,19 +18,19 @@ ASTNode * create_unary_node(ASTNodeType op, ASTNode * operand) {
     return node;
 }
 
-ASTNodeType binary_op_token_to_ast_type(TokenType tok) {
+BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok) {
     switch (tok) {
-        case TOKEN_PLUS: return AST_ADD;
-        case TOKEN_MINUS: return AST_SUB;
-        case TOKEN_STAR: return AST_MUL;
-        case TOKEN_DIV: return AST_DIV;
-        case TOKEN_PERCENT: return AST_MOD;
-        case TOKEN_EQ: return AST_EQUAL;
-        case TOKEN_NEQ: return AST_NOT_EQUAL;
-        case TOKEN_LT: return AST_LESS_THAN;
-        case TOKEN_LE: return AST_LESS_EQUAL;
-        case TOKEN_GT: return AST_GREATER_THAN;
-        case TOKEN_GE: return AST_GREATER_EQUAL;
+        case TOKEN_PLUS: return BINOP_ADD;
+        case TOKEN_MINUS: return BINOP_SUB;
+        case TOKEN_STAR: return BINOP_MUL;
+        case TOKEN_DIV: return BINOP_DIV;
+        case TOKEN_PERCENT: return BINOP_MOD;
+        case TOKEN_EQ: return BINOP_EQ;
+        case TOKEN_NEQ: return BINOP_NE;
+        case TOKEN_LT: return BINOP_LT;
+        case TOKEN_LE: return BINOP_LE;
+        case TOKEN_GT: return BINOP_GT;
+        case TOKEN_GE: return BINOP_GE;
         default:
             fprintf(stderr, "Unknown binary operator in expression");
             exit(1);

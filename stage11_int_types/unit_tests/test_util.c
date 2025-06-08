@@ -6,6 +6,8 @@
 #include "util.h"
 #include "test_assert.h"
 
+const char * current_test = NULL;
+
 const char * program = 
     "int main() {\n"
     "    return 42;\n"
@@ -15,10 +17,6 @@ const char * program =
 
 void test_read_text_file() {
     char * filename = write_temp_file(program);
-    //char * filename = get_temp_filename();
-    // FILE* file = fopen(filename, "w");
-    // fprintf(file, "%s", program);
-    // fclose(file);
 
     char * program_data = read_text_file(filename);
     TEST_ASSERT("Verifying data was correctly read", strcmp(program_data, program) == 0);
@@ -31,7 +29,6 @@ void test_change_extension() {
 }
 
 int main() {
-    printf("starting test_util\n");
-    test_read_text_file();
-    test_change_extension();
+    RUN_TEST(test_read_text_file);
+    RUN_TEST(test_change_extension);
 }

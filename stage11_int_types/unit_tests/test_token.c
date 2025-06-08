@@ -6,6 +6,8 @@
 #include "list_util.h"
 #include "token.h"
 
+const char * current_test = NULL;
+
 void test_init_token_list() {
     tokenlist * list = malloc(sizeof(tokenlist));
     init_token_list(list);
@@ -56,12 +58,10 @@ void test_token_type_name() {
 }
 
 int main() {
-    printf("Starting test_token\n");
-    test_init_token_list();
-    test_add_token();
-    test_make_token();
-    test_make_int_token();
-    test_make_identifier_token();
-    test_token_type_name();
-    printf("Finished test_token\n");
+    RUN_TEST(test_init_token_list);
+    RUN_TEST(test_add_token);
+    RUN_TEST(test_make_token);
+    RUN_TEST(test_make_int_token);
+    RUN_TEST(test_make_identifier_token);
+    RUN_TEST(test_token_type_name);
 }

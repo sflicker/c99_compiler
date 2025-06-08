@@ -9,6 +9,8 @@
 #include "tokenizer.h"
 #include "tokenizer_context.h"
 
+const char * current_test = NULL;
+
 void basic_test() {
 
     const char * program_text = 
@@ -65,9 +67,7 @@ void test_match_keywords() {
 }
 
 int main() {
-    printf("Starting test_tokenizer\n");
-    basic_test();
-    test_match_keywords();
-    printf("Finished test_tokenizer\n");
+    RUN_TEST(basic_test);
+    RUN_TEST(test_match_keywords);
 }
 

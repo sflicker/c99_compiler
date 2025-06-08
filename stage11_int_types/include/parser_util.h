@@ -14,7 +14,7 @@ ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt);
 ASTNode * create_break_statement_node();
 ASTNode * create_continue_statement_node();
 
-ASTNodeType binary_op_token_to_ast_type(TokenType tok);
+BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
 bool is_lvalue(ASTNode * node);
 

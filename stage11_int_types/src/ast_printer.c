@@ -103,70 +103,75 @@ void print_ast(ASTNode * node, int indent) {
         case AST_INT_LITERAL:
             printf("IntLiteral: %d\n", node->int_value);
             break;
-        case AST_ADD:
-            printf("Binary: %s\n", "ADD");
+        case AST_BINARY_EXPR:
+            printf("Binary: %s\n", get_binary_op_name(node->binary.op));
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
-        case AST_SUB:
-            printf("Binary: %s\n", "SUB");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_MUL:
-            printf("Binary: %s\n", "MULTIPLY");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_DIV:
-            printf("Binary: %s\n", "DIVIDE");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_MOD:
-            printf("Binary: %s\n", "MOD");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-        case AST_EQUAL:
-            printf("Binary: %s\n", "EQUAL");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_NOT_EQUAL:
-            printf("Binary: %s\n", "NOT_EQUAL");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_LOGICAL_AND:
-            printf("Binary: %s\n", "LOGICIAL_AND");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_LOGICAL_OR:
-            printf("Binary: %s\n", "LOGICIAL_OR");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_LESS_THAN:
-            printf("Binary: %s\n", "LESS_THAN");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_LESS_EQUAL:
-            printf("Binary: %s\n", "LESS_EQUAL");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_GREATER_THAN:
-            printf("Binary: %s\n", "GREATER_THAN");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
-        case AST_GREATER_EQUAL:
-            printf("Binary: %s\n", "GREATER_EQUAL");
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
-            break;
+        // case AST_ADD:
+        //     printf("Binary: %s\n", "ADD");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_SUB:
+        //     printf("Binary: %s\n", "SUB");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_MUL:
+        //     printf("Binary: %s\n", "MULTIPLY");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_DIV:
+        //     printf("Binary: %s\n", "DIVIDE");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_MOD:
+        //     printf("Binary: %s\n", "MOD");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        // case AST_EQUAL:
+        //     printf("Binary: %s\n", "EQUAL");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_NOT_EQUAL:
+        //     printf("Binary: %s\n", "NOT_EQUAL");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_LOGICAL_AND:
+        //     printf("Binary: %s\n", "LOGICIAL_AND");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_LOGICAL_OR:
+        //     printf("Binary: %s\n", "LOGICIAL_OR");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_LESS_THAN:
+        //     printf("Binary: %s\n", "LESS_THAN");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_LESS_EQUAL:
+        //     printf("Binary: %s\n", "LESS_EQUAL");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_GREATER_THAN:
+        //     printf("Binary: %s\n", "GREATER_THAN");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
+        // case AST_GREATER_EQUAL:
+        //     printf("Binary: %s\n", "GREATER_EQUAL");
+        //     print_ast(node->binary.lhs, indent+1);
+        //     print_ast(node->binary.rhs, indent+1);
+        //     break;
 
         case AST_UNARY_NEGATE:
             printf("Unary: %s\n", "NEGATE");

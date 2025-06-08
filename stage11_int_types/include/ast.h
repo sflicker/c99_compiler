@@ -11,6 +11,31 @@
 #include "ast_list.h"
 
 typedef enum {
+    BINOP_ADD,
+    BINOP_SUB,
+    BINOP_MUL,
+    BINOP_DIV,
+    BINOP_MOD,
+    BINOP_EQ,
+    BINOP_NE,
+    BINOP_GT,
+    BINOP_GE,
+    BINOP_LT,
+    BINOP_LE,
+    BINOP_LOGICAL_OR,
+    BINOP_LOGICAL_AND
+    // BINOP_ASSIGNMENT,
+    // BINOP_COMPOUND_ADD_ASSIGN,
+    // BINOP_COMPOUND_SUB_ASSIGN
+} BinaryOperator;
+
+typedef struct {
+    ASTNode * lhs;
+    ASTNode * rhs;
+    BinaryOperator op;
+} BinaryExpr;
+
+typedef enum {
     AST_RETURN_STMT,
     AST_IF_STMT,
     AST_WHILE_STMT,
@@ -43,19 +68,20 @@ typedef enum {
     AST_UNARY_NEGATE,
     AST_UNARY_NOT,
     AST_UNARY_PLUS,
-    AST_ADD,
-    AST_SUB,
-    AST_MUL,
-    AST_DIV,
-    AST_MOD,
-    AST_EQUAL,
-    AST_NOT_EQUAL,
-    AST_LOGICAL_AND,
-    AST_LOGICAL_OR,
-    AST_LESS_THAN,
-    AST_LESS_EQUAL,
-    AST_GREATER_THAN,
-    AST_GREATER_EQUAL,
+//    AST_ADD,
+//    AST_SUB,
+//    AST_MUL,
+//    AST_DIV,
+//    AST_MOD,
+    // AST_EQUAL,
+    // AST_NOT_EQUAL,
+    // AST_LOGICAL_AND,
+    // AST_LOGICAL_OR,
+    //AST_LESS_THAN,
+    //AST_LESS_EQUAL,
+    //AST_GREATER_THAN,
+    //AST_GREATER_EQUAL,
+    AST_BINARY_EXPR,
     AST_ASSERT_EXTENSION_STATEMENT,
     AST_PRINT_EXTENSION_STATEMENT
 } ASTNodeType;
@@ -76,9 +102,10 @@ typedef enum {
 
 typedef struct ASTNode {
     ASTNodeType type;
+    CType * ctype;
     union {
         int int_value;
-
+        BinaryExpr binary;
         struct {
             //struct ASTNode ** functions;
             ASTNode_list * functions;
@@ -133,10 +160,10 @@ typedef struct ASTNode {
             struct ASTNode * expr;
         } return_stmt;
 
-        struct {
-            struct ASTNode * lhs;
-            struct ASTNode * rhs;
-        } binary;
+        // struct {
+        //     struct ASTNode * lhs;
+        //     struct ASTNode * rhs;
+        // } binary;
 
         struct {
             struct ASTNode * operand;
@@ -205,5 +232,7 @@ typedef struct ASTNode {
 } ASTNode;
 
 void free_astnode(ASTNode * node);
+
+const char * get_binary_op_name(BinaryOperator op);
 
 #endif

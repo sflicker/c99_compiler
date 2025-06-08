@@ -7,6 +7,7 @@
 #include "parser_context.h"
 #include "test_assert.h"
 
+const char * current_test = NULL;
 
 const char * program_text = 
     "int main() {\n"
@@ -228,18 +229,18 @@ void test_get_current_token_col() {
 }
 
 int main() {
-    test_create_parser_context();
-    test_peek();
-    test_peek_next();
-    test_is_current_token();
-    test_is_next_token();
-    test_advance_parser();
-    test_match_token__false();
-    test_match_token__true();
-    test_is_current_token_a_ctype();
-    test_expect_token();
-    test_expect_ctype_token();
-    test_get_current_token_type_name();
-    test_get_current_token_line();
-    test_get_current_token_col();
+    RUN_TEST(test_create_parser_context);
+    RUN_TEST(test_peek);
+    RUN_TEST(test_peek_next);
+    RUN_TEST(test_is_current_token);
+    RUN_TEST(test_is_next_token);
+    RUN_TEST(test_advance_parser);
+    RUN_TEST(test_match_token__false);
+    RUN_TEST(test_match_token__true);
+    RUN_TEST(test_is_current_token_a_ctype);
+    RUN_TEST(test_expect_token);
+    RUN_TEST(test_expect_ctype_token);
+    RUN_TEST(test_get_current_token_type_name);
+    RUN_TEST(test_get_current_token_line);
+    RUN_TEST(test_get_current_token_col);
 }
