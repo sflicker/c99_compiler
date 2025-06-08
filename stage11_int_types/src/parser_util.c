@@ -12,11 +12,22 @@
 #include "parser_util.h"
 
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand) {
+    printf("entering create_unary_node\n");
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_UNARY_EXPR;
     node->unary.operand = operand;
     node->unary.op = op;
+    printf("leaving create_unary_node\n");
     return node;
+}
+
+ASTNode * create_binary_op_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_BINARY_EXPR;
+    node->binary.op = op;
+    node->binary.lhs = lhs;
+    node->binary.rhs = rhs;
+    return node;    
 }
 
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok) {
@@ -134,6 +145,14 @@ ASTNode * create_funcation_call_node(const char * name, ASTNode_list * args) {
     node->type = AST_FUNCTION_CALL;
     node->function_call.name = strdup(name);
     node->function_call.arg_list = args;
+    node->ctype = NULL;
+    return node;
+}
+
+ASTNode * create_var_ref_node(const char * name) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_VAR_REF;
+    node->var_ref.name = strdup(name);
     node->ctype = NULL;
     return node;
 }

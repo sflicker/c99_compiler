@@ -4,6 +4,7 @@
 
 //ASTNode * create_unary_node(ASTNodeType op, struct ASTNode * operand);
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand);
+ASTNode * create_binary_op_node(ASTNode * lhs, BinaryOperator  op, ASTNode *rhs);
 ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * thenStatement, ASTNode * elseStatement);
 ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodyStatement);
 ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt);
@@ -16,6 +17,7 @@ ASTNode * create_break_statement_node();
 ASTNode * create_continue_statement_node();
 ASTNode * create_int_literal_node(int value);
 ASTNode * create_funcation_call_node(const char * name, ASTNode_list * args);
+ASTNode * create_var_ref_node(const char * name);
 
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);

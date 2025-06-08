@@ -576,14 +576,6 @@ ASTNode * parse_return_statement(ParserContext* parserContext) {
     return node;
 }
 
-ASTNode * create_binary_op(ASTNode * lhs, TokenType op, ASTNode *rhs) {
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_BINARY_EXPR;
-    node->binary.op = binary_op_token_to_ast_binop_type(op);;
-    node->binary.lhs = lhs;
-    node->binary.rhs = rhs;
-    return node;    
-}
 
 ASTNode * parse_expression(ParserContext * parserContext) {
 //    return parse_logical_or(parserContext);
@@ -627,9 +619,10 @@ ASTNode * parse_equality_expression(ParserContext * parserContext) {
     while(is_current_token(parserContext, TOKEN_EQ) || is_current_token(parserContext, TOKEN_NEQ)) {
         ASTNode * lhs = root;
         Token * op = peek(parserContext);
+        BinaryOperator binop = (op->type == TOKEN_EQ) ? BINOP_EQ : BINOP_NE;
         advance_parser(parserContext);
         ASTNode * rhs = parse_relational_expression(parserContext);
-        root = create_binary_op(lhs, op->type, rhs);
+        root = create_binary_op_node(lhs, binop, rhs);
     }
 
     return root;
@@ -644,7 +637,7 @@ ASTNode * parse_relational_expression(ParserContext * parserContext) {
         Token * op = peek(parserContext);
         advance_parser(parserContext);
         ASTNode * rhs = parse_additive_expression(parserContext);
-        root = create_binary_op(lhs, op->type, rhs);
+        root = create_binary_op_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
     return root;
 }
@@ -657,7 +650,7 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
         Token * op = peek(parserContext);
         advance_parser(parserContext);
         ASTNode * rhs = parse_term(parserContext);
-        root = create_binary_op(lhs, op->type, rhs);
+        root = create_binary_op_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
 
     return root;
@@ -673,7 +666,7 @@ ASTNode * parse_term(ParserContext * parserContext) {
         Token * op = peek(parserContext);
         advance_parser(parserContext);
         ASTNode * rhs = parse_unary_expression(parserContext);
-        root = create_binary_op(lhs, op->type, rhs);
+        root = create_binary_op_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
 
     return root;
@@ -869,24 +862,15 @@ ASTNode * parse_primary(ParserContext * parserContext) {
                 expect_token(parserContext, TOKEN_RPAREN);
             }
             else {
-//                advance_parser(parserContext);
                 expect_token(parserContext, TOKEN_RPAREN);                
             }
-//            int arg_count = get_argument_expression_count(argument_expression_list);
-//            expect_token(parserContext, TOKEN_RPAREN);
-            ASTNode * node = create_funcation_call_node(tok->text, argument_expression_list);
-//            node->function_call.num_args = arg_count;
-            return node;
+            return create_funcation_call_node(tok->text, argument_expression_list);
         }
         else {
-            ASTNode * node = malloc(sizeof(ASTNode));
-            node->type = AST_VAR_REF;
-            node->var_ref.name = strdup(tok->text);
-//            node->var_ref.addr.kind = ADDR_UNASSIGNED;
-            return node;
+            return create_var_ref_node(tok->text);
         }
     }
-
+    error("Unhandled token error");
     return NULL;
 
 }

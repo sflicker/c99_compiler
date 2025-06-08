@@ -143,6 +143,16 @@ void free_astnode(ASTNode * node) {
     free(node);
 }
 
+BinaryOperator get_binary_operator_from_tok(Token * tok) {
+    switch (tok->type) {
+        case TOKEN_PLUS: return BINOP_ADD; break;
+        case TOKEN_MINUS: return BINOP_SUB; break;
+        case TOKEN_STAR: return BINOP_MUL; break;
+        case TOKEN_DIV: return BINOP_DIV; break;
+        case TOKEN_PERCENT: return BINOP_MOD; break;
+    }
+}
+
 const char * get_binary_op_name(BinaryOperator op) {
     switch (op) {
         case BINOP_ADD: return "ADD"; break;
@@ -158,6 +168,21 @@ const char * get_binary_op_name(BinaryOperator op) {
         case BINOP_LE: return "LE"; break;
         case BINOP_LOGICAL_OR: return "OR"; break;
         case BINOP_LOGICAL_AND: return "AND"; break;
+        case BINOP_UNASSIGNED_OP: return "UNASSIGNED"; break;
+    }
+    return NULL;
+}
+
+const char * get_unary_op_name(UnaryOperator op) {
+    switch(op) {
+        case UNARY_NEGATE: return "NEGATE"; break;
+        case UNARY_PLUS: return "PLUS"; break;
+        case UNARY_NOT: return "NOT"; break;
+        case UNARY_PRE_INC: return "PRE_INC"; break;
+        case UNARY_PRE_DEC: return "PRE_DEC"; break;
+        case UNARY_POST_INC: return "POST_INC"; break;
+        case UNARY_POST_DEC: return "POST_DEC"; break;
+        case UNARY_UNASSIGNED_OP: return "UNASSIGNED"; break;
     }
     return NULL;
 }

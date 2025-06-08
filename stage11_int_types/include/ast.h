@@ -23,7 +23,8 @@ typedef enum {
     BINOP_LT,
     BINOP_LE,
     BINOP_LOGICAL_OR,
-    BINOP_LOGICAL_AND
+    BINOP_LOGICAL_AND,
+    BINOP_UNASSIGNED_OP
     // BINOP_ASSIGNMENT,
     // BINOP_COMPOUND_ADD_ASSIGN,
     // BINOP_COMPOUND_SUB_ASSIGN
@@ -43,6 +44,7 @@ typedef enum {
     UNARY_PRE_DEC,        // --a
     UNARY_POST_INC,       // a++
     UNARY_POST_DEC,       // a--
+    UNARY_UNASSIGNED_OP   // op is not assigned. 
 } UnaryOperator;
 
 typedef struct {
@@ -250,6 +252,8 @@ typedef struct ASTNode {
 
 void free_astnode(ASTNode * node);
 
+BinaryOperator get_binary_operator_from_tok(Token * tok);
 const char * get_binary_op_name(BinaryOperator op);
+const char * get_unary_op_name(UnaryOperator op);
 
 #endif

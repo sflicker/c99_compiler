@@ -174,7 +174,7 @@ void print_ast(ASTNode * node, int indent) {
         //     break;
 
         case AST_UNARY_EXPR:
-            printf("Unary: %s\n", node->unary.op);
+            printf("Unary: %s\n", get_unary_op_name(node->unary.op));
             print_ast(node->unary.operand, indent+1);
             break;
 
