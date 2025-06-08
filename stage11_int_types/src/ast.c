@@ -114,13 +114,14 @@ void free_astnode(ASTNode * node) {
             free_astnode(node->binary.rhs);
             break;
 
-        case AST_UNARY_NEGATE:
-        case AST_UNARY_PLUS:
-        case AST_UNARY_NOT:
-        case AST_UNARY_PRE_INC:
-        case AST_UNARY_PRE_DEC:
-        case AST_UNARY_POST_INC:
-        case AST_UNARY_POST_DEC:
+        // case AST_UNARY_NEGATE:
+        // case AST_UNARY_PLUS:
+        // case AST_UNARY_NOT:
+        // case AST_UNARY_PRE_INC:
+        // case AST_UNARY_PRE_DEC:
+        // case AST_UNARY_POST_INC:
+        // case AST_UNARY_POST_DEC:
+        case AST_UNARY_EXPR:
             free_astnode(node->unary.operand);            
             break;
 

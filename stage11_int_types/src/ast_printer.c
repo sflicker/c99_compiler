@@ -173,34 +173,39 @@ void print_ast(ASTNode * node, int indent) {
         //     print_ast(node->binary.rhs, indent+1);
         //     break;
 
-        case AST_UNARY_NEGATE:
-            printf("Unary: %s\n", "NEGATE");
+        case AST_UNARY_EXPR:
+            printf("Unary: %s\n", node->unary.op);
             print_ast(node->unary.operand, indent+1);
             break;
-        case AST_UNARY_NOT:
-            printf("Unary: %s\n", "NOT");
-            print_ast(node->unary.operand, indent+1);
-            break;
-        case AST_UNARY_PLUS:
-            printf("Unary: %s\n", "PLUS");
-            print_ast(node->unary.operand, indent+1);
-            break;
-        case AST_UNARY_PRE_INC:
-            printf("Unary: %s\n", "PREFIX_INC");
-            print_ast(node->unary.operand, indent+1);
-            break;
-        case AST_UNARY_PRE_DEC:
-            printf("Unary: %s\n", "PREFIX_DEC");
-            print_ast(node->unary.operand, indent+1);
-            break;
-        case AST_UNARY_POST_INC:
-            printf("Unary: %s\n", "POSTFIX_INC");
-            print_ast(node->unary.operand, indent+1);
-            break;
-        case AST_UNARY_POST_DEC:
-            printf("Unary: %s\n", "POSTFIX_DEC");
-            print_ast(node->unary.operand, indent+1);
-            break;
+
+        // case AST_UNARY_NEGATE:
+        //     printf("Unary: %s\n", "NEGATE");
+        //     print_ast(node->unary.operand, indent+1);
+        //     break;
+        // case AST_UNARY_NOT:
+        //     printf("Unary: %s\n", "NOT");
+        //     print_ast(node->unary.operand, indent+1);
+        //     break;
+        // case AST_UNARY_PLUS:
+        //     printf("Unary: %s\n", "PLUS");
+        //     print_ast(node->unary.operand, indent+1);
+        //     break;
+        // case AST_UNARY_PRE_INC:
+        //     printf("Unary: %s\n", "PREFIX_INC");
+        //     print_ast(node->unary.operand, indent+1);
+        //     break;
+        // case AST_UNARY_PRE_DEC:
+        //     printf("Unary: %s\n", "PREFIX_DEC");
+        //     print_ast(node->unary.operand, indent+1);
+        //     break;
+        // case AST_UNARY_POST_INC:
+        //     printf("Unary: %s\n", "POSTFIX_INC");
+        //     print_ast(node->unary.operand, indent+1);
+        //     break;
+        // case AST_UNARY_POST_DEC:
+        //     printf("Unary: %s\n", "POSTFIX_DEC");
+        //     print_ast(node->unary.operand, indent+1);
+        //     break;
         case AST_IF_STMT:
             printf("IfStmt: \n");
             print_ast(node->if_stmt.cond, indent+1);

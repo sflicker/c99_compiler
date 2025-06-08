@@ -56,6 +56,22 @@ void test_parse_primary__function_call() {
     tokenlist_free(tokens);
 }
 
+void test_parse_primary__function_call__with_args() {
+    tokenlist * tokens = tokenize("myfunc(1,2,3,4)");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * node = parse_primary(ctx);
+    print_ast(node, 0);
+
+    TEST_ASSERT("Verifying node is of type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
+    TEST_ASSERT("Verifying correct name", strcmp(node->function_call.name, "myfunc") == 0);
+    TEST_ASSERT("Verifying argument list contains 4 args", node->function_call.arg_list->count == 4);
+    TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
+
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+}
+
 void test_parse_primary__variable_ref() {
     tokenlist * tokens = tokenize("a");
     ParserContext * ctx = create_parser_context(tokens);
@@ -82,11 +98,11 @@ void test_parse_postfix_expression__inc() {
 
 
     // verify
-    TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
-    TEST_ASSERT("Verifying node os of type AST_UNARY_POST_INC", node->type == AST_UNARY_POST_INC);
+    TEST_ASSERT("Verifying node is of type AST_UNARY_POST_INC", node->type == AST_UNARY_EXPR);
+    TEST_ASSERT("Verifying op is of type UNARY_POST_INC", node->unary.op == UNARY_POST_INC);
     TEST_ASSERT("Verifying Operand is correct type", node->unary.operand->type == AST_VAR_REF);
     TEST_ASSERT("Verifying Operand has correct name", strcmp(node->unary.operand->var_ref.name, "a") == 0);
-    TEST_ASSERT("Dummy assert", 1==1);
+    TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
 
     // cleanup
     free_parser_context(ctx);
@@ -104,7 +120,7 @@ void test_parse_postfix_expression__dec() {
     print_ast(node, 0);
 
     // verify
-    TEST_ASSERT("Verifying node os of type AST_UNARY_POST_DEC", node->type == AST_UNARY_POST_DEC);
+    TEST_ASSERT("Verifying node os of type AST_UNARY_POST_DEC", node->type == AST_UNARY_EXPR);
     TEST_ASSERT("Verifying Operand is correct type", node->unary.operand->type == AST_VAR_REF);
     TEST_ASSERT("Verifying Operand has correct name", strcmp(node->unary.operand->var_ref.name, "a") == 0);
     TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
@@ -130,6 +146,7 @@ int main() {
     RUN_TEST(test_parse_primary__int_literal);
     RUN_TEST(test_parse_primary__parens);
     RUN_TEST(test_parse_primary__function_call);
+    RUN_TEST(test_parse_primary__function_call__with_args);
     RUN_TEST(test_parse_primary__variable_ref);
     RUN_TEST(test_parse_postfix_expression__inc);
     RUN_TEST(test_parse_postfix_expression__dec);

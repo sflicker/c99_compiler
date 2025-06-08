@@ -681,35 +681,47 @@ ASTNode * parse_term(ParserContext * parserContext) {
 
 
 
-ASTNodeType unary_op_token_to_ast_type(TokenType tokenType) {
-    switch(tokenType) {
-        case TOKEN_MINUS: return AST_UNARY_NEGATE; break;
-        case TOKEN_PLUS: return AST_UNARY_PLUS; break;
-        case TOKEN_BANG: return AST_UNARY_NOT; break;
-        case TOKEN_INCREMENT: return AST_UNARY_PRE_INC; break;
-        case TOKEN_DECREMENT: return AST_UNARY_PRE_DEC; break;
-        default:
-            error("Unable to determine prefix operator type");
-            return 0; 
-        break;
+// ASTNodeType unary_op_token_to_ast_type(TokenType tokenType) {
+//     switch(tokenType) {
+//         case TOKEN_MINUS: return AST_UNARY_NEGATE; break;
+//         case TOKEN_PLUS: return AST_UNARY_PLUS; break;
+//         case TOKEN_BANG: return AST_UNARY_NOT; break;
+//         case TOKEN_INCREMENT: return AST_UNARY_PRE_INC; break;
+//         case TOKEN_DECREMENT: return AST_UNARY_PRE_DEC; break;
+//         default:
+//             error("Unable to determine prefix operator type");
+//             return 0; 
+//         break;
     
-    }
-}
+//     }
+// }
 
 ASTNode * parse_unary_expression(ParserContext * parserContext) {
-    if (is_current_token(parserContext, TOKEN_PLUS) 
-     || is_current_token(parserContext, TOKEN_MINUS) 
-     || is_current_token(parserContext, TOKEN_BANG)
-     || is_current_token(parserContext, TOKEN_INCREMENT) 
-     || is_current_token(parserContext, TOKEN_DECREMENT)) {
-                Token * currentToken = peek(parserContext);
-                advance_parser(parserContext);
-
-                ASTNode * operand = parse_unary_expression(parserContext);
-                ASTNode * node = create_unary_node(unary_op_token_to_ast_type(currentToken->type), operand);
-
-                return node;
-            }        
+    if (is_current_token(parserContext, TOKEN_PLUS)) {
+        expect_token(parserContext, TOKEN_PLUS);
+        ASTNode * operand = parse_unary_expression(parserContext);
+        return create_unary_node(UNARY_PLUS, operand);
+    }
+    else if (is_current_token(parserContext, TOKEN_MINUS)) {
+        expect_token(parserContext, TOKEN_MINUS);
+        ASTNode * operand = parse_unary_expression(parserContext);
+        return create_unary_node(UNARY_NEGATE, operand);
+    }
+    else if (is_current_token(parserContext, TOKEN_BANG)) {
+        expect_token(parserContext, TOKEN_BANG);
+        ASTNode * operand = parse_unary_expression(parserContext);
+        return create_unary_node(UNARY_NOT, operand);
+    }
+    else if (is_current_token(parserContext, TOKEN_INCREMENT)) {
+        expect_token(parserContext, TOKEN_INCREMENT);
+        ASTNode * operand = parse_unary_expression(parserContext);
+        return create_unary_node(UNARY_PRE_INC, operand);
+    }
+    else if (is_current_token(parserContext, TOKEN_DECREMENT)) {
+        expect_token(parserContext, TOKEN_DECREMENT);
+        ASTNode * operand = parse_unary_expression(parserContext);
+        return create_unary_node(UNARY_PRE_DEC, operand);
+    }
     else {
         return parse_postfix_expression(parserContext);
     }
@@ -811,12 +823,12 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_INCREMENT)) {
         expect_token(parserContext, TOKEN_INCREMENT);
 
-        return create_unary_node(AST_UNARY_POST_INC, primary);
+        return create_unary_node(UNARY_POST_INC, primary);
     }
     if (is_current_token(parserContext, TOKEN_DECREMENT)) {
         expect_token(parserContext, TOKEN_DECREMENT);
 
-        return create_unary_node(AST_UNARY_POST_DEC, primary);
+        return create_unary_node(UNARY_POST_DEC, primary);
     }
 
     return primary;
@@ -837,9 +849,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
         Token * tok = peek(parserContext);
         advance_parser(parserContext);
-        ASTNode * node = malloc(sizeof(ASTNode));
-        node->type = AST_INT_LITERAL;
-        node->int_value = tok->int_value;
+        ASTNode * node = create_int_literal_node(tok->int_value);
         return node;
     }
     else if (is_current_token(parserContext, TOKEN_LPAREN)) {
@@ -864,10 +874,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
             }
 //            int arg_count = get_argument_expression_count(argument_expression_list);
 //            expect_token(parserContext, TOKEN_RPAREN);
-            ASTNode * node = malloc(sizeof(ASTNode));
-            node->type = AST_FUNCTION_CALL;
-            node->function_call.name = strdup(tok->text);
-            node->function_call.arg_list = argument_expression_list;
+            ASTNode * node = create_funcation_call_node(tok->text, argument_expression_list);
 //            node->function_call.num_args = arg_count;
             return node;
         }

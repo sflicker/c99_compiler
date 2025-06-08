@@ -32,6 +32,7 @@
                 printf(COLOR_GREEN "Passed" COLOR_RESET "\n");        \
          } else {                                                     \
                 printf(COLOR_RED "FAILED" COLOR_RESET "\n");          \
+                exit(1);                                              \
         }                                                             \
     } while (0)
 

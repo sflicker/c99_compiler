@@ -11,10 +11,11 @@
 #include "parser_context.h"
 #include "parser_util.h"
 
-ASTNode * create_unary_node(ASTNodeType op, ASTNode * operand) {
+ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand) {
     ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = op;
+    node->type = AST_UNARY_EXPR;
     node->unary.operand = operand;
+    node->unary.op = op;
     return node;
 }
 
@@ -120,6 +121,22 @@ ASTNode * create_continue_statement_node() {
     return node;
 }
 
+ASTNode * create_int_literal_node(int value) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_INT_LITERAL;
+    node->int_value = value;
+    node->ctype = NULL;
+    return node;
+}
+
+ASTNode * create_funcation_call_node(const char * name, ASTNode_list * args) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_FUNCTION_CALL;
+    node->function_call.name = strdup(name);
+    node->function_call.arg_list = args;
+    node->ctype = NULL;
+    return node;
+}
 
 bool is_lvalue(ASTNode * node) {
     assert(((node != NULL) && "node must not be null"));

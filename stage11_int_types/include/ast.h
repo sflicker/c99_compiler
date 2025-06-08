@@ -36,6 +36,21 @@ typedef struct {
 } BinaryExpr;
 
 typedef enum {
+    UNARY_NEGATE,         // -a
+    UNARY_PLUS,           // +a    usually this is just a noop
+    UNARY_NOT,            // !a
+    UNARY_PRE_INC,        // ++a
+    UNARY_PRE_DEC,        // --a
+    UNARY_POST_INC,       // a++
+    UNARY_POST_DEC,       // a--
+} UnaryOperator;
+
+typedef struct {
+    ASTNode * operand;
+    UnaryOperator op;
+} UnaryExpr;
+
+typedef enum {
     AST_RETURN_STMT,
     AST_IF_STMT,
     AST_WHILE_STMT,
@@ -61,13 +76,13 @@ typedef enum {
     AST_ASSIGNMENT,
     AST_COMPOUND_ADD_ASSIGN,
     AST_COMPOUND_SUB_ASSIGN,
-    AST_UNARY_POST_INC,
-    AST_UNARY_POST_DEC,
-    AST_UNARY_PRE_INC,
-    AST_UNARY_PRE_DEC,
-    AST_UNARY_NEGATE,
-    AST_UNARY_NOT,
-    AST_UNARY_PLUS,
+    // AST_UNARY_POST_INC,
+    // AST_UNARY_POST_DEC,
+    // AST_UNARY_PRE_INC,
+    // AST_UNARY_PRE_DEC,
+    // AST_UNARY_NEGATE,
+    // AST_UNARY_NOT,
+    // AST_UNARY_PLUS,
 //    AST_ADD,
 //    AST_SUB,
 //    AST_MUL,
@@ -82,6 +97,7 @@ typedef enum {
     //AST_GREATER_THAN,
     //AST_GREATER_EQUAL,
     AST_BINARY_EXPR,
+    AST_UNARY_EXPR,
     AST_ASSERT_EXTENSION_STATEMENT,
     AST_PRINT_EXTENSION_STATEMENT
 } ASTNodeType;
@@ -106,6 +122,7 @@ typedef struct ASTNode {
     union {
         int int_value;
         BinaryExpr binary;
+        UnaryExpr unary;
         struct {
             //struct ASTNode ** functions;
             ASTNode_list * functions;
@@ -165,9 +182,9 @@ typedef struct ASTNode {
         //     struct ASTNode * rhs;
         // } binary;
 
-        struct {
-            struct ASTNode * operand;
-        } unary;
+        // struct {
+        //     struct ASTNode * operand;
+        // } unary;
 
 
         struct {
