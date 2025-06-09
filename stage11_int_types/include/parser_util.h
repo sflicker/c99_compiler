@@ -20,7 +20,9 @@ ASTNode * create_int_literal_node(int value);
 ASTNode * create_function_call_node(const char * name, ASTNode_list * args);
 ASTNode * create_var_ref_node(const char * name);
 ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_expr);
-
+ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
+            ASTNode * update_expr, ASTNode * body);
+            
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
 bool is_lvalue(ASTNode * node);

@@ -538,12 +538,8 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
 
     ASTNode * body = parse_statement(parserContext);
 
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_FOR_STMT;
-    node->for_stmt.init_expr = init_expr;
-    node->for_stmt.cond_expr = cond_expr;
-    node->for_stmt.update_expr = update_expr;
-    node->for_stmt.body = body;
+    ASTNode * node = create_for_statement_node(
+        init_expr, cond_expr, update_expr, body);
 
     return node;
 }

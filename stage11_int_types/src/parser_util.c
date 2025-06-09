@@ -178,3 +178,14 @@ bool is_lvalue(ASTNode * node) {
     assert(((node != NULL) && "node must not be null"));
     return node->type == AST_VAR_REF;
 }
+
+ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
+            ASTNode * update_expr, ASTNode * body) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_FOR_STMT;
+    node->for_stmt.init_expr = init_expr;
+    node->for_stmt.cond_expr = cond_expr;
+    node->for_stmt.update_expr = update_expr;
+    node->for_stmt.body = body;
+    return node;
+}
