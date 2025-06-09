@@ -8,16 +8,23 @@
 #include "util.h"
 #include "token.h"
 #include "ast.h"
+#include "ctypes.h"
 #include "parser_context.h"
 #include "parser_util.h"
 
+ASTNode * create_translation_unit_node(ASTNode_list * functions) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_TRANSLATION_UNIT;
+    node->translation_unit.functions = functions;
+    node->translation_unit.count = functions->count;
+    return node;
+}
+
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand) {
-    printf("entering create_unary_node\n");
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_UNARY_EXPR;
     node->unary.operand = operand;
     node->unary.op = op;
-    printf("leaving create_unary_node\n");
     return node;
 }
 
@@ -133,21 +140,31 @@ ASTNode * create_continue_statement_node() {
 }
 
 ASTNode * create_int_literal_node(int value) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = calloc(1, sizeof(ASTNode));
     node->type = AST_INT_LITERAL;
     node->int_value = value;
     node->ctype = NULL;
     return node;
 }
 
-ASTNode * create_funcation_call_node(const char * name, ASTNode_list * args) {
+ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_FUNCTION_CALL;
     node->function_call.name = strdup(name);
     node->function_call.arg_list = args;
-    node->ctype = NULL;
+//    node->ctype = NULL;
     return node;
 }
+
+ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_expr) {
+    ASTNode * param = malloc(sizeof(ASTNode));
+    param->type = AST_VAR_DECL;
+    param->var_decl.name = strdup(name);
+    param->var_decl.var_ctype = ctype;
+    param->var_decl.init_expr = init_expr;
+    return param;
+}
+
 
 ASTNode * create_var_ref_node(const char * name) {
     ASTNode * node = malloc(sizeof(ASTNode));

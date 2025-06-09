@@ -124,30 +124,22 @@ void nop_free_astnode(ASTNode * node) {
 
 ASTNode* parse(tokenlist * tokens) {
     ParserContext * parserContext = create_parser_context(tokens);
-    //ASTNode** functions = NULL;
+    ASTNode * node = parse_translation_unit(parserContext);
+    free_parser_context(parserContext);
+    return node;
+}
+
+ASTNode* parse_translation_unit(ParserContext * parserContext) {
     ASTNode_list * functions = malloc(sizeof(ASTNode_list));
     ASTNode_list_init(functions, free_astnode);
-//    int capacity = 8;
-    int count = 0;
-//    functions = malloc(sizeof(ASTNode*) * capacity);
 
     while (!is_current_token(parserContext, TOKEN_EOF)) {
         // currently only supporting functions as topmost. will need to add file level variables.
         ASTNode * function = parse_external_declaration(parserContext);
         ASTNode_list_append(functions, function);
-        // if (count >= capacity) {
-        //     capacity *= 2;
-        //     functions = realloc(functions, sizeof(ASTNode*) * capacity);
-        // }
-        // functions[count++] = function;
     }
 
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_TRANSLATION_UNIT;
-    node->translation_unit.functions = functions;
-    node->translation_unit.count = count;
-    free_parser_context(parserContext);
-    return node;
+    return create_translation_unit_node(functions);
 }
 
 CType * parse_ctype(ParserContext * ctx) {
@@ -174,11 +166,12 @@ ASTNode_list * parse_param_list(ParserContext * parserContext) {
     do {
         CType * ctype = parse_ctype(parserContext);
         Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
-        ASTNode * param = malloc(sizeof(ASTNode));
-        param->type = AST_VAR_DECL;
-        param->var_decl.name = strdup(param_name->text);
-        param->var_decl.var_ctype = ctype;
-        param->var_decl.init_expr = NULL;
+        ASTNode * param = create_var_decl_node(param_name->text, ctype, NULL);
+        // ASTNode * param = malloc(sizeof(ASTNode));
+        // param->type = AST_VAR_DECL;
+        // param->var_decl.name = strdup(param_name->text);
+        // param->var_decl.var_ctype = ctype;
+        // param->var_decl.init_expr = NULL;
 //        param->var_decl.addr.kind = ADDR_UNASSIGNED;
         if (param_list == NULL) {
             param_list = malloc(sizeof(ASTNode_list));
@@ -864,7 +857,8 @@ ASTNode * parse_primary(ParserContext * parserContext) {
             else {
                 expect_token(parserContext, TOKEN_RPAREN);                
             }
-            return create_funcation_call_node(tok->text, argument_expression_list);
+            ASTNode * node = create_function_call_node(tok->text, argument_expression_list);
+            return node;
         }
         else {
             return create_var_ref_node(tok->text);

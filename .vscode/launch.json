@@ -162,8 +162,18 @@
         "MIMode": "gdb",
         "stopAtEntry": false,
         "preLaunchTask": "macro-defined-list-tests"
-
       }
+      ,
+      {
+        "name": "Debug test parser",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage11_int_types/unit_tests/build/test_parser",
+        "cwd": "${workspaceFolder}/stage11_int_types/unit_tests/build",
+        "MIMode": "gdb",
+        "stopAtEntry": false
+      }
+
     ]
   }
 

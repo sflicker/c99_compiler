@@ -12,6 +12,7 @@
 //ASTNode* parse(ParserContext * parserContext);
 
 ASTNode * parse(tokenlist * tokenList);
+ASTNode * parse_translation_unit(ParserContext * parserContext);
 ASTNode * parse_external_declaration(ParserContext * parserContext);
 ASTNode * parse_function(ParserContext * parserContext);
 ASTNode * parse_statement(ParserContext* parserContext);
