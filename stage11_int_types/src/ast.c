@@ -150,7 +150,9 @@ BinaryOperator get_binary_operator_from_tok(Token * tok) {
         case TOKEN_STAR: return BINOP_MUL; break;
         case TOKEN_DIV: return BINOP_DIV; break;
         case TOKEN_PERCENT: return BINOP_MOD; break;
+        default: return BINOP_UNASSIGNED_OP; break;
     }
+
 }
 
 const char * get_binary_op_name(BinaryOperator op) {

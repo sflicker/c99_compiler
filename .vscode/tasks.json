@@ -141,6 +141,17 @@
         "group": "build",
         "problemMatcher": ["$gcc"]
       }
+      ,
+      {
+        "label": "test-parser-util",
+        "type": "shell",
+        "command": "make",
+        "options": {
+          "cmd": "${workspaceFolder}/stage11_int_types"
+        },
+        "group": "build",
+        "problemMatcher": ["$gcc"]
+      }
     ]
   }
 

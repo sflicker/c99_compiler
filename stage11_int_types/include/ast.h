@@ -133,7 +133,6 @@ typedef struct ASTNode {
 
         struct {
             char* name;
-            CType * return_ctype;
             //struct ASTNode** param_list;
             //paramlist param_list;
             ASTNode_list * param_list;
@@ -156,7 +155,6 @@ typedef struct ASTNode {
         } function_call;
 
         struct {
-            CType * var_ctype;
             char* name;
             struct ASTNode * init_expr; // NULL if no initializer
 //            Address addr;

@@ -10,6 +10,7 @@
 #include "test_assert.h"
 #include "ast_printer.h"
 #include "parser_util.h"
+#include "ctypes.h"
 
 const char * current_test = NULL;
 
@@ -23,11 +24,26 @@ void test_create_int_literal_node() {
 }
 
 void test_create_unary_node__plus() {
+    ASTNode * operand = create_var_decl_node("a", &CTYPE_INT_T, NULL);
+    ASTNode * node = create_unary_node(UNARY_PLUS, operand);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node ast type is AST_UNARY_EXPR", node->type == AST_UNARY_EXPR);
 
 }
 
+void test_create_var_decl_node() {
+    ASTNode * node = create_var_decl_node("a", &CTYPE_INT_T, NULL);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node ast type is AST_VAR_DECL", node->type == AST_VAR_DECL);
+    TEST_ASSERT("Verify node has correct identifier", strcmp(node->var_decl.name, "a") == 0);
+    TEST_ASSERT("Verity node has NULL initializer", node->var_decl.init_expr == NULL);
+    TEST_ASSERT("Verify node has correct ctype", ctype_equal(node->ctype, &CTYPE_INT_T));
+}
 
 int main() {
     RUN_TEST(test_create_int_literal_node);
+    RUN_TEST(test_create_var_decl_node);
     RUN_TEST(test_create_unary_node__plus);
 }

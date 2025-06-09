@@ -284,7 +284,7 @@ void print_ast(ASTNode * node, int indent) {
             break;
         case AST_VAR_DECL:
 //            printf("VariableDeclaration: %s, type: %s/*, offset: %d*/ \n", node->var_decl.name, type_name(node->var_decl.var_type) /*, node->var_decl.addr */);
-            printf("VariableDeclaration: %s, ctype: %s\n", node->var_decl.name, ctype_name(node->var_decl.var_ctype));
+            printf("VariableDeclaration: %s, ctype: %s\n", node->var_decl.name, ctype_to_string(node->ctype));
             if (node->var_decl.init_expr) {
                 print_ast(node->var_decl.init_expr, indent+1);
             }

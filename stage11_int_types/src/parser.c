@@ -262,7 +262,7 @@ ASTNode * parse_function(ParserContext* parserContext) {
     ASTNode * func = malloc(sizeof(ASTNode));
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = strdup(name->text);
-    func->function_decl.return_ctype = get_ctype(returnCType);
+    func->ctype = get_ctype(returnCType);
     func->function_decl.body = function_block;
     func->function_decl.param_list = param_list;
     func->function_decl.declaration_only = declaration_only;
@@ -724,12 +724,8 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
     }
     expect_token(parserContext, TOKEN_SEMICOLON);
 
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_VAR_DECL;
-    node->var_decl.var_ctype = ctype;
-    node->var_decl.name = strdup(name->text);
-    node->var_decl.init_expr = expr;
-//    node->var_decl.addr.kind = ADDR_UNASSIGNED;
+    ASTNode * node = create_var_decl_node(name->text, ctype, expr);
+
     return node;
 }
 

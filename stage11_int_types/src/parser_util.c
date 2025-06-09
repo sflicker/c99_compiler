@@ -157,12 +157,12 @@ ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
 }
 
 ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_expr) {
-    ASTNode * param = malloc(sizeof(ASTNode));
-    param->type = AST_VAR_DECL;
-    param->var_decl.name = strdup(name);
-    param->var_decl.var_ctype = ctype;
-    param->var_decl.init_expr = init_expr;
-    return param;
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_VAR_DECL;
+    node->var_decl.name = strdup(name);
+    node->ctype = ctype;
+    node->var_decl.init_expr = init_expr;
+    return node;
 }
 
 

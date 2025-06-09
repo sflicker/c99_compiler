@@ -173,6 +173,16 @@
         "MIMode": "gdb",
         "stopAtEntry": false
       }
+  ,
+      {
+        "name": "Debug test parser util",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/stage11_int_types/unit_tests/build/test_parser_util",
+        "cwd": "${workspaceFolder}/stage11_int_types/unit_tests/build",
+        "MIMode": "gdb",
+        "stopAtEntry": false
+      }
 
     ]
   }
