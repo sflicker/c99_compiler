@@ -22,9 +22,14 @@ ASTNode * create_var_ref_node(const char * name);
 ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_expr);
 ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
             ASTNode * update_expr, ASTNode * body);
+ASTNode * create_function_declaration_node(char * name, CType * returnType, 
+        ASTNode_list * param_list, ASTNode * body, bool declaration_only);
+ASTNode * create_return_statement_node(ASTNode * expr);
+ASTNode * create_expression_statement_node(ASTNode * expr);
             
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
 bool is_lvalue(ASTNode * node);
+CType * get_ctype_from_token(Token* token);
 
 #endif

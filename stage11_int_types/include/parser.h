@@ -38,5 +38,6 @@ ASTNode * parse_logical_or(ParserContext * parserContext);
 ASTNode * parse_logical_and(ParserContext * parserContext);
 ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
 ASTNode * parse_print_extension_statement(ParserContext * parserContext);
+CType * parse_ctype(ParserContext * ctx);
 
 #endif

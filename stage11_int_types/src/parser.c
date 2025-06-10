@@ -122,6 +122,7 @@ void nop_free_astnode(ASTNode * node) {
 
 }
 
+/* Top level parser method */
 ASTNode* parse(tokenlist * tokens) {
     ParserContext * parserContext = create_parser_context(tokens);
     ASTNode * node = parse_translation_unit(parserContext);
@@ -142,20 +143,10 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
     return create_translation_unit_node(functions);
 }
 
-CType * parse_ctype(ParserContext * ctx) {
-    switch (peek(ctx)->type) {
-        case TOKEN_INT: advance_parser(ctx); return &CTYPE_INT_T;
-        case TOKEN_CHAR: advance_parser(ctx); return &CTYPE_CHAR_T;
-        case TOKEN_SHORT: advance_parser(ctx); return &CTYPE_SHORT_T;
-        case TOKEN_LONG: advance_parser(ctx); return &CTYPE_LONG_T;
-        default: error("Invalid Type"); return NULL;
-    }
-}
+
 
 
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
-        // expect_token(parserContext, TOKEN_INT);
-        // Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
 
         return parse_function(parserContext);
 }
@@ -167,29 +158,17 @@ ASTNode_list * parse_param_list(ParserContext * parserContext) {
         CType * ctype = parse_ctype(parserContext);
         Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
         ASTNode * param = create_var_decl_node(param_name->text, ctype, NULL);
-        // ASTNode * param = malloc(sizeof(ASTNode));
-        // param->type = AST_VAR_DECL;
-        // param->var_decl.name = strdup(param_name->text);
-        // param->var_decl.var_ctype = ctype;
-        // param->var_decl.init_expr = NULL;
-//        param->var_decl.addr.kind = ADDR_UNASSIGNED;
+
         if (param_list == NULL) {
             param_list = malloc(sizeof(ASTNode_list));
             ASTNode_list_init(param_list, free_astnode);
             ASTNode_list_append(param_list, param);
- //           param_list = create_node_list(param);
-//            add_node_list(param_list, param);
         }
         else {
             ASTNode_list_append(param_list, param);
-//            add_node_list(param_list, param);
         }
 
     } while (match_token(parserContext, TOKEN_COMMA));
-    // ASTNode * ast_param_list = malloc(sizeof(ASTNode));
-    // ast_param_list->type = AST_PARAM_LIST;
-    // ast_param_list->param_list.node_list = param_list;
-    // return ast_param_list;
     return param_list;
 }
 
@@ -203,6 +182,7 @@ ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
     do {
         ASTNode * expression = parse_expression(parserContext);
         ASTNode_list_append(arg_list, expression);
+
 //        if (arg_list == NULL) {
             //arg_list = create_node_list(expression);
 //            add_node_list(arg_list, expression);
@@ -215,25 +195,14 @@ ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
     return arg_list;
 }
 
-CType * get_ctype(Token* token) {
-    switch (token->type) {
-        case TOKEN_INT: 
-            return &CTYPE_INT_T;
-            break;
-        case TOKEN_CHAR:
-            return &CTYPE_CHAR_T;
-            break;
-        case TOKEN_SHORT:
-            return &CTYPE_SHORT_T;
-            break;
-        case TOKEN_LONG:
-            return &CTYPE_LONG_T;
-            break;
-        default:
-            error("Invalid TYPE Token\n");
-            break;
+CType * parse_ctype(ParserContext * ctx) {
+    switch (peek(ctx)->type) {
+        case TOKEN_INT: advance_parser(ctx); return &CTYPE_INT_T;
+        case TOKEN_CHAR: advance_parser(ctx); return &CTYPE_CHAR_T;
+        case TOKEN_SHORT: advance_parser(ctx); return &CTYPE_SHORT_T;
+        case TOKEN_LONG: advance_parser(ctx); return &CTYPE_LONG_T;
+        default: error("Invalid Type"); return NULL;
     }
-    return NULL;
 }
 
 ASTNode * parse_function(ParserContext* parserContext) {
@@ -258,14 +227,10 @@ ASTNode * parse_function(ParserContext* parserContext) {
         expect_token(parserContext, TOKEN_SEMICOLON);
         declaration_only = true;
     }
+    
+    ASTNode * func = create_function_declaration_node(name->text, get_ctype_from_token(returnCType),
+        param_list, function_block, declaration_only);
 
-    ASTNode * func = malloc(sizeof(ASTNode));
-    func->type = AST_FUNCTION_DECL;
-    func->function_decl.name = strdup(name->text);
-    func->ctype = get_ctype(returnCType);
-    func->function_decl.body = function_block;
-    func->function_decl.param_list = param_list;
-    func->function_decl.declaration_only = declaration_only;
     return func;
 }
 
@@ -547,11 +512,7 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
 ASTNode * parse_expression_statement(ParserContext * parserContext) {
     ASTNode * expr = parse_expression(parserContext);
     expect_token(parserContext, TOKEN_SEMICOLON);
-
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_EXPRESSION_STMT;
-    node->expr_stmt.expr = expr;
-    return node;
+    return create_expression_statement_node(expr);
 }
 
 ASTNode * parse_return_statement(ParserContext* parserContext) {
@@ -559,10 +520,7 @@ ASTNode * parse_return_statement(ParserContext* parserContext) {
     ASTNode * expr = parse_expression(parserContext);
     expect_token(parserContext, TOKEN_SEMICOLON);
 
-    ASTNode * node = malloc(sizeof(ASTNode));
-    node->type = AST_RETURN_STMT;
-    node->return_stmt.expr = expr;
-    return node;
+    return create_return_statement_node(expr);
 }
 
 
@@ -576,12 +534,7 @@ ASTNode * parse_logical_or(ParserContext * parserContext) {
 
     while (match_token(parserContext, TOKEN_LOGICAL_OR)) {
         ASTNode * rhs = parse_logical_and(parserContext);
-        ASTNode * node = malloc(sizeof(ASTNode));
-
-        node->type = AST_BINARY_EXPR;
-        node->binary.op = BINOP_LOGICAL_OR;
-        node->binary.lhs = lhs;
-        node->binary.rhs = rhs;
+        ASTNode * node = create_binary_op_node(lhs, BINOP_LOGICAL_OR, rhs);
         lhs = node;
     }
     return lhs;
@@ -592,11 +545,7 @@ ASTNode * parse_logical_and(ParserContext * parserContext) {
 
     while (match_token(parserContext, TOKEN_LOGICAL_AND)) {
         ASTNode * rhs = parse_equality_expression(parserContext);
-        ASTNode * node = malloc(sizeof(ASTNode));
-        node->type = AST_BINARY_EXPR;
-        node->binary.op = BINOP_LOGICAL_AND;
-        node->binary.lhs = lhs;
-        node->binary.rhs = rhs;
+        ASTNode * node = create_binary_op_node(lhs, BINOP_LOGICAL_AND, rhs);
         lhs = node;
     }
     return lhs;
@@ -784,16 +733,16 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
 }
 
 
-ASTNode * parse_assignment_statement(ParserContext * parserContext) {
+// ASTNode * parse_assignment_statement(ParserContext * parserContext) {
     
-    ASTNode *expr = parse_assignment_expression(parserContext);
-    expect_token(parserContext, TOKEN_SEMICOLON);
-    
-    ASTNode * node =  malloc(sizeof(ASTNode));
-    node->type = AST_EXPRESSION_STMT;
-    node->expr_stmt.expr = expr;
-    return node;
-}
+//     ASTNode *expr = parse_assignment_expression(parserContext);
+//     expect_token(parserContext, TOKEN_SEMICOLON);
+
+//     ASTNode * node =  malloc(sizeof(ASTNode));
+//     node->type = AST_EXPRESSION_STMT;
+//     node->expr_stmt.expr = expr;
+//     return node;
+// }
 
 ASTNode * parse_postfix_expression(ParserContext * parserContext) {
     ASTNode * primary = parse_primary(parserContext);

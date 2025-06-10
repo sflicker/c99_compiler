@@ -6,6 +6,8 @@
 #include <assert.h>
 
 #include "util.h"
+#include "list_util.h"
+#include "ast_list.h"
 #include "token.h"
 #include "ast.h"
 #include "ctypes.h"
@@ -147,6 +149,18 @@ ASTNode * create_int_literal_node(int value) {
     return node;
 }
 
+ASTNode * create_function_declaration_node(char * name, CType * returnType, 
+        ASTNode_list * param_list, ASTNode * body, bool declaration_only) {
+    ASTNode * func = malloc(sizeof(ASTNode));
+    func->type = AST_FUNCTION_DECL;
+    func->function_decl.name = strdup(name);
+    func->ctype = returnType;
+    func->function_decl.body = body;
+    func->function_decl.param_list = param_list;
+    func->function_decl.declaration_only = declaration_only;
+    return func;
+}
+
 ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_FUNCTION_CALL;
@@ -188,4 +202,39 @@ ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
     node->for_stmt.update_expr = update_expr;
     node->for_stmt.body = body;
     return node;
+}
+
+ASTNode * create_return_statement_node(ASTNode * expr) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_RETURN_STMT;
+    node->return_stmt.expr = expr;
+    return node;
+}
+
+ASTNode * create_expression_statement_node(ASTNode * expr) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_EXPRESSION_STMT;
+    node->expr_stmt.expr = expr;
+    return node;
+}
+
+CType * get_ctype_from_token(Token* token) {
+    switch (token->type) {
+        case TOKEN_INT: 
+            return &CTYPE_INT_T;
+            break;
+        case TOKEN_CHAR:
+            return &CTYPE_CHAR_T;
+            break;
+        case TOKEN_SHORT:
+            return &CTYPE_SHORT_T;
+            break;
+        case TOKEN_LONG:
+            return &CTYPE_LONG_T;
+            break;
+        default:
+            error("Invalid TYPE Token\n");
+            break;
+    }
+    return NULL;
 }
