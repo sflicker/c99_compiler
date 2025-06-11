@@ -218,6 +218,14 @@ ASTNode * create_expression_statement_node(ASTNode * expr) {
     return node;
 }
 
+ASTNode * create_block_node(ASTNode_list * stmts) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_BLOCK;
+    node->block.statements = stmts;
+
+    return stmts;
+}
+
 CType * get_ctype_from_token(Token* token) {
     switch (token->type) {
         case TOKEN_INT: 

@@ -3,7 +3,6 @@
 #include "ast.h"
 
 ASTNode * create_translation_unit_node(ASTNode_list * functions);
-//ASTNode * create_unary_node(ASTNodeType op, struct ASTNode * operand);
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand);
 ASTNode * create_binary_op_node(ASTNode * lhs, BinaryOperator  op, ASTNode *rhs);
 ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * thenStatement, ASTNode * elseStatement);
@@ -26,6 +25,7 @@ ASTNode * create_function_declaration_node(char * name, CType * returnType,
         ASTNode_list * param_list, ASTNode * body, bool declaration_only);
 ASTNode * create_return_statement_node(ASTNode * expr);
 ASTNode * create_expression_statement_node(ASTNode * expr);
+ASTNode * create_block_node(ASTNode_list * stmts);
             
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);

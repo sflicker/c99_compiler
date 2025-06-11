@@ -267,28 +267,17 @@ ASTNode * parse_print_extension_statement(ParserContext * parserContext) {
 ASTNode * parse_block(ParserContext* parserContext) {
     expect_token(parserContext, TOKEN_LBRACE);
 
-    ASTNode * blockNode = malloc(sizeof(ASTNode));
-    blockNode->type = AST_BLOCK;
-    blockNode->block.statements = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(blockNode->block.statements, free_astnode);
-//    blockNode->block.count = 0;
-//    blockNode->block.capacity = 4;
-//    blockNode->block.statements = malloc(sizeof(ASTNode*) * blockNode->block.capacity);
+    ASTNode_list * statements = malloc(sizeof(ASTNode_list));
+    ASTNode_list_init(statements, free_astnode);
 
     while(!is_current_token(parserContext, TOKEN_RBRACE)) {
         ASTNode * statement = parse_statement(parserContext);
-        ASTNode_list_append(blockNode->block.statements, statement);
-    //     if (blockNode->block.count >= blockNode->block.capacity) {
-    //         blockNode->block.capacity *= 2;
-    //         blockNode->block.statements = realloc(
-    //             blockNode->block.statements, sizeof(ASTNode*) * blockNode->block.capacity);
-    //     }
-    //     blockNode->block.statements[blockNode->block.count++] = statement;
+        ASTNode_list_append(statements, statement);
     }
         
     expect_token(parserContext, TOKEN_RBRACE);
 
-    return blockNode;
+    return create_block_node(statements);
 }
 
 ASTNode * parse_label_statement(ParserContext* parserContext) {
