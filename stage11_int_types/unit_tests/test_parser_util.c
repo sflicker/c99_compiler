@@ -23,14 +23,6 @@ void test_create_int_literal_node() {
     TEST_ASSERT("Verify ctype is NULL", node->ctype == NULL);
 }
 
-void test_create_unary_node() {
-    ASTNode * operand = create_var_decl_node("a", &CTYPE_INT_T, NULL);
-    ASTNode * node = create_unary_node(UNARY_PLUS, operand);
-
-    TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node ast type is AST_UNARY_EXPR", node->type == AST_UNARY_EXPR);
-}
-
 void test_create_binary_op_node() {
     ASTNode * lhs = create_int_literal_node(42);
     ASTNode * rhs = create_var_decl_node("a", &CTYPE_INT_T, NULL);
@@ -62,8 +54,6 @@ void test_create_if_else_statement_node() {
     BinaryOperator op = BINOP_LT;
     ASTNode * condExpr = create_binary_op_node(lhs, op, rhs);
 
-
-
     ASTNode * thenStatement = create_return_statement_node(create_int_literal_node(1));
     ASTNode * elseStatement = create_return_statement_node(create_int_literal_node(2));
 
@@ -86,6 +76,45 @@ void test_create_while_statement_node() {
 
 }
 
+void test_create_ast_labeled_statement_node() {
+    const char * label = "end";
+    ASTNode * body = create_return_statement_node(create_int_literal_node(2));
+
+    ASTNode * labeled_statement = create_ast_labeled_statement_node(label, body);
+
+    TEST_ASSERT("Verify node is not null", labeled_statement);
+    TEST_ASSERT("Verify node is type AST_LABELED_STMT", labeled_statement->type == AST_LABELED_STMT); 
+    TEST_ASSERT("Verify label is correct", strcmp(labeled_statement->labeled_stmt.label, label) == 0);
+}
+
+void test_is_next_token_assignment() {
+    tokenlist * tokens = malloc(sizeof(tokenlist));
+    tokenlist_init(tokens, free_token);
+ 
+    tokenlist_append(tokens, make_int_token("42", 1, 1));
+    tokenlist_append(tokens, make_token(TOKEN_ASSIGN, "=", 1,1));
+    tokenlist_append(tokens, make_token(TOKEN_PLUS_EQUAL, "+=", 1, 1));
+    tokenlist_append(tokens, make_token(TOKEN_MINUS_EQUAL, "-=", 1, 1));
+    tokenlist_append(tokens, make_eof_token(1,1));
+
+    ParserContext * parserContext = create_parser_context(tokens);
+    // next token should be = which is an assignment token
+    TEST_ASSERT("Verifying next token is assignment", is_next_token_assignment(parserContext) == true);
+    advance_parser(parserContext);
+
+    // next token should be += which is an assignment token
+    TEST_ASSERT("Verifying next token is an assignment", is_next_token_assignment(parserContext) == true);
+    advance_parser(parserContext);
+
+    // next token should be -= which is an assignment token
+    TEST_ASSERT("Verifying next token is an assignment", is_next_token_assignment(parserContext) == true);
+    advance_parser(parserContext);
+
+    // next token should be EOF which is not an assignment
+    TEST_ASSERT("Verifying next token is not an assignment", is_next_token_assignment(parserContext) == false);
+
+}
+
 int main() {
     RUN_TEST(test_create_int_literal_node);
     RUN_TEST(test_create_var_decl_node);
@@ -94,4 +123,6 @@ int main() {
     RUN_TEST(test_create_translation_unit_node);
     RUN_TEST(test_create_if_else_statement_node);
     RUN_TEST(test_create_while_statement_node);
+    RUN_TEST(test_is_next_token_assignment);
+    RUN_TEST(test_create_ast_labeled_statement_node);
 }
