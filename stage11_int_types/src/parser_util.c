@@ -223,7 +223,7 @@ ASTNode * create_block_node(ASTNode_list * stmts) {
     node->type = AST_BLOCK;
     node->block.statements = stmts;
 
-    return stmts;
+    return node;
 }
 
 CType * get_ctype_from_token(Token* token) {

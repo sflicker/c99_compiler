@@ -18,8 +18,10 @@ void free_astnode(ASTNode * node) {
 
         case AST_FUNCTION_DECL:
             free(node->function_decl.name);
-            ASTNode_list_free(node->function_decl.param_list);
-            free(node->function_decl.param_list);
+            if (node->function_decl.param_list != NULL) {
+                ASTNode_list_free(node->function_decl.param_list);
+                free(node->function_decl.param_list);
+            }
             free_astnode(node->function_decl.body);
             break;
 
