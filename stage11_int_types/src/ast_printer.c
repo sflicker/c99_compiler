@@ -108,104 +108,12 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
-        // case AST_ADD:
-        //     printf("Binary: %s\n", "ADD");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_SUB:
-        //     printf("Binary: %s\n", "SUB");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_MUL:
-        //     printf("Binary: %s\n", "MULTIPLY");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_DIV:
-        //     printf("Binary: %s\n", "DIVIDE");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_MOD:
-        //     printf("Binary: %s\n", "MOD");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        // case AST_EQUAL:
-        //     printf("Binary: %s\n", "EQUAL");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_NOT_EQUAL:
-        //     printf("Binary: %s\n", "NOT_EQUAL");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_LOGICAL_AND:
-        //     printf("Binary: %s\n", "LOGICIAL_AND");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_LOGICAL_OR:
-        //     printf("Binary: %s\n", "LOGICIAL_OR");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_LESS_THAN:
-        //     printf("Binary: %s\n", "LESS_THAN");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_LESS_EQUAL:
-        //     printf("Binary: %s\n", "LESS_EQUAL");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_GREATER_THAN:
-        //     printf("Binary: %s\n", "GREATER_THAN");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
-        // case AST_GREATER_EQUAL:
-        //     printf("Binary: %s\n", "GREATER_EQUAL");
-        //     print_ast(node->binary.lhs, indent+1);
-        //     print_ast(node->binary.rhs, indent+1);
-        //     break;
 
         case AST_UNARY_EXPR:
             printf("Unary: %s\n", get_unary_op_name(node->unary.op));
             print_ast(node->unary.operand, indent+1);
             break;
 
-        // case AST_UNARY_NEGATE:
-        //     printf("Unary: %s\n", "NEGATE");
-        //     print_ast(node->unary.operand, indent+1);
-        //     break;
-        // case AST_UNARY_NOT:
-        //     printf("Unary: %s\n", "NOT");
-        //     print_ast(node->unary.operand, indent+1);
-        //     break;
-        // case AST_UNARY_PLUS:
-        //     printf("Unary: %s\n", "PLUS");
-        //     print_ast(node->unary.operand, indent+1);
-        //     break;
-        // case AST_UNARY_PRE_INC:
-        //     printf("Unary: %s\n", "PREFIX_INC");
-        //     print_ast(node->unary.operand, indent+1);
-        //     break;
-        // case AST_UNARY_PRE_DEC:
-        //     printf("Unary: %s\n", "PREFIX_DEC");
-        //     print_ast(node->unary.operand, indent+1);
-        //     break;
-        // case AST_UNARY_POST_INC:
-        //     printf("Unary: %s\n", "POSTFIX_INC");
-        //     print_ast(node->unary.operand, indent+1);
-        //     break;
-        // case AST_UNARY_POST_DEC:
-        //     printf("Unary: %s\n", "POSTFIX_DEC");
-        //     print_ast(node->unary.operand, indent+1);
-        //     break;
         case AST_IF_STMT:
             printf("IfStmt: \n");
             print_ast(node->if_stmt.cond, indent+1);
@@ -245,9 +153,6 @@ void print_ast(ASTNode * node, int indent) {
             for (ASTNode_list_node * n = node->block.statements->head; n; n = n->next) {
                 print_ast(n->value, indent+1);
             }
-            // for (int i=0;i<node->block.count;i++) {
-            //     print_ast(node->block.statements[i], indent+1);
-            // }
             break;
         case AST_BREAK_STMT:
             printf("BreakStatment:\n");
@@ -283,26 +188,12 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->expr_stmt.expr, indent+1);
             break;
         case AST_VAR_DECL:
-//            printf("VariableDeclaration: %s, type: %s/*, offset: %d*/ \n", node->var_decl.name, type_name(node->var_decl.var_type) /*, node->var_decl.addr */);
             printf("VariableDeclaration: %s, ctype: %s\n", node->var_decl.name, ctype_to_string(node->ctype));
             if (node->var_decl.init_expr) {
                 print_ast(node->var_decl.init_expr, indent+1);
             }
             break;
-        // case AST_ASSIGNMENT:
-        //     printf("Assignment: %s\n", node->assignment.name);
-        //     print_ast(node->assignment.expr, indent+1);
-        //     break;
-        // case AST_COMPOUND_ADD_ASSIGN:
-        //     printf("AddAssign: %s\n", node->assignment.name);
-        //     print_ast(node->assignment.expr, indent+1);
-        //     break;
-        // case AST_COMPOUND_SUB_ASSIGN:
-        //     printf("SubAssign: %s\n", node->assignment.name);
-        //     print_ast(node->assignment.expr, indent+1);
-        //     break;
         case AST_VAR_REF:
-//            printf("VariableExpression: %s /*, offset: %d */ \n", node->var_ref.name /*, node->var_ref.addr.stack_offset*/);
             printf("VariableExpression: %s\n", node->var_ref.name);
             break;
         default:        

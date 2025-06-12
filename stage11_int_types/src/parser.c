@@ -118,9 +118,9 @@
 //bool match_token(ParserContext* p, TokenType type);
 
 
-void nop_free_astnode(ASTNode * node) {
+// void nop_free_astnode(ASTNode * node) {
 
-}
+// }
 
 /* Top level parser method */
 ASTNode* parse(tokenlist * tokens) {
@@ -645,46 +645,20 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         return lhs;
     }
 
-    // Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
-    
-    // // if not an assignment fallback to expressio
-    // if (!name) {
-    //     return parse_expression(parserContext);
-    // }
-
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
         expect_token(parserContext, TOKEN_ASSIGN);
         ASTNode * rhs = parse_assignment_expression(parserContext);
-        ASTNode * node = create_binary_op_node(lhs, BINOP_ASSIGNMENT, rhs);
-        // ASTNode * node =  malloc(sizeof(ASTNode));
-        // node->type = AST_ASSIGNMENT;
-        // node->assignment.name = strdup(lhs->var_ref.name);
-        // node->assignment.expr = rhs;
-//        node->assignment.addr.kind = ADDR_UNASSIGNED;
-        return node;
+        return create_binary_op_node(lhs, BINOP_ASSIGNMENT, rhs);
     }
     else if (is_current_token(parserContext, TOKEN_PLUS_EQUAL)) {
         expect_token(parserContext, TOKEN_PLUS_EQUAL);
-
         ASTNode * rhs = parse_expression(parserContext);
-        ASTNode * node = create_binary_op_node(lhs, BINOP_COMPOUND_ADD_ASSIGN, rhs);
-        // ASTNode * node =  malloc(sizeof(ASTNode));
-        // node->type = AST_COMPOUND_ADD_ASSIGN;
-        // node->assignment.name = strdup(lhs->var_ref.name);
-        // node->assignment.expr = rhs;
-//        node->assignment.addr.kind = ADDR_UNASSIGNED;
-        return node;
+        return create_binary_op_node(lhs, BINOP_COMPOUND_ADD_ASSIGN, rhs);
     }
     else if (is_current_token(parserContext, TOKEN_MINUS_EQUAL)) {
-            expect_token(parserContext, TOKEN_MINUS_EQUAL); 
-            ASTNode * rhs = parse_expression(parserContext);
-            ASTNode * node = create_binary_op_node(lhs, BINOP_COMPOUND_SUB_ASSIGN, rhs);
-            // ASTNode * node =  malloc(sizeof(ASTNode));
-            // node->type = AST_COMPOUND_SUB_ASSIGN;
-            // node->assignment.name = strdup(lhs->var_ref.name);
-            // node->assignment.expr = rhs;
-//            node->assignment.addr.kind = ADDR_UNASSIGNED;
-            return node;    
+        expect_token(parserContext, TOKEN_MINUS_EQUAL); 
+        ASTNode * rhs = parse_expression(parserContext);
+        return create_binary_op_node(lhs, BINOP_COMPOUND_SUB_ASSIGN, rhs);
     }
     else {
         return lhs;
@@ -735,21 +709,25 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
 
 ASTNode * parse_primary(ParserContext * parserContext) {
 
+    // handle integer literals
     if (is_current_token(parserContext, TOKEN_INT_LITERAL)) {
         Token * tok = peek(parserContext);
         advance_parser(parserContext);
         ASTNode * node = create_int_literal_node(tok->int_value);
         return node;
     }
+    // handle paren blocks
     else if (is_current_token(parserContext, TOKEN_LPAREN)) {
         expect_token(parserContext, TOKEN_LPAREN);
         ASTNode * node = parse_expression(parserContext);
         expect_token(parserContext, TOKEN_RPAREN);
         return node;
     }
+    // handle identifier related
     else if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
         Token * tok = peek(parserContext);
         advance_parser(parserContext);
+        // handle function calls
         if (is_current_token(parserContext, TOKEN_LPAREN)) {
             advance_parser(parserContext);
             ASTNode_list * argument_expression_list = NULL; 
@@ -763,6 +741,7 @@ ASTNode * parse_primary(ParserContext * parserContext) {
             ASTNode * node = create_function_call_node(tok->text, argument_expression_list);
             return node;
         }
+        // handle variable references
         else {
             return create_var_ref_node(tok->text);
         }
