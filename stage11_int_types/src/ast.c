@@ -63,12 +63,12 @@ void free_astnode(ASTNode * node) {
             free_astnode(node->expr_stmt.expr);
             break;
 
-        case AST_ASSIGNMENT:
-        case AST_COMPOUND_ADD_ASSIGN:
-        case AST_COMPOUND_SUB_ASSIGN:
-            free(node->assignment.name);
-            free_astnode(node->assignment.expr);
-            break;
+        // case AST_ASSIGNMENT:
+        // case AST_COMPOUND_ADD_ASSIGN:
+        // case AST_COMPOUND_SUB_ASSIGN:
+        //     free(node->assignment.name);
+        //     free_astnode(node->assignment.expr);
+        //     break;
 
         case AST_VAR_REF:
             free(node->var_ref.name);
@@ -172,6 +172,9 @@ const char * get_binary_op_name(BinaryOperator op) {
         case BINOP_LE: return "LE"; break;
         case BINOP_LOGICAL_OR: return "OR"; break;
         case BINOP_LOGICAL_AND: return "AND"; break;
+        case BINOP_ASSIGNMENT: return "ASN"; break;
+        case BINOP_COMPOUND_ADD_ASSIGN: return "ADDASN"; break;
+        case BINOP_COMPOUND_SUB_ASSIGN: return "SUBASN"; break;
         case BINOP_UNASSIGNED_OP: return "UNASSIGNED"; break;
     }
     return NULL;

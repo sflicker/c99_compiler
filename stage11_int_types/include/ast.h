@@ -24,10 +24,10 @@ typedef enum {
     BINOP_LE,
     BINOP_LOGICAL_OR,
     BINOP_LOGICAL_AND,
-    BINOP_UNASSIGNED_OP
-    // BINOP_ASSIGNMENT,
-    // BINOP_COMPOUND_ADD_ASSIGN,
-    // BINOP_COMPOUND_SUB_ASSIGN
+    BINOP_UNASSIGNED_OP,
+    BINOP_ASSIGNMENT,
+    BINOP_COMPOUND_ADD_ASSIGN,
+    BINOP_COMPOUND_SUB_ASSIGN
 } BinaryOperator;
 
 typedef struct {
@@ -75,9 +75,9 @@ typedef enum {
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
     AST_VAR_REF,
-    AST_ASSIGNMENT,
-    AST_COMPOUND_ADD_ASSIGN,
-    AST_COMPOUND_SUB_ASSIGN,
+    // AST_ASSIGNMENT,
+    // AST_COMPOUND_ADD_ASSIGN,
+    // AST_COMPOUND_SUB_ASSIGN,
     // AST_UNARY_POST_INC,
     // AST_UNARY_POST_DEC,
     // AST_UNARY_PRE_INC,
@@ -209,11 +209,11 @@ typedef struct ASTNode {
             struct ASTNode * expr;
         } expr_stmt;
 
-        struct {
-            char * name;
-//            Address addr;
-            struct ASTNode * expr;
-        } assignment;
+//         struct {
+//             char * name;
+// //            Address addr;
+//             struct ASTNode * expr;
+//         } assignment;
 
         struct {
             char * label;

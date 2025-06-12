@@ -26,6 +26,10 @@ ASTNode * create_function_declaration_node(char * name, CType * returnType,
 ASTNode * create_return_statement_node(ASTNode * expr);
 ASTNode * create_expression_statement_node(ASTNode * expr);
 ASTNode * create_block_node(ASTNode_list * stmts);
+ASTNode * create_print_extension_node(ASTNode * expr);
+ASTNode * create_assert_extension_node(ASTNode * expr);
+
+ASTNode_list * create_node_list();
             
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);

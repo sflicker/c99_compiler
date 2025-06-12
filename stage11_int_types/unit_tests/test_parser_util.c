@@ -17,22 +17,21 @@ const char * current_test = NULL;
 void test_create_translation_unit_node() {
     
     ASTNode * rtn_stmt_node = create_return_statement_node(create_int_literal_node(2));
-    ASTNode_list * statements = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(statements, free_astnode);
+    ASTNode_list * statements = create_node_list();
     ASTNode_list_append(statements, rtn_stmt_node);
     
     ASTNode * body = create_block_node(statements);
 
     ASTNode * func = create_function_declaration_node("main", &CTYPE_INT_T, NULL, body, false);
 
-    ASTNode_list * functions = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(functions, free_astnode);
+    ASTNode_list * functions = create_node_list();
     ASTNode_list_append(functions, func);
 
     ASTNode * node = create_translation_unit_node(functions);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node type is AST_TRANSLATION_UNIT", node->type == AST_TRANSLATION_UNIT);
+    TEST_ASSERT("Verify node has 1 function", node->translation_unit.count == 1);
 
     free_astnode(node);
 }
@@ -74,9 +73,7 @@ void test_create_if_else_statement_node() {
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is type AST_IF_STMT", node->type == AST_IF_STMT);
 
-
     free_astnode(node);
-
 }
 
 void test_create_while_statement_node() {
@@ -118,11 +115,29 @@ void test_create_ast_default_statement_node() {
 }
 
 void test_create_goto_statement() {
+    const char * label = "end";
+    ASTNode * node = create_goto_statement(label);
+
+    TEST_ASSERT("Verify node is not null", node);
+    TEST_ASSERT("Verify node is type AST_GOTO_STMT", node->type == AST_GOTO_STMT); 
+    TEST_ASSERT("Verify label is correct", strcmp(node->goto_stmt.label, label) == 0);
+
+    free_astnode(node);
 
 }
 
 void test_create_do_while_statement() {
+    ASTNode * lhs = create_var_decl_node("a", &CTYPE_INT_T, NULL);
+    ASTNode * rhs = create_int_literal_node(42);
+    BinaryOperator op = BINOP_LT;
+    ASTNode * condExpr = create_binary_op_node(lhs, op, rhs);
+    ASTNode * bodyStatement = create_return_statement_node(create_int_literal_node(1));
 
+    ASTNode * node = create_do_while_statement(bodyStatement, condExpr);
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_DO_WHILE_STMT", node->type == AST_DO_WHILE_STMT);
+
+    free_astnode(node);
 }
 
 void test_create_switch_statement_node() {
@@ -148,12 +163,44 @@ void test_create_int_literal_node() {
     free_astnode(node);
 }
 
-void test_create_function_call_node() {
+void test_create_function_call_node_no_args() {
+    const char * funcname = "sum";
 
+    ASTNode * node = create_function_call_node(funcname, NULL);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
+    TEST_ASSERT("Verify function label is correct", strcmp(node->var_ref.name, funcname) == 0);
+    TEST_ASSERT("Verify arg list is NULL", node->function_call.arg_list == NULL);
+
+    free_astnode(node);
+}
+
+void test_create_function_call_node_with_args() {
+    const char * funcname = "sum";
+    ASTNode_list * arg_list = create_node_list();
+    ASTNode_list_append(arg_list, create_int_literal_node(42));
+
+    ASTNode * node = create_function_call_node(funcname, arg_list);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
+    TEST_ASSERT("Verify function label is correct", strcmp(node->var_ref.name, funcname) == 0);
+    TEST_ASSERT("Verify arg list contains 1 arg", node->function_call.arg_list->count == 1);
+
+    free_astnode(node);
 }
 
 void test_create_var_ref_node() {
+    const char * var_name = "a";
 
+    ASTNode * node = create_var_ref_node(var_name);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_VAR_REF", node->type == AST_VAR_REF);
+    TEST_ASSERT("Verify var name is correct", strcmp(node->var_ref.name, var_name) == 0);
+
+    free_astnode(node);
 }
 
 void test_create_var_decl_node() {
@@ -173,7 +220,7 @@ void test_create_for_statement_node() {
 
 }
 
-void test_create_function_declaration_node() {
+void test_create_function_declaration_node__declaration_only() {
     const char * label = "myfunc";
     CType ctype = CTYPE_INT_T;
     ASTNode_list * param_list = NULL;
@@ -191,6 +238,51 @@ void test_create_function_declaration_node() {
 
 }
 
+void test_create_function_declaration_node__with_body() {
+    const char * label = "main";
+    ASTNode * rtn_stmt_node = create_return_statement_node(create_int_literal_node(2));
+    ASTNode_list * statements = create_node_list();
+    ASTNode_list_append(statements, rtn_stmt_node);
+    
+    ASTNode * body = create_block_node(statements);
+
+    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, NULL, body, false);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
+    TEST_ASSERT("Verify correct identifier", strcmp(label, node->function_decl.name) == 0);
+    TEST_ASSERT("Verify is not declaration only", !node->function_decl.declaration_only);
+    TEST_ASSERT("Verify function body contains 1 statement", node->function_decl.body->block.count == 1);    
+
+    free_astnode(node);
+}
+
+void test_create_function_declaration_node__with_body_and_param_list() {
+    const char * label = "main";
+    const char * param_label = "a";
+    ASTNode * rtn_stmt_node = create_return_statement_node(create_int_literal_node(2));
+    ASTNode_list * statements = create_node_list();
+    ASTNode_list_append(statements, rtn_stmt_node);
+
+    ASTNode * param_a = create_var_decl_node(param_label, &CTYPE_INT_T, NULL);
+    ASTNode_list * param_list = malloc(sizeof(ASTNode_list));
+    ASTNode_list_init(param_list, free_astnode);
+    ASTNode_list_append(param_list, param_a);
+    
+    ASTNode * body = create_block_node(statements);
+
+    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, param_list, body, false);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
+    TEST_ASSERT("Verify correct identifier", strcmp(label, node->function_decl.name) == 0);
+    TEST_ASSERT("Verify is not declaration only", !node->function_decl.declaration_only);
+    TEST_ASSERT("Verify function body contains 1 statement", node->function_decl.body->block.count == 1);
+    TEST_ASSERT("Verify function contains 1 param", node->function_decl.param_list->count == 1);
+
+    free_astnode(node);
+}
+
 void test_create_return_statement_node() {
     ASTNode * node = create_return_statement_node(create_int_literal_node(2));
 
@@ -206,6 +298,16 @@ void test_create_expression_statement_node() {
 }
 
 void test_create_block_node() {
+    ASTNode * rtn_stmt_node = create_return_statement_node(create_int_literal_node(2));
+    ASTNode_list * statements = create_node_list();
+    ASTNode_list_append(statements, rtn_stmt_node);
+    
+    ASTNode * node = create_block_node(statements);
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is AST_BLOCK", node->type == AST_BLOCK);
+    TEST_ASSERT("Verify block has 1 statement", node->block.count == 1);
+
+    free_astnode(node);
 
 }
 
@@ -235,7 +337,6 @@ void test_is_next_token_assignment() {
     // next token should be EOF which is not an assignment
     TEST_ASSERT("Verifying next token is not an assignment", is_next_token_assignment(parserContext) == false);
 
-
 }
 
 int main() {
@@ -253,11 +354,14 @@ int main() {
     RUN_TEST(test_create_break_statement_node);
     RUN_TEST(test_create_continue_statement_node);
     RUN_TEST(test_create_int_literal_node);
-    RUN_TEST(test_create_function_call_node);
+    RUN_TEST(test_create_function_call_node_no_args);
+    RUN_TEST(test_create_function_call_node_with_args);
     RUN_TEST(test_create_var_ref_node);
     RUN_TEST(test_create_var_decl_node);
     RUN_TEST(test_create_for_statement_node);
-    RUN_TEST(test_create_function_declaration_node);
+    RUN_TEST(test_create_function_declaration_node__declaration_only);
+    RUN_TEST(test_create_function_declaration_node__with_body);
+    RUN_TEST(test_create_function_declaration_node__with_body_and_param_list);
     RUN_TEST(test_create_return_statement_node);
     RUN_TEST(test_create_expression_statement_node);
     RUN_TEST(test_create_block_node);

@@ -222,8 +222,30 @@ ASTNode * create_block_node(ASTNode_list * stmts) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_BLOCK;
     node->block.statements = stmts;
+    node->block.count = stmts->count;
 
     return node;
+}
+
+ASTNode * create_print_extension_node(ASTNode * expr) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_PRINT_EXTENSION_STATEMENT;
+    node->expr_stmt.expr = expr;
+    return node;
+}
+
+ASTNode * create_assert_extension_node(ASTNode * expr) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_ASSERT_EXTENSION_STATEMENT;
+    node->expr_stmt.expr = expr;
+    return node;
+}
+
+ASTNode_list * create_node_list() {
+    ASTNode_list * list = malloc(sizeof(ASTNode_list));
+    ASTNode_list_init(list, free_astnode);
+
+    return list;
 }
 
 CType * get_ctype_from_token(Token* token) {

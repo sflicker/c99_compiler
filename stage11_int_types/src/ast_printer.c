@@ -289,18 +289,18 @@ void print_ast(ASTNode * node, int indent) {
                 print_ast(node->var_decl.init_expr, indent+1);
             }
             break;
-        case AST_ASSIGNMENT:
-            printf("Assignment: %s\n", node->assignment.name);
-            print_ast(node->assignment.expr, indent+1);
-            break;
-        case AST_COMPOUND_ADD_ASSIGN:
-            printf("AddAssign: %s\n", node->assignment.name);
-            print_ast(node->assignment.expr, indent+1);
-            break;
-        case AST_COMPOUND_SUB_ASSIGN:
-            printf("SubAssign: %s\n", node->assignment.name);
-            print_ast(node->assignment.expr, indent+1);
-            break;
+        // case AST_ASSIGNMENT:
+        //     printf("Assignment: %s\n", node->assignment.name);
+        //     print_ast(node->assignment.expr, indent+1);
+        //     break;
+        // case AST_COMPOUND_ADD_ASSIGN:
+        //     printf("AddAssign: %s\n", node->assignment.name);
+        //     print_ast(node->assignment.expr, indent+1);
+        //     break;
+        // case AST_COMPOUND_SUB_ASSIGN:
+        //     printf("SubAssign: %s\n", node->assignment.name);
+        //     print_ast(node->assignment.expr, indent+1);
+        //     break;
         case AST_VAR_REF:
 //            printf("VariableExpression: %s /*, offset: %d */ \n", node->var_ref.name /*, node->var_ref.addr.stack_offset*/);
             printf("VariableExpression: %s\n", node->var_ref.name);
