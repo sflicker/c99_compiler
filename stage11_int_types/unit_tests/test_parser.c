@@ -142,6 +142,50 @@ void test_parse_unary_expression__plus() {
 
 }
 
+void test_parse_unary_expression__negate() {
+    // setup
+    tokenlist * tokens = tokenize("-a");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    // test
+    ASTNode * node = parse_unary_expression(ctx);
+    print_ast(node, 0);
+
+}
+
+void test_parse_unary_expression__not() {
+    // setup
+    tokenlist * tokens = tokenize("!a");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    // test
+    ASTNode * node = parse_unary_expression(ctx);
+    print_ast(node, 0);
+
+}
+
+void test_parse_unary_expression__increment() {
+    // setup
+    tokenlist * tokens = tokenize("++a");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    // test
+    ASTNode * node = parse_unary_expression(ctx);
+    print_ast(node, 0);
+
+}
+
+void test_parse_unary_expression__decrement() {
+    // setup
+    tokenlist * tokens = tokenize("--a");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    // test
+    ASTNode * node = parse_unary_expression(ctx);
+    print_ast(node, 0);
+
+}
+
 int main() {
     RUN_TEST(test_parse_primary__int_literal);
     RUN_TEST(test_parse_primary__parens);
@@ -151,4 +195,9 @@ int main() {
     RUN_TEST(test_parse_postfix_expression__inc);
     RUN_TEST(test_parse_postfix_expression__dec);
     RUN_TEST(test_parse_unary_expression__plus);
+    RUN_TEST(test_parse_unary_expression__negate);
+    RUN_TEST(test_parse_unary_expression__not);
+    RUN_TEST(test_parse_unary_expression__increment);
+    RUN_TEST(test_parse_unary_expression__decrement);
+
 }
