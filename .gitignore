@@ -13,7 +13,7 @@
 mimic99
 runner
 
-*/build/
+**/build/
 */cmake-build-*/
 */CMakeFiles/
 */cmake_install.cmake

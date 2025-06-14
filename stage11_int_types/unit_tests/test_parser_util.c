@@ -91,6 +91,20 @@ void test_create_while_statement_node() {
 
 }
 
+void test_create_do_while_statement() {
+    ASTNode * lhs = create_var_decl_node("a", &CTYPE_INT_T, NULL);
+    ASTNode * rhs = create_int_literal_node(42);
+    BinaryOperator op = BINOP_LT;
+    ASTNode * condExpr = create_binary_op_node(lhs, op, rhs);
+    ASTNode * bodyStatement = create_return_statement_node(create_int_literal_node(1));
+
+    ASTNode * node = create_do_while_statement(bodyStatement, condExpr);
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_DO_WHILE_STMT", node->type == AST_DO_WHILE_STMT);
+
+    free_astnode(node);
+}
+
 void test_create_ast_labeled_statement_node() {
     const char * label = "end";
     ASTNode * body = create_return_statement_node(create_int_literal_node(2));
@@ -126,29 +140,28 @@ void test_create_goto_statement() {
 
 }
 
-void test_create_do_while_statement() {
-    ASTNode * lhs = create_var_decl_node("a", &CTYPE_INT_T, NULL);
-    ASTNode * rhs = create_int_literal_node(42);
-    BinaryOperator op = BINOP_LT;
-    ASTNode * condExpr = create_binary_op_node(lhs, op, rhs);
-    ASTNode * bodyStatement = create_return_statement_node(create_int_literal_node(1));
 
-    ASTNode * node = create_do_while_statement(bodyStatement, condExpr);
-    TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node is type AST_DO_WHILE_STMT", node->type == AST_DO_WHILE_STMT);
-
-    free_astnode(node);
-}
 
 void test_create_switch_statement_node() {
 
 }
 
 void test_create_break_statement_node() {
+    ASTNode * node = create_break_statement_node();
 
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_SWITCH_STMT", node->type == AST_SWITCH_STMT);
+
+    free_astnode(node);
 }
 
 void test_create_continue_statement_node() {
+    ASTNode * node = create_continue_statement_node();
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_CONTINUE_STMT", node->type == AST_CONTINUE_STMT);
+
+    free_astnode(node);
 
 }
 
