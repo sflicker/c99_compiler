@@ -10,6 +10,7 @@
 #include "tokenizer.h"
 #include "tokenizer_context.h"
 #include "util.h"
+#include "error.h"
 
 typedef struct {
     const char* text;

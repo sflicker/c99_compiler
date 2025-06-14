@@ -33,7 +33,7 @@ char * ctype_to_string(CType * ctype);
 
 DEFINE_LINKED_LIST(CType*, CTypePtr_list);
 
-void free_type(CType * ctype);
+void free_ctype(CType * ctype);
 
 bool ctype_equal(const CType *a, const CType *b);
 CType *make_ptr_type(CType *base);

@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
+#include <error.h>
 #include "util.h"
 #include "list_util.h"
 #include "ast_list.h"

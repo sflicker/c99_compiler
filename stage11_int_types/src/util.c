@@ -89,21 +89,7 @@ const char * get_file_extension(const char * filename) {
     return dot + 1;
 }
 
-void error(const char* fmt, ...) {
-    va_list args;
 
-    // --- 1. Write to stderr
-    va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
-    va_end(args);
-
-    // --- 2. Echo to stdout (re-initialize args)
-    va_start(args, fmt);
-    vfprintf(stdout, fmt, args);
-    va_end(args);
-
-    exit(1);
-}
 
 
 

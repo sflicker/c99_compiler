@@ -10,7 +10,7 @@
 #include "token.h"
 #include "ast_list.h"
 #include "ast.h"
-
+#include "error.h"
 #include "parser.h"
 #include "parser_util.h"
 #include "parser_context.h"
@@ -142,9 +142,6 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
     return create_translation_unit_node(functions);
 }
 
-
-
-
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
 
         return parse_function(parserContext);
@@ -212,6 +209,9 @@ ASTNode * parse_function(ParserContext* parserContext) {
     return func;
 }
 
+/////////////////////////////////////////////////////////
+//// STATEMENTS
+/////////////////////////////////////////////////////////
 ASTNode * parse_assert_extension_statement(ParserContext * parserContext) {
     expect_token(parserContext, TOKEN_ASSERT_EXTENSION);
     expect_token(parserContext, TOKEN_LPAREN);
@@ -261,14 +261,6 @@ ASTNode * parse_label_statement(ParserContext* parserContext) {
     return create_ast_labeled_statement_node(label, stmt);
 }
 
-ASTNode * parse_constant_expression(ParserContext * parserContext) {
-    ASTNode * node = parse_primary(parserContext);
-    if (node->type == AST_INT_LITERAL) {
-        return node;
-    }
-    error("expected constant expression\n");
-    return NULL;
-}
 
 ASTNode * parse_case_statement(ParserContext * parserContext) {
     expect_token(parserContext, TOKEN_CASE);
@@ -388,6 +380,21 @@ ASTNode * parse_statement(ParserContext* parserContext) {
     return parse_expression_statement(parserContext);
 }
 
+ASTNode*  parse_var_declaration(ParserContext * parserContext) {
+    CType * ctype = parse_ctype(parserContext);
+    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
+    ASTNode * expr = NULL;
+    if (is_current_token(parserContext, TOKEN_ASSIGN)) {
+        advance_parser(parserContext);
+        expr = parse_expression(parserContext);
+    }
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    ASTNode * node = create_var_decl_node(name->text, ctype, expr);
+
+    return node;
+}
+
 ASTNode * parse_if_statement(ParserContext * parserContext) {
     expect_token(parserContext, TOKEN_IF);
     expect_token(parserContext, TOKEN_LPAREN);
@@ -483,10 +490,46 @@ ASTNode * parse_return_statement(ParserContext* parserContext) {
     return create_return_statement_node(expr);
 }
 
-
+////////////////////////////////////////////////////////////
+////  EXPRESSIONS
+////////////////////////////////////////////////////////////
 ASTNode * parse_expression(ParserContext * parserContext) {
 //    return parse_logical_or(parserContext);
     return parse_assignment_expression(parserContext);
+}
+
+ASTNode * parse_assignment_expression(ParserContext * parserContext) {
+
+    ASTNode * lhs = parse_logical_or(parserContext);
+
+    if (lhs == NULL ) {
+        error("lhs must not be null\n");
+    }
+    else if (!is_lvalue(lhs)) {
+        return lhs;
+    }
+
+    if (is_current_token(parserContext, TOKEN_ASSIGN)) {
+        expect_token(parserContext, TOKEN_ASSIGN);
+        ASTNode * rhs = parse_assignment_expression(parserContext);
+        return create_binary_node(lhs, BINOP_ASSIGNMENT, rhs);
+    }
+    else if (is_current_token(parserContext, TOKEN_PLUS_EQUAL)) {
+        expect_token(parserContext, TOKEN_PLUS_EQUAL);
+        ASTNode * rhs = parse_expression(parserContext);
+        return create_binary_node(lhs, BINOP_COMPOUND_ADD_ASSIGN, rhs);
+    }
+    else if (is_current_token(parserContext, TOKEN_MINUS_EQUAL)) {
+        expect_token(parserContext, TOKEN_MINUS_EQUAL);
+        ASTNode * rhs = parse_expression(parserContext);
+        return create_binary_node(lhs, BINOP_COMPOUND_SUB_ASSIGN, rhs);
+    }
+    else {
+        return lhs;
+    }
+    error("Expected assignment operator. actual=%s at line=%d, col=%d\n",
+            get_current_token_type_name(parserContext), get_current_token_line(parserContext), get_current_token_col(parserContext));
+    return NULL;  // should never reach because error exits. this is to remove a warning
 }
 
 ASTNode * parse_logical_or(ParserContext * parserContext) {
@@ -550,9 +593,7 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
         ASTNode * rhs = parse_multiplicative_expression(parserContext);
         root = create_binary_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
-
     return root;
-
 }
 
 
@@ -569,23 +610,6 @@ ASTNode * parse_multiplicative_expression(ParserContext * parserContext) {
 
     return root;
 }
-
-
-
-// ASTNodeType unary_op_token_to_ast_type(TokenType tokenType) {
-//     switch(tokenType) {
-//         case TOKEN_MINUS: return AST_UNARY_NEGATE; break;
-//         case TOKEN_PLUS: return AST_UNARY_PLUS; break;
-//         case TOKEN_BANG: return AST_UNARY_NOT; break;
-//         case TOKEN_INCREMENT: return AST_UNARY_PRE_INC; break;
-//         case TOKEN_DECREMENT: return AST_UNARY_PRE_DEC; break;
-//         default:
-//             error("Unable to determine prefix operator type");
-//             return 0; 
-//         break;
-    
-//     }
-// }
 
 ASTNode * parse_unary_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_PLUS)) {
@@ -619,66 +643,6 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
 
 }
 
-ASTNode*  parse_var_declaration(ParserContext * parserContext) {
-    CType * ctype = parse_ctype(parserContext);
-    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
-    ASTNode * expr = NULL;
-    if (is_current_token(parserContext, TOKEN_ASSIGN)) {
-        advance_parser(parserContext);
-        expr = parse_expression(parserContext);
-    }
-    expect_token(parserContext, TOKEN_SEMICOLON);
-
-    ASTNode * node = create_var_decl_node(name->text, ctype, expr);
-
-    return node;
-}
-
-ASTNode * parse_assignment_expression(ParserContext * parserContext) {
-
-    ASTNode * lhs = parse_logical_or(parserContext);
-
-    if (lhs == NULL ) {
-        error("lhs must not be null\n");
-    }
-    else if (!is_lvalue(lhs)) {
-        return lhs;
-    }
-
-    if (is_current_token(parserContext, TOKEN_ASSIGN)) {
-        expect_token(parserContext, TOKEN_ASSIGN);
-        ASTNode * rhs = parse_assignment_expression(parserContext);
-        return create_binary_node(lhs, BINOP_ASSIGNMENT, rhs);
-    }
-    else if (is_current_token(parserContext, TOKEN_PLUS_EQUAL)) {
-        expect_token(parserContext, TOKEN_PLUS_EQUAL);
-        ASTNode * rhs = parse_expression(parserContext);
-        return create_binary_node(lhs, BINOP_COMPOUND_ADD_ASSIGN, rhs);
-    }
-    else if (is_current_token(parserContext, TOKEN_MINUS_EQUAL)) {
-        expect_token(parserContext, TOKEN_MINUS_EQUAL); 
-        ASTNode * rhs = parse_expression(parserContext);
-        return create_binary_node(lhs, BINOP_COMPOUND_SUB_ASSIGN, rhs);
-    }
-    else {
-        return lhs;
-    }
-    error("Expected assignment operator. actual=%s at line=%d, col=%d\n", 
-            get_current_token_type_name(parserContext), get_current_token_line(parserContext), get_current_token_col(parserContext));
-    return NULL;  // should never reach because error exits. this is to remove a warning
-}
-
-
-// ASTNode * parse_assignment_statement(ParserContext * parserContext) {
-    
-//     ASTNode *expr = parse_assignment_expression(parserContext);
-//     expect_token(parserContext, TOKEN_SEMICOLON);
-
-//     ASTNode * node =  malloc(sizeof(ASTNode));
-//     node->type = AST_EXPRESSION_STMT;
-//     node->expr_stmt.expr = expr;
-//     return node;
-// }
 
 ASTNode * parse_postfix_expression(ParserContext * parserContext) {
     ASTNode * primary = parse_primary(parserContext);
@@ -697,15 +661,14 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
     return primary;
 }
 
-// ASTNode * parse_argument_expression_list(ParserContext * parserContext) {
-//     ASTNode * node = malloc(sizeof(ASTNode));
-//     node->type = AST_ARGUMENT_EXPRESSION_LIST;
-
-//     //TODO
-
-//     return NULL;
-// }
-
+ASTNode * parse_constant_expression(ParserContext * parserContext) {
+    ASTNode * node = parse_primary(parserContext);
+    if (node->type == AST_INT_LITERAL) {
+        return node;
+    }
+    error("expected constant expression\n");
+    return NULL;
+}
 
 ASTNode * parse_primary(ParserContext * parserContext) {
 

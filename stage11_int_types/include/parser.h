@@ -28,6 +28,7 @@ ASTNode * parse_multiplicative_expression(ParserContext * parserContext);
 ASTNode * parse_unary_expression(ParserContext * parserContext);
 ASTNode * parse_postfix_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
+ASTNode * parse_constant_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
 ASTNode * parse_var_declaration(ParserContext * parserContext);
 ASTNode * parse_assignment_statement(ParserContext * parserContext);

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "error.h"
 #include "util.h"
 #include "token.h"
 #include "ast.h"

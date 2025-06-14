@@ -5,7 +5,7 @@
 #include "symtab.h"
 #include "util.h"
 #include "ctype.h"
-
+#include "error.h"
 
 
 // #define MAX_SYMBOLS 128

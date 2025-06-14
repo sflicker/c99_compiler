@@ -9,6 +9,7 @@
 #include "parser.h"
 #include "test_assert.h"
 #include "ast_printer.h"
+#include "error.h"
 #include "parser_util.h"
 
 const char * current_test = NULL;
@@ -328,7 +329,7 @@ void test_parse_additive_expression__sub() {
     free_astnode(actual);
 }
 
-void parse_relational_expression__gt() {
+void test_parse_relational_expression__gt() {
     ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_GT,
@@ -347,7 +348,7 @@ void parse_relational_expression__gt() {
 
 }
 
-void parse_relational_expression__ge() {
+void test_parse_relational_expression__ge() {
     ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_GE,
@@ -366,7 +367,7 @@ void parse_relational_expression__ge() {
 
 }
 
-void parse_relational_expression__lt() {
+void test_parse_relational_expression__lt() {
     ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_LT,
@@ -386,7 +387,7 @@ void parse_relational_expression__lt() {
 
 }
 
-void parse_relational_expression__le() {
+void test_parse_relational_expression__le() {
 
     ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
@@ -407,12 +408,116 @@ void parse_relational_expression__le() {
     free_astnode(actual);
 }
 
+void test_parse_constant_expression__pass() {
+    // setup
+    tokenlist * tokens = tokenize("7");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_constant_expression(ctx);
+
+    print_ast(actual, 0);
+    TEST_ASSERT("Verifying node is not NULL", actual != NULL);
+    TEST_ASSERT("Verifying error did not occur", !error_occurred());
+
+    free_astnode(actual);
+}
+
+void test_parse_constant_expression__fail() {
+    // setup
+    tokenlist * tokens = tokenize("a++");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    set_error_exit_on_error_enabled(false);
+
+    ASTNode * actual = parse_constant_expression(ctx);
+
+    print_ast(actual, 0);
+    TEST_ASSERT("Verifying node is NULL", actual == NULL);
+    TEST_ASSERT("Verifying error occurred", error_occurred());
+    TEST_ASSERT("Verifying error message is present", strlen(error_message()) > 0);
+
+    free_astnode(actual);
+
+    set_error_exit_on_error_enabled(true);
+}
+
+void test_parse_equality_expression__eq() {
+    ASTNode * expected = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_EQ,
+        create_var_ref_node("b"));
+
+    // setup
+    tokenlist * tokens = tokenize("a == b");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_equality_expression(ctx);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+
+    free_astnode(expected);
+    free_astnode(actual);
+}
+
+void test_parse_equality_expression__ne() {
+    ASTNode * expected = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_NE,
+        create_var_ref_node("b"));
+
+    // setup
+    tokenlist * tokens = tokenize("a != b");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_equality_expression(ctx);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+
+    free_astnode(expected);
+    free_astnode(actual);
+}
+
+void test_parse_logical_and() {
+    ASTNode * expected = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_LOGICAL_AND,
+        create_var_ref_node("b"));
+
+    tokenlist * tokens = tokenize("a && b");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_logical_and(ctx);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
+}
+
+void test_parse_logical_or() {
+    ASTNode * expected = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_LOGICAL_OR,
+        create_var_ref_node("b"));
+
+    tokenlist * tokens = tokenize("a || b");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_logical_or(ctx);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+}
+
 int main() {
     RUN_TEST(test_parse_primary__int_literal);
     RUN_TEST(test_parse_primary__parens);
     RUN_TEST(test_parse_primary__function_call);
     RUN_TEST(test_parse_primary__function_call__with_args);
     RUN_TEST(test_parse_primary__variable_ref);
+    RUN_TEST(test_parse_constant_expression__pass);
+    RUN_TEST(test_parse_constant_expression__fail);
     RUN_TEST(test_parse_postfix_expression__inc);
     RUN_TEST(test_parse_postfix_expression__dec);
     RUN_TEST(test_parse_unary_expression__plus);
@@ -425,9 +530,12 @@ int main() {
     RUN_TEST(test_parse_multiplicative__mod);
     RUN_TEST(test_parse_additive_expression__add);
     RUN_TEST(test_parse_additive_expression__sub);
-    RUN_TEST(parse_relational_expression__gt);
-    RUN_TEST(parse_relational_expression__ge);
-    RUN_TEST(parse_relational_expression__lt);
-    RUN_TEST(parse_relational_expression__le);
-
+    RUN_TEST(test_parse_relational_expression__gt);
+    RUN_TEST(test_parse_relational_expression__ge);
+    RUN_TEST(test_parse_relational_expression__lt);
+    RUN_TEST(test_parse_relational_expression__le);
+    RUN_TEST(test_parse_equality_expression__eq);
+    RUN_TEST(test_parse_equality_expression__ne);
+    RUN_TEST(test_parse_logical_and);
+    RUN_TEST(test_parse_logical_or);
 }

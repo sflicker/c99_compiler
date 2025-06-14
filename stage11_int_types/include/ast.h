@@ -136,7 +136,7 @@ typedef struct ASTNode {
             //struct ASTNode** param_list;
             //paramlist param_list;
             ASTNode_list * param_list;
-            //int param_count;
+            int param_count;
             struct ASTNode* body;
             bool declaration_only;
             int size;
