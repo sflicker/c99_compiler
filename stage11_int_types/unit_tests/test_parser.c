@@ -236,7 +236,7 @@ void test_parse_unary_expression__decrement() {
 }
 
 void test_parse_multiplicative__multi() {
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(1),
         BINOP_MUL,
         create_int_literal_node(2));
@@ -255,7 +255,7 @@ void test_parse_multiplicative__multi() {
 }
 
 void test_parse_multiplicative__div() {
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(10),
         BINOP_DIV,
         create_int_literal_node(2));
@@ -274,7 +274,7 @@ void test_parse_multiplicative__div() {
 }
 
 void test_parse_multiplicative__mod() {
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_MOD,
         create_int_literal_node(2));
@@ -293,7 +293,7 @@ void test_parse_multiplicative__mod() {
 }
 
 void test_parse_additive_expression__add() {
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_ADD,
         create_int_literal_node(2));
@@ -311,7 +311,7 @@ void test_parse_additive_expression__add() {
 }
 
 void test_parse_additive_expression__sub() {
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_SUB,
         create_int_literal_node(2));
@@ -329,7 +329,7 @@ void test_parse_additive_expression__sub() {
 }
 
 void parse_relational_expression__gt() {
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_GT,
         create_int_literal_node(2));
@@ -348,7 +348,7 @@ void parse_relational_expression__gt() {
 }
 
 void parse_relational_expression__ge() {
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_GE,
         create_int_literal_node(2));
@@ -367,7 +367,7 @@ void parse_relational_expression__ge() {
 }
 
 void parse_relational_expression__lt() {
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_LT,
         create_int_literal_node(2));
@@ -388,7 +388,7 @@ void parse_relational_expression__lt() {
 
 void parse_relational_expression__le() {
 
-    ASTNode * expected = create_binary_op_node(
+    ASTNode * expected = create_binary_node(
         create_int_literal_node(7),
         BINOP_LE,
         create_int_literal_node(2));

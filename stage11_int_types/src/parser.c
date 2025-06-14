@@ -494,7 +494,7 @@ ASTNode * parse_logical_or(ParserContext * parserContext) {
 
     while (match_token(parserContext, TOKEN_LOGICAL_OR)) {
         ASTNode * rhs = parse_logical_and(parserContext);
-        ASTNode * node = create_binary_op_node(lhs, BINOP_LOGICAL_OR, rhs);
+        ASTNode * node = create_binary_node(lhs, BINOP_LOGICAL_OR, rhs);
         lhs = node;
     }
     return lhs;
@@ -505,7 +505,7 @@ ASTNode * parse_logical_and(ParserContext * parserContext) {
 
     while (match_token(parserContext, TOKEN_LOGICAL_AND)) {
         ASTNode * rhs = parse_equality_expression(parserContext);
-        ASTNode * node = create_binary_op_node(lhs, BINOP_LOGICAL_AND, rhs);
+        ASTNode * node = create_binary_node(lhs, BINOP_LOGICAL_AND, rhs);
         lhs = node;
     }
     return lhs;
@@ -520,7 +520,7 @@ ASTNode * parse_equality_expression(ParserContext * parserContext) {
         BinaryOperator binop = (op->type == TOKEN_EQ) ? BINOP_EQ : BINOP_NE;
         advance_parser(parserContext);
         ASTNode * rhs = parse_relational_expression(parserContext);
-        root = create_binary_op_node(lhs, binop, rhs);
+        root = create_binary_node(lhs, binop, rhs);
     }
 
     return root;
@@ -535,7 +535,7 @@ ASTNode * parse_relational_expression(ParserContext * parserContext) {
         Token * op = peek(parserContext);
         advance_parser(parserContext);
         ASTNode * rhs = parse_additive_expression(parserContext);
-        root = create_binary_op_node(lhs, get_binary_operator_from_tok(op), rhs);
+        root = create_binary_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
     return root;
 }
@@ -548,7 +548,7 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
         Token * op = peek(parserContext);
         advance_parser(parserContext);
         ASTNode * rhs = parse_multiplicative_expression(parserContext);
-        root = create_binary_op_node(lhs, get_binary_operator_from_tok(op), rhs);
+        root = create_binary_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
 
     return root;
@@ -564,7 +564,7 @@ ASTNode * parse_multiplicative_expression(ParserContext * parserContext) {
         Token * op = peek(parserContext);
         advance_parser(parserContext);
         ASTNode * rhs = parse_unary_expression(parserContext);
-        root = create_binary_op_node(lhs, get_binary_operator_from_tok(op), rhs);
+        root = create_binary_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
 
     return root;
@@ -648,17 +648,17 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
         expect_token(parserContext, TOKEN_ASSIGN);
         ASTNode * rhs = parse_assignment_expression(parserContext);
-        return create_binary_op_node(lhs, BINOP_ASSIGNMENT, rhs);
+        return create_binary_node(lhs, BINOP_ASSIGNMENT, rhs);
     }
     else if (is_current_token(parserContext, TOKEN_PLUS_EQUAL)) {
         expect_token(parserContext, TOKEN_PLUS_EQUAL);
         ASTNode * rhs = parse_expression(parserContext);
-        return create_binary_op_node(lhs, BINOP_COMPOUND_ADD_ASSIGN, rhs);
+        return create_binary_node(lhs, BINOP_COMPOUND_ADD_ASSIGN, rhs);
     }
     else if (is_current_token(parserContext, TOKEN_MINUS_EQUAL)) {
         expect_token(parserContext, TOKEN_MINUS_EQUAL); 
         ASTNode * rhs = parse_expression(parserContext);
-        return create_binary_op_node(lhs, BINOP_COMPOUND_SUB_ASSIGN, rhs);
+        return create_binary_node(lhs, BINOP_COMPOUND_SUB_ASSIGN, rhs);
     }
     else {
         return lhs;

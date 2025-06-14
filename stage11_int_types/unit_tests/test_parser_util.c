@@ -46,15 +46,14 @@ void test_create_unary_node() {
     free_astnode(node);
 }
 
-void test_create_binary_op_node() {
+void test_create_binary_node() {
     ASTNode * lhs = create_int_literal_node(42);
     ASTNode * rhs = create_var_decl_node("a", &CTYPE_INT_T, NULL);
-    BinaryOperator op = BINOP_ADD;
-    ASTNode * node = create_binary_op_node(lhs, op, rhs);
+    ASTNode * node = create_binary_node(lhs, BINOP_ADD, rhs);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node ast type is AST_BINARY_EXPR", node->type == AST_BINARY_EXPR);
-    TEST_ASSERT("Verify correct op", node->binary.op == op);
+    TEST_ASSERT("Verify correct op", node->binary.op == BINOP_ADD);
 
     free_astnode(node);
 }
@@ -62,8 +61,7 @@ void test_create_binary_op_node() {
 void test_create_if_else_statement_node() {
     ASTNode * lhs = create_var_decl_node("a", &CTYPE_INT_T, NULL);
     ASTNode * rhs = create_int_literal_node(42);
-    BinaryOperator op = BINOP_LT;
-    ASTNode * condExpr = create_binary_op_node(lhs, op, rhs);
+    ASTNode * condExpr = create_binary_node(lhs, BINOP_LT, rhs);
 
     ASTNode * thenStatement = create_return_statement_node(create_int_literal_node(1));
     ASTNode * elseStatement = create_return_statement_node(create_int_literal_node(2));
@@ -79,8 +77,7 @@ void test_create_if_else_statement_node() {
 void test_create_while_statement_node() {
     ASTNode * lhs = create_var_decl_node("a", &CTYPE_INT_T, NULL);
     ASTNode * rhs = create_int_literal_node(42);
-    BinaryOperator op = BINOP_LT;
-    ASTNode * condExpr = create_binary_op_node(lhs, op, rhs);
+    ASTNode * condExpr = create_binary_node(lhs, BINOP_LT, rhs);
     ASTNode * bodyStatement = create_return_statement_node(create_int_literal_node(1));
 
     ASTNode * node = create_while_statement_node(condExpr, bodyStatement);
@@ -88,14 +85,12 @@ void test_create_while_statement_node() {
     TEST_ASSERT("Verify node is type AST_WHILE_STMT", node->type == AST_WHILE_STMT);
 
     free_astnode(node);
-
 }
 
 void test_create_do_while_statement() {
     ASTNode * lhs = create_var_decl_node("a", &CTYPE_INT_T, NULL);
     ASTNode * rhs = create_int_literal_node(42);
-    BinaryOperator op = BINOP_LT;
-    ASTNode * condExpr = create_binary_op_node(lhs, op, rhs);
+    ASTNode * condExpr = create_binary_node(lhs, BINOP_LT, rhs);
     ASTNode * bodyStatement = create_return_statement_node(create_int_literal_node(1));
 
     ASTNode * node = create_do_while_statement(bodyStatement, condExpr);
@@ -116,16 +111,25 @@ void test_create_ast_labeled_statement_node() {
     TEST_ASSERT("Verify label is correct", strcmp(node->labeled_stmt.label, label) == 0);
 
     free_astnode(node);
-
 }
 
 void test_create_ast_case_statement_node() {
+    ASTNode * constExpression = create_int_literal_node(42);
+    ASTNode * stmt = create_return_statement_node(create_int_literal_node(42));
+    ASTNode * node = create_ast_case_statement_node(constExpression, stmt);
 
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_CASE_STMT", node->type == AST_CASE_STMT);
+    free_astnode(node);
 }
 
 void test_create_ast_default_statement_node() {
+    ASTNode * stmt = create_return_statement_node(create_int_literal_node(42));
+    ASTNode * node = create_ast_default_statement_node(stmt);
 
-
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_DEFAULT_STMT", node->type == AST_DEFAULT_STMT);
+    free_astnode(node);
 }
 
 void test_create_goto_statement() {
@@ -137,20 +141,37 @@ void test_create_goto_statement() {
     TEST_ASSERT("Verify label is correct", strcmp(node->goto_stmt.label, label) == 0);
 
     free_astnode(node);
-
 }
 
-
-
 void test_create_switch_statement_node() {
+    ASTNode * constExpression = create_int_literal_node(42);
+    ASTNode * stmt = create_return_statement_node(create_int_literal_node(42));
+    ASTNode * caseStmt = create_ast_case_statement_node(constExpression, stmt);
 
+    stmt = create_return_statement_node(create_int_literal_node(42));
+    ASTNode * defaultStmt = create_ast_default_statement_node(stmt);
+
+    ASTNode_list * statements = create_node_list();
+    ASTNode_list_append(statements, caseStmt);
+    ASTNode_list_append(statements, defaultStmt);
+
+    ASTNode * body = create_block_node(statements);
+
+    ASTNode * expr = create_var_ref_node("a");
+
+    ASTNode * node = create_switch_statement(expr, body);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is type AST_SWITCH_STMT", node->type == AST_SWITCH_STMT);
+
+    free_astnode(node);
 }
 
 void test_create_break_statement_node() {
     ASTNode * node = create_break_statement_node();
 
     TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node is type AST_SWITCH_STMT", node->type == AST_SWITCH_STMT);
+    TEST_ASSERT("Verify node is type AST_BREAK_STMT", node->type == AST_BREAK_STMT);
 
     free_astnode(node);
 }
@@ -230,7 +251,32 @@ void test_create_var_decl_node() {
 }
 
 void test_create_for_statement_node() {
+    ASTNode * init_expr = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_ASSIGNMENT,
+        create_int_literal_node(0)
+        );
+    ASTNode * cond_expr = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_LT,
+        create_int_literal_node(10)
+    );
+    ASTNode * update_expr = create_unary_node(
+        UNARY_POST_INC,
+        create_var_ref_node("a")
+        );
+    ASTNode_list * body_list = create_node_list();
+        ASTNode_list_append(body_list, create_unary_node(UNARY_POST_INC,
+            create_var_ref_node("counter")
+            ));
+    ASTNode * body = create_block_node(body_list);
 
+    ASTNode * node = create_for_statement_node(init_expr, cond_expr, update_expr, body);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node ast type is AST_FOR_STMT", node->type == AST_FOR_STMT);
+
+    free_astnode(init_expr);
 }
 
 void test_create_function_declaration_node__declaration_only() {
@@ -248,7 +294,6 @@ void test_create_function_declaration_node__declaration_only() {
     TEST_ASSERT("Verify declaration only", node->function_decl.declaration_only);
 
     free_astnode(node);
-
 }
 
 void test_create_function_declaration_node__with_body() {
@@ -303,11 +348,21 @@ void test_create_return_statement_node() {
     TEST_ASSERT("Verify node is AST_RETURN_STMT", node->type == AST_RETURN_STMT);
 
     free_astnode(node);
-
 }
 
 void test_create_expression_statement_node() {
+    ASTNode * node =
+        create_expression_statement_node(
+        create_binary_node(
+            create_var_ref_node("a"),
+            BINOP_ASSIGNMENT,
+            create_int_literal_node(3)
+            )
+        );
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is AST_EXPRESSION_STMT", node->type == AST_EXPRESSION_STMT);
 
+    free_astnode(node);
 }
 
 void test_create_block_node() {
@@ -355,7 +410,7 @@ void test_is_next_token_assignment() {
 int main() {
     RUN_TEST(test_create_translation_unit_node);
     RUN_TEST(test_create_unary_node);
-    RUN_TEST(test_create_binary_op_node);
+    RUN_TEST(test_create_binary_node);
     RUN_TEST(test_create_if_else_statement_node);
     RUN_TEST(test_create_while_statement_node);
     RUN_TEST(test_create_ast_labeled_statement_node);

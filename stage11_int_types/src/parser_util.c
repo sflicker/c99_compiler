@@ -30,7 +30,7 @@ ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand) {
     return node;
 }
 
-ASTNode * create_binary_op_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
+ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_BINARY_EXPR;
     node->binary.op = op;

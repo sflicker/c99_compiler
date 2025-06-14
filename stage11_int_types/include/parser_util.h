@@ -4,7 +4,7 @@
 
 ASTNode * create_translation_unit_node(ASTNode_list * functions);
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand);
-ASTNode * create_binary_op_node(ASTNode * lhs, BinaryOperator  op, ASTNode *rhs);
+ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator  op, ASTNode *rhs);
 ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * thenStatement, ASTNode * elseStatement);
 ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodyStatement);
 ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt);

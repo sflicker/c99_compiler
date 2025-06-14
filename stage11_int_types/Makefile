@@ -233,6 +233,19 @@ test_util/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_util.dir/build.make CMakeFiles/test_util.dir/build
 .PHONY : test_util/fast
 
+#=============================================================================
+# Target rules for targets named run_unit_tests
+
+# Build rule for target.
+run_unit_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 run_unit_tests
+.PHONY : run_unit_tests
+
+# fast build rule for target.
+run_unit_tests/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/run_unit_tests.dir/build.make CMakeFiles/run_unit_tests.dir/build
+.PHONY : run_unit_tests/fast
+
 src/ast.o: src/ast.c.o
 .PHONY : src/ast.o
 
@@ -787,6 +800,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... run_unit_tests"
 	@echo "... mimic99"
 	@echo "... mimic99_core"
 	@echo "... test_parser"
