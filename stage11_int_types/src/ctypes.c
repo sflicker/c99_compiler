@@ -60,3 +60,10 @@ CType *make_ptr_type(CType *base) {
     ptr->ptr_to = base;
     return ptr;
 }
+
+bool ctype_equals(CType * a, CType * b) {
+    if (!a || !b) return a == b;
+    return a->kind == b->kind
+        && a->size == b->size
+        && a->is_signed == b->is_signed;
+}

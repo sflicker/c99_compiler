@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "ast.h"
 
@@ -152,6 +153,10 @@ BinaryOperator get_binary_operator_from_tok(Token * tok) {
         case TOKEN_STAR: return BINOP_MUL; break;
         case TOKEN_DIV: return BINOP_DIV; break;
         case TOKEN_PERCENT: return BINOP_MOD; break;
+        case TOKEN_GT: return BINOP_GT; break;
+        case TOKEN_GE: return BINOP_GE; break;
+        case TOKEN_LT: return BINOP_LT; break;
+        case TOKEN_LE: return BINOP_LE; break;
         default: return BINOP_UNASSIGNED_OP; break;
     }
 
@@ -192,4 +197,29 @@ const char * get_unary_op_name(UnaryOperator op) {
         case UNARY_UNASSIGNED_OP: return "UNASSIGNED"; break;
     }
     return NULL;
+}
+
+bool ast_equal(ASTNode * a, ASTNode * b) {
+    if (!a || !b) return a == b;
+
+    if (a->type != b->type) return false;
+    if (!ctype_equals(a->ctype, b->ctype)) return false;
+    switch (a->type) {
+        case AST_VAR_DECL:
+            return strcmp(a->var_decl.name, b->var_decl.name) == 0;
+            break;
+        case AST_VAR_REF:
+            return strcmp(a->var_ref.name, b->var_ref.name) == 0;
+            break;
+        case AST_INT_LITERAL:
+            return a->int_value == b->int_value;
+            break;
+        case AST_BINARY_EXPR:
+            return (a->binary.op == b->binary.op) &&
+                ast_equal(a->binary.lhs, b->binary.lhs ) &&
+                ast_equal(a->binary.rhs, b->binary.rhs);
+        default:
+            error("Invalid AST Node Type: %d\n", a->type);
+    }
+    return false;
 }

@@ -38,5 +38,10 @@ void free_type(CType * ctype);
 bool ctype_equal(const CType *a, const CType *b);
 CType *make_ptr_type(CType *base);
 
+bool ctype_equals(CType * a, CType * b);
+
+
+
+
 #endif
 

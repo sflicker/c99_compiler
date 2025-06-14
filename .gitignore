@@ -1,16 +1,30 @@
 *.o
+*.obj
 *.s
+*.so
+*.a
+*.lib
+*.exe
 *.out
 *.txt
 *.log
+*.dSYM/
 
 mimic99
+runner
 
-build/
+*/build/
+*/cmake-build-*/
+*/CMakeFiles/
+*/cmake_install.cmake
+*/Makefile
 
 *.swp
 *.swo
 *.vscode/
 *.DS_Store
 
+.idea/
+*.iml
 
+.cmake

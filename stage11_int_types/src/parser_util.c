@@ -145,11 +145,11 @@ ASTNode * create_int_literal_node(int value) {
     ASTNode * node = calloc(1, sizeof(ASTNode));
     node->type = AST_INT_LITERAL;
     node->int_value = value;
-    node->ctype = NULL;
+    node->ctype = &CTYPE_INT_T;
     return node;
 }
 
-ASTNode * create_function_declaration_node(char * name, CType * returnType, 
+ASTNode * create_function_declaration_node(const char * name, CType * returnType,
         ASTNode_list * param_list, ASTNode * body, bool declaration_only) {
     ASTNode * func = malloc(sizeof(ASTNode));
     func->type = AST_FUNCTION_DECL;
@@ -268,3 +268,4 @@ CType * get_ctype_from_token(Token* token) {
     }
     return NULL;
 }
+
