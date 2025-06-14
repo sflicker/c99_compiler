@@ -541,13 +541,13 @@ ASTNode * parse_relational_expression(ParserContext * parserContext) {
 }
 
 ASTNode * parse_additive_expression(ParserContext * parserContext) {
-    ASTNode * root = parse_term(parserContext);
+    ASTNode * root = parse_multiplicative_expression(parserContext);
 
     while(is_current_token(parserContext, TOKEN_PLUS) || is_current_token(parserContext, TOKEN_MINUS)) {
         ASTNode * lhs = root;
         Token * op = peek(parserContext);
         advance_parser(parserContext);
-        ASTNode * rhs = parse_term(parserContext);
+        ASTNode * rhs = parse_multiplicative_expression(parserContext);
         root = create_binary_op_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
 
@@ -556,7 +556,7 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
 }
 
 
-ASTNode * parse_term(ParserContext * parserContext) {
+ASTNode * parse_multiplicative_expression(ParserContext * parserContext) {
     ASTNode * root = parse_unary_expression(parserContext);
 
     while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV) || is_current_token(parserContext, TOKEN_PERCENT)) {

@@ -133,61 +133,109 @@ void test_parse_postfix_expression__dec() {
 }
 
 void test_parse_unary_expression__plus() {
+    ASTNode * expected =
+        create_unary_node(
+            UNARY_PLUS,
+            create_var_ref_node("a")
+        );
     // setup
     tokenlist * tokens = tokenize("+a");
     ParserContext * ctx = create_parser_context(tokens);
 
     // test
-    ASTNode * node = parse_unary_expression(ctx);
-    print_ast(node, 0);
+    ASTNode * actual = parse_unary_expression(ctx);
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+
+    free_astnode(expected);
+    free_astnode(actual);
 
 }
 
 void test_parse_unary_expression__negate() {
+    ASTNode * expected =
+        create_unary_node(
+            UNARY_NEGATE,
+            create_var_ref_node("a")
+        );
+
     // setup
     tokenlist * tokens = tokenize("-a");
     ParserContext * ctx = create_parser_context(tokens);
 
     // test
-    ASTNode * node = parse_unary_expression(ctx);
-    print_ast(node, 0);
+    ASTNode * actual = parse_unary_expression(ctx);
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+
+    free_astnode(expected);
+    free_astnode(actual);
 
 }
 
 void test_parse_unary_expression__not() {
+    ASTNode * expected =
+    create_unary_node(
+        UNARY_NOT,
+        create_var_ref_node("a")
+    );
     // setup
     tokenlist * tokens = tokenize("!a");
     ParserContext * ctx = create_parser_context(tokens);
 
     // test
-    ASTNode * node = parse_unary_expression(ctx);
-    print_ast(node, 0);
+    ASTNode * actual = parse_unary_expression(ctx);
+    print_ast(actual, 0);
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
 
+    free_astnode(expected);
+    free_astnode(actual);
 }
 
 void test_parse_unary_expression__increment() {
+    ASTNode * expected =
+    create_unary_node(
+        UNARY_PRE_INC,
+        create_var_ref_node("a")
+    );
+
     // setup
     tokenlist * tokens = tokenize("++a");
     ParserContext * ctx = create_parser_context(tokens);
 
     // test
-    ASTNode * node = parse_unary_expression(ctx);
-    print_ast(node, 0);
+    ASTNode * actual = parse_unary_expression(ctx);
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+
+    free_astnode(expected);
+    free_astnode(actual);
 
 }
 
 void test_parse_unary_expression__decrement() {
+    ASTNode * expected =
+        create_unary_node(
+            UNARY_PRE_DEC,
+            create_var_ref_node("a")
+    );
     // setup
     tokenlist * tokens = tokenize("--a");
     ParserContext * ctx = create_parser_context(tokens);
 
     // test
-    ASTNode * node = parse_unary_expression(ctx);
-    print_ast(node, 0);
+    ASTNode * actual = parse_unary_expression(ctx);
+    print_ast(actual, 0);
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
 
+    free_astnode(expected);
+    free_astnode(actual);
 }
 
-void test_parse_term__multi() {
+void test_parse_multiplicative__multi() {
     ASTNode * expected = create_binary_op_node(
         create_int_literal_node(1),
         BINOP_MUL,
@@ -197,7 +245,7 @@ void test_parse_term__multi() {
     ParserContext * ctx = create_parser_context(tokens);
 
     // test
-    ASTNode * actual = parse_term(ctx);
+    ASTNode * actual = parse_multiplicative_expression(ctx);
     print_ast(actual, 0);
     TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
 
@@ -206,7 +254,7 @@ void test_parse_term__multi() {
 
 }
 
-void test_parse_term__div() {
+void test_parse_multiplicative__div() {
     ASTNode * expected = create_binary_op_node(
         create_int_literal_node(10),
         BINOP_DIV,
@@ -216,7 +264,7 @@ void test_parse_term__div() {
     ParserContext * ctx = create_parser_context(tokens);
 
     // test
-    ASTNode * actual = parse_term(ctx);
+    ASTNode * actual = parse_multiplicative_expression(ctx);
     print_ast(actual, 0);
     TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
 
@@ -225,7 +273,7 @@ void test_parse_term__div() {
 
 }
 
-void test_parse_term__mod() {
+void test_parse_multiplicative__mod() {
     ASTNode * expected = create_binary_op_node(
         create_int_literal_node(7),
         BINOP_MOD,
@@ -235,7 +283,7 @@ void test_parse_term__mod() {
     ParserContext * ctx = create_parser_context(tokens);
 
     // test
-    ASTNode * actual = parse_term(ctx);
+    ASTNode * actual = parse_multiplicative_expression(ctx);
     print_ast(actual, 0);
     TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
 
@@ -372,9 +420,9 @@ int main() {
     RUN_TEST(test_parse_unary_expression__not);
     RUN_TEST(test_parse_unary_expression__increment);
     RUN_TEST(test_parse_unary_expression__decrement);
-    RUN_TEST(test_parse_term__multi);
-    RUN_TEST(test_parse_term__div);
-    RUN_TEST(test_parse_term__mod);
+    RUN_TEST(test_parse_multiplicative__multi);
+    RUN_TEST(test_parse_multiplicative__div);
+    RUN_TEST(test_parse_multiplicative__mod);
     RUN_TEST(test_parse_additive_expression__add);
     RUN_TEST(test_parse_additive_expression__sub);
     RUN_TEST(parse_relational_expression__gt);

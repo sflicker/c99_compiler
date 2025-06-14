@@ -24,7 +24,7 @@ ASTNode * parse_expression(ParserContext* parserContext);
 ASTNode * parse_equality_expression(ParserContext * parserContext);
 ASTNode * parse_relational_expression(ParserContext * parserContext);
 ASTNode * parse_additive_expression(ParserContext * parserContext);
-ASTNode * parse_term(ParserContext * parserContext);
+ASTNode * parse_multiplicative_expression(ParserContext * parserContext);
 ASTNode * parse_unary_expression(ParserContext * parserContext);
 ASTNode * parse_postfix_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);

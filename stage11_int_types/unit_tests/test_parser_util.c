@@ -158,7 +158,7 @@ void test_create_int_literal_node() {
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify int value is 42", node->int_value == 42);
     TEST_ASSERT("Verify ast type is AST_INT_LITERAL", node->type == AST_INT_LITERAL);
-    TEST_ASSERT("Verify ctype is NULL", node->ctype == NULL);
+    TEST_ASSERT("Verify ctype is CTYPE_INT_T", node->ctype == &CTYPE_INT_T);
 
     free_astnode(node);
 }

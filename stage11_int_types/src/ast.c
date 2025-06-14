@@ -218,6 +218,9 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
             return (a->binary.op == b->binary.op) &&
                 ast_equal(a->binary.lhs, b->binary.lhs ) &&
                 ast_equal(a->binary.rhs, b->binary.rhs);
+        case AST_UNARY_EXPR:
+            return (a->unary.op == b->unary.op) &&
+                ast_equal(a->unary.operand, b->unary.operand);
         default:
             error("Invalid AST Node Type: %d\n", a->type);
     }
