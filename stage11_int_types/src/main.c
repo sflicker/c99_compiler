@@ -54,7 +54,7 @@ int main(int argc, char ** argv) {
     tokenlist_free(tokens);
     free(tokens);
 
-    analyze(astNode);
+    analyze(astNode, true);
 
 //    populate_symbol_table(astNode, true);
     print_ast(astNode, 0);

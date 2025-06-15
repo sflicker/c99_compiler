@@ -4,7 +4,8 @@
 
 #ifndef ANALYZER_H
 #define ANALYZER_H
+#include <stdbool.h>
 
-void analyze(ASTNode * node);
+void analyze(ASTNode * node, bool make_new_scope);
 
 #endif //ANALYZER_H

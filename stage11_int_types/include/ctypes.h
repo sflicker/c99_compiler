@@ -35,7 +35,7 @@ DEFINE_LINKED_LIST(CType*, CTypePtr_list);
 
 void free_ctype(CType * ctype);
 
-bool ctype_equal(const CType *a, const CType *b);
+//bool ctype_equal(const CType *a, const CType *b);
 CType *make_ptr_type(CType *base);
 
 bool ctype_equals(CType * a, CType * b);

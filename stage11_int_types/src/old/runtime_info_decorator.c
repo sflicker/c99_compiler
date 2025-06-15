@@ -8,7 +8,7 @@
 #include "emitter.h"
 #include "token.h"
 #include "type.h"
-#include "symtab.h"
+#include "symbol_table.h"
 #include "util.h"
 
 void populate_symbol_table(ASTNode * node, bool make_new_scope) {

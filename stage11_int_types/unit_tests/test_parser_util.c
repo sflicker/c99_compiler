@@ -244,7 +244,7 @@ void test_create_var_decl_node() {
     TEST_ASSERT("Verify node ast type is AST_VAR_DECL", node->type == AST_VAR_DECL);
     TEST_ASSERT("Verify node has correct identifier", strcmp(node->var_decl.name, "a") == 0);
     TEST_ASSERT("Verity node has NULL initializer", node->var_decl.init_expr == NULL);
-    TEST_ASSERT("Verify node has correct ctype", ctype_equal(node->ctype, &CTYPE_INT_T));
+    TEST_ASSERT("Verify node has correct ctype", ctype_equals(node->ctype, &CTYPE_INT_T));
 
     free_astnode(node);
 

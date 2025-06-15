@@ -17,7 +17,6 @@ runner
 */cmake-build-*/
 */CMakeFiles/
 */cmake_install.cmake
-**/Makefile
 
 *.swp
 *.swo

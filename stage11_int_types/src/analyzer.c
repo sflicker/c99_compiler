@@ -6,7 +6,15 @@
 #include "analyzer.h"
 #include "error.h"
 #include "ctypes.h"
-#include "symtab.h"
+#include "symbol_table.h"
+
+CType * common_type(CType *a, CType *b) {
+    if (a->kind == CTYPE_LONG && b->kind == CTYPE_LONG) return &CTYPE_LONG_T;
+    if (a->kind == CTYPE_INT && b->kind == CTYPE_INT) return &CTYPE_INT_T;
+    if (a->kind == CTYPE_SHORT && b->kind == CTYPE_SHORT) return &CTYPE_INT_T;  // promote to int
+    if (a->kind == CTYPE_CHAR && b->kind == CTYPE_CHAR) return &CTYPE_INT_T;  // promote to int
+    return NULL;
+}
 
 void handle_function_declaration(ASTNode * node) {
 
@@ -19,17 +27,17 @@ void handle_function_declaration(ASTNode * node) {
     }
     add_function_symbol(node->function_decl.name, node->ctype,
         node->function_decl.param_count, typeList);
-    analyze(node->function_decl.body);
+    analyze(node->function_decl.body, false);
     exit_scope();
 }
 
-void analyze(ASTNode * node) {
+void analyze(ASTNode * node, bool make_new_scope) {
     if (!node) return;
 
     switch (node->type) {
         case AST_TRANSLATION_UNIT: {
             for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
-                analyze(n->value);
+                analyze(n->value, true);
             }
             break;
         }
@@ -37,5 +45,54 @@ void analyze(ASTNode * node) {
             handle_function_declaration(node);
             break;
         }
+
+        case AST_FUNCTION_CALL: {
+
+        }
+
+        case AST_BLOCK:
+            if (make_new_scope) enter_scope();
+
+            for (ASTNode_list_node * n = node->block.statements->head; n != NULL; n = n->next) {
+                analyze(n->value, true);
+            }
+
+            if (make_new_scope) exit_scope();
+            break;
+
+        case AST_VAR_DECL:
+            add_symbol(node->var_decl.name, node->ctype);
+            if (node->var_decl.init_expr) {
+                analyze(node->var_decl.init_expr, false);
+            }
+            break;
+
+        case AST_BINARY_EXPR:
+            analyze(node->binary.lhs, true);
+            analyze(node->binary.rhs, true);
+
+            CType * lhsCType = node->binary.lhs->ctype;
+            CType * rhsCType = node->binary.rhs->ctype;
+
+            if (!lhsCType || !rhsCType) {
+                error("Missing type on break expression operands");
+                break;
+            }
+
+            node->ctype = common_type(lhsCType, rhsCType);
+            break;
+
+        case AST_UNARY_EXPR:
+            analyze(node->unary.operand, true);
+            node->ctype = node->unary.operand->ctype;
+            break;
+
+        case AST_VAR_REF:
+            Symbol * symbol = lookup_symbol(node->var_ref.name);
+            if (!symbol) { error("Symbol not found"); }
+            node->ctype = symbol->ctype;
+
+        default:
+            error("Unrecognized node type");
     }
 }
