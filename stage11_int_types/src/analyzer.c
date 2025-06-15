@@ -16,14 +16,38 @@ CType * common_type(CType *a, CType *b) {
     return NULL;
 }
 
+// paramList should be made of a list of VarDecl
+CTypePtr_list * paramListToTypeList(const ASTNode_list * param_list) {
+    CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
+    CTypePtr_list_init(typeList, free_ctype);
+    for (ASTNode_list_node * n = param_list->head; n != NULL; n = n->next) {
+    //    add_symbol(n->value->var_decl.name, n->value->ctype);
+        CTypePtr_list_append(typeList, n->value->ctype);
+    }
+    return typeList;
+}
+
+// argList should be made of a list of expressions
+CTypePtr_list * argListToTypeList(const ASTNode_list * arg_list) {
+    CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
+    CTypePtr_list_init(typeList, free_ctype);
+    for (ASTNode_list_node * n = arg_list->head; n != NULL; n = n->next) {
+//        add_symbol(n->value->var_decl.name, n->value->ctype);
+        CTypePtr_list_append(typeList, n->value->ctype);
+    }
+    return typeList;
+}
+
+
 void handle_function_declaration(ASTNode * node) {
 
     enter_scope();
-    CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
-    CTypePtr_list_init(typeList, free_ctype);
+    CTypePtr_list * typeList = paramListToTypeList(node->function_decl.param_list);
+    // CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
+    // CTypePtr_list_init(typeList, free_ctype);
     for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
-        add_symbol(n->value->var_decl.name, n->value->ctype);
-        CTypePtr_list_append(typeList, node->ctype);
+         add_symbol(n->value->var_decl.name, n->value->ctype);
+    //     CTypePtr_list_append(typeList, node->ctype);
     }
     add_function_symbol(node->function_decl.name, node->ctype,
         node->function_decl.param_count, typeList);
@@ -47,7 +71,18 @@ void analyze(ASTNode * node, bool make_new_scope) {
         }
 
         case AST_FUNCTION_CALL: {
-
+            FunctionSymbol * functionSymbol = lookup_function_symbol(node->function_call.name);
+            if (!functionSymbol) {
+                error("Function symbol not found");
+                return;
+            }
+            if (functionSymbol->param_count != node->function_call.arg_list->count) {
+                error("Function arguments count not equal");
+            }
+            if (!ctype_lists_equal(functionSymbol->param_types, argListToTypeList( node->function_call.arg_list))) {
+                error("Function parameter types not equal");
+            }
+            break;
         }
 
         case AST_BLOCK:
@@ -89,7 +124,7 @@ void analyze(ASTNode * node, bool make_new_scope) {
 
         case AST_VAR_REF:
             Symbol * symbol = lookup_symbol(node->var_ref.name);
-            if (!symbol) { error("Symbol not found"); }
+            if (!symbol) { error("Symbol not found"); return; }
             node->ctype = symbol->ctype;
 
         default:

@@ -76,3 +76,21 @@ bool ctype_equals(CType * a, CType * b) {
 
     return false;
 }
+
+bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b) {
+    if (a == b) return true;
+    if (!a || !b) return false;
+
+    if (a->count != b->count) return false;
+
+    CTypePtr_list_node * a_node = a->head;
+    CTypePtr_list_node * b_node = b->head;
+    while (a_node && b_node) {
+        if (!ctype_equals(a_node->value, b_node->value)) {
+            return false;
+        }
+        a_node = a_node->next;
+        b_node = b_node->next;
+    }
+    return true;
+}
