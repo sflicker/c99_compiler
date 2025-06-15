@@ -42,6 +42,8 @@ bool ctype_equals(CType * a, CType * b);
 
 bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b);
 
+CType * common_type(CType *a, CType *b);
+CTypePtr_list * astNodeListToTypeList(const ASTNode_list * param_list);
 
 #endif
 

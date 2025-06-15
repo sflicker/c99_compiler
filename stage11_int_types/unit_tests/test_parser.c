@@ -470,6 +470,7 @@ void test_parse_equality_expression__ne() {
     ParserContext * ctx = create_parser_context(tokens);
 
     ASTNode * actual = parse_equality_expression(ctx);
+    print_ast(actual, 0);
 
     TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
 
@@ -487,6 +488,7 @@ void test_parse_logical_and() {
     ParserContext * ctx = create_parser_context(tokens);
 
     ASTNode * actual = parse_logical_and(ctx);
+    print_ast(actual, 0);
 
     TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
     free_astnode(expected);
@@ -504,10 +506,118 @@ void test_parse_logical_or() {
     ParserContext * ctx = create_parser_context(tokens);
 
     ASTNode * actual = parse_logical_or(ctx);
+    print_ast(actual, 0);
 
     TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
     free_astnode(expected);
     free_astnode(actual);
+}
+
+void test_parse_assignment_expression__assignment() {
+    ASTNode * expected = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_ASSIGNMENT,
+        create_var_ref_node("b"));
+
+    tokenlist * tokens = tokenize("a = b");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_assignment_expression(ctx);
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
+}
+
+void test_parse_assignment_expression__add_assign() {
+    ASTNode * expected = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_COMPOUND_ADD_ASSIGN,
+        create_var_ref_node("b"));
+
+    tokenlist * tokens = tokenize("a += b");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_assignment_expression(ctx);
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
+}
+
+void test_parse_assignment_expression__sub_assign() {
+    ASTNode * expected = create_binary_node(
+        create_var_ref_node("a"),
+        BINOP_COMPOUND_SUB_ASSIGN,
+        create_var_ref_node("b"));
+
+    tokenlist * tokens = tokenize("a -= b");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_assignment_expression(ctx);
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
+}
+
+void test_parse_expression__1() {
+    ASTNode * expected = create_binary_node(
+    create_var_ref_node("a"),
+    BINOP_ASSIGNMENT,
+    create_binary_node(
+        create_var_ref_node("b"),
+        BINOP_ADD,
+        create_binary_node(
+            create_var_ref_node("c"),
+            BINOP_MUL,
+            create_function_call_node("myfunc", NULL)
+            )
+        )
+    );
+
+    tokenlist * tokens = tokenize("a = b + c * myfunc()");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_expression(ctx);
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
+}
+
+void test_parse_expression__2() {
+    ASTNode * expected = create_binary_node(
+    create_var_ref_node("a"),
+    BINOP_ASSIGNMENT,
+    create_binary_node(
+        create_binary_node(
+            create_var_ref_node("b"),
+            BINOP_MUL,
+            create_var_ref_node("c")),
+        BINOP_ADD,
+        create_function_call_node("myfunc", NULL)
+        )
+    );
+
+    tokenlist * tokens = tokenize("a = b * c + myfunc()");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_expression(ctx);
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
 }
 
 int main() {
@@ -538,4 +648,10 @@ int main() {
     RUN_TEST(test_parse_equality_expression__ne);
     RUN_TEST(test_parse_logical_and);
     RUN_TEST(test_parse_logical_or);
+    RUN_TEST(test_parse_assignment_expression__assignment);
+    RUN_TEST(test_parse_assignment_expression__add_assign);
+    RUN_TEST(test_parse_assignment_expression__sub_assign);
+    RUN_TEST(test_parse_expression__1);
+    RUN_TEST(test_parse_expression__2);
+
 }

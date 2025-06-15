@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "error.h"
 #include "ast.h"
@@ -222,6 +223,13 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
         case AST_UNARY_EXPR:
             return (a->unary.op == b->unary.op) &&
                 ast_equal(a->unary.operand, b->unary.operand);
+        case AST_FUNCTION_CALL:
+            return (strcmp(a->function_call.name, b->function_call.name) == 0 &&
+                ctype_lists_equal(
+                    astNodeListToTypeList(a->function_call.arg_list),
+                    astNodeListToTypeList(b->function_call.arg_list)
+                )
+            );
         default:
             error("Invalid AST Node Type: %d\n", a->type);
     }

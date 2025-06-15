@@ -8,41 +8,11 @@
 #include "ctypes.h"
 #include "symbol_table.h"
 
-CType * common_type(CType *a, CType *b) {
-    if (a->kind == CTYPE_LONG && b->kind == CTYPE_LONG) return &CTYPE_LONG_T;
-    if (a->kind == CTYPE_INT && b->kind == CTYPE_INT) return &CTYPE_INT_T;
-    if (a->kind == CTYPE_SHORT && b->kind == CTYPE_SHORT) return &CTYPE_INT_T;  // promote to int
-    if (a->kind == CTYPE_CHAR && b->kind == CTYPE_CHAR) return &CTYPE_INT_T;  // promote to int
-    return NULL;
-}
-
-// paramList should be made of a list of VarDecl
-CTypePtr_list * paramListToTypeList(const ASTNode_list * param_list) {
-    CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
-    CTypePtr_list_init(typeList, free_ctype);
-    for (ASTNode_list_node * n = param_list->head; n != NULL; n = n->next) {
-    //    add_symbol(n->value->var_decl.name, n->value->ctype);
-        CTypePtr_list_append(typeList, n->value->ctype);
-    }
-    return typeList;
-}
-
-// argList should be made of a list of expressions
-CTypePtr_list * argListToTypeList(const ASTNode_list * arg_list) {
-    CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
-    CTypePtr_list_init(typeList, free_ctype);
-    for (ASTNode_list_node * n = arg_list->head; n != NULL; n = n->next) {
-//        add_symbol(n->value->var_decl.name, n->value->ctype);
-        CTypePtr_list_append(typeList, n->value->ctype);
-    }
-    return typeList;
-}
-
 
 void handle_function_declaration(ASTNode * node) {
 
     enter_scope();
-    CTypePtr_list * typeList = paramListToTypeList(node->function_decl.param_list);
+    CTypePtr_list * typeList = astNodeListToTypeList(node->function_decl.param_list);
     // CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
     // CTypePtr_list_init(typeList, free_ctype);
     for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
@@ -79,7 +49,7 @@ void analyze(ASTNode * node, bool make_new_scope) {
             if (functionSymbol->param_count != node->function_call.arg_list->count) {
                 error("Function arguments count not equal");
             }
-            if (!ctype_lists_equal(functionSymbol->param_types, argListToTypeList( node->function_call.arg_list))) {
+            if (!ctype_lists_equal(functionSymbol->param_types, astNodeListToTypeList( node->function_call.arg_list))) {
                 error("Function parameter types not equal");
             }
             break;

@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
+#include "ast.h"
 #include "ctypes.h"
 
 
@@ -93,4 +95,24 @@ bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b) {
         b_node = b_node->next;
     }
     return true;
+}
+
+CType * common_type(CType *a, CType *b) {
+    if (a->kind == CTYPE_LONG && b->kind == CTYPE_LONG) return &CTYPE_LONG_T;
+    if (a->kind == CTYPE_INT && b->kind == CTYPE_INT) return &CTYPE_INT_T;
+    if (a->kind == CTYPE_SHORT && b->kind == CTYPE_SHORT) return &CTYPE_INT_T;  // promote to int
+    if (a->kind == CTYPE_CHAR && b->kind == CTYPE_CHAR) return &CTYPE_INT_T;  // promote to int
+    return NULL;
+}
+
+// paramList should be made of a list of VarDecl
+CTypePtr_list * astNodeListToTypeList(const ASTNode_list * param_list) {
+    if (param_list == NULL) return NULL;
+
+    CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
+    CTypePtr_list_init(typeList, free_ctype);
+    for (ASTNode_list_node * n = param_list->head; n != NULL; n = n->next) {
+        CTypePtr_list_append(typeList, n->value->ctype);
+    }
+    return typeList;
 }
