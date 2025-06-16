@@ -79,6 +79,10 @@ bool ctype_equals(CType * a, CType * b) {
     return false;
 }
 
+bool ctype_equal_or_compatible(CType * a, CType * b) {
+    return ctype_equals(a, b);
+}
+
 bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b) {
     if (a == b) return true;
     if (!a || !b) return false;

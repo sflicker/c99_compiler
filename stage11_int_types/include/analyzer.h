@@ -6,7 +6,8 @@
 #define ANALYZER_H
 #include <stdbool.h>
 
-#include "ast.h"
-void analyze(ASTNode * node, bool make_new_scope);
+#include "analyzer_context.h"
+
+void analyze(AnalyzerContext * ctx, ASTNode * node);
 
 #endif //ANALYZER_H

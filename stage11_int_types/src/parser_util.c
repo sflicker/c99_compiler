@@ -177,6 +177,9 @@ ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_
     node->var_decl.name = strdup(name);
     node->ctype = ctype;
     node->var_decl.init_expr = init_expr;
+    if (node->var_decl.init_expr) {
+        node->var_decl.init_expr->ctype = ctype;
+    }
     return node;
 }
 

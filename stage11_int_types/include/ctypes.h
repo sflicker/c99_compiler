@@ -39,7 +39,7 @@ void free_ctype(CType * ctype);
 CType *make_ptr_type(CType *base);
 
 bool ctype_equals(CType * a, CType * b);
-
+bool ctype_equal_or_compatible(CType * a, CType * b);
 bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b);
 
 CType * common_type(CType *a, CType *b);

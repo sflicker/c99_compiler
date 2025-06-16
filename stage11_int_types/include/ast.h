@@ -68,55 +68,16 @@ typedef enum {
     AST_INT_LITERAL,
     AST_FUNCTION_DECL,
     AST_FUNCTION_CALL,
-    //AST_PARAM_LIST,
-    //AST_ARG_LIST,
     AST_TRANSLATION_UNIT,
     AST_BLOCK,
     AST_EXPRESSION_STMT,
     AST_VAR_DECL,
     AST_VAR_REF,
-    // AST_ASSIGNMENT,
-    // AST_COMPOUND_ADD_ASSIGN,
-    // AST_COMPOUND_SUB_ASSIGN,
-    // AST_UNARY_POST_INC,
-    // AST_UNARY_POST_DEC,
-    // AST_UNARY_PRE_INC,
-    // AST_UNARY_PRE_DEC,
-    // AST_UNARY_NEGATE,
-    // AST_UNARY_NOT,
-    // AST_UNARY_PLUS,
-//    AST_ADD,
-//    AST_SUB,
-//    AST_MUL,
-//    AST_DIV,
-//    AST_MOD,
-    // AST_EQUAL,
-    // AST_NOT_EQUAL,
-    // AST_LOGICAL_AND,
-    // AST_LOGICAL_OR,
-    //AST_LESS_THAN,
-    //AST_LESS_EQUAL,
-    //AST_GREATER_THAN,
-    //AST_GREATER_EQUAL,
     AST_BINARY_EXPR,
     AST_UNARY_EXPR,
     AST_ASSERT_EXTENSION_STATEMENT,
     AST_PRINT_EXTENSION_STATEMENT
 } ASTNodeType;
-
-// typedef enum {
-//     ADDR_REGISTER,
-//     ADDR_STACK,
-//     ADDR_UNASSIGNED
-// } AddressKind;
-
-// typedef struct Address {
-//     AddressKind kind;
-//     union {
-//         int stack_offset;
-//         int reg_index;
-//     };
-// } Address;
 
 typedef struct ASTNode {
     ASTNodeType type;
@@ -137,9 +98,9 @@ typedef struct ASTNode {
             //paramlist param_list;
             ASTNode_list * param_list;
             int param_count;
-            struct ASTNode* body;
+            ASTNode* body;
             bool declaration_only;
-            int size;
+//            int size;
         } function_decl;
 
         // struct {
@@ -157,17 +118,13 @@ typedef struct ASTNode {
         struct {
             char* name;
             struct ASTNode * init_expr; // NULL if no initializer
-//            Address addr;
         } var_decl;
 
         struct {
             char * name;
-//            int offset;
-//            Address addr;
         } var_ref;
 
         struct {
-//            struct ASTNode ** statements;
             ASTNode_list * statements;
             int count;
             int capacity;
@@ -177,57 +134,41 @@ typedef struct ASTNode {
             struct ASTNode * expr;
         } return_stmt;
 
-        // struct {
-        //     struct ASTNode * lhs;
-        //     struct ASTNode * rhs;
-        // } binary;
-
-        // struct {
-        //     struct ASTNode * operand;
-        // } unary;
-
-
         struct {
-            struct ASTNode * cond;
-            struct ASTNode * then_statement;
-            struct ASTNode * else_statement;
+            ASTNode * cond;
+            ASTNode * then_statement;
+            ASTNode * else_statement;
         } if_stmt;
 
         struct {
-            struct ASTNode * cond;
-            struct ASTNode * body;
+            ASTNode * cond;
+            ASTNode * body;
         } while_stmt;
 
         struct {
-            struct ASTNode * init_expr;
-            struct ASTNode * cond_expr;
-            struct ASTNode * update_expr;
-            struct ASTNode * body;
+            ASTNode * init_expr;
+            ASTNode * cond_expr;
+            ASTNode * update_expr;
+            ASTNode * body;
         } for_stmt;
 
         struct {
-            struct ASTNode * expr;
+            ASTNode * expr;
         } expr_stmt;
-
-//         struct {
-//             char * name;
-// //            Address addr;
-//             struct ASTNode * expr;
-//         } assignment;
 
         struct {
             char * label;
-            struct ASTNode * stmt;
+            ASTNode * stmt;
         } labeled_stmt;
 
         struct {
-            struct ASTNode * constExpression;
-            struct ASTNode * stmt;
+            ASTNode * constExpression;
+            ASTNode * stmt;
             char * label;
         } case_stmt;
 
         struct {
-            struct ASTNode * stmt;
+            ASTNode * stmt;
             char * label;
         } default_stmt;
 
@@ -236,13 +177,13 @@ typedef struct ASTNode {
         } goto_stmt;
 
         struct {
-            struct ASTNode * stmt;
-            struct ASTNode * expr;
+            ASTNode * stmt;
+            ASTNode * expr;
         } do_while_stmt;
 
         struct {
-            struct ASTNode * expr;
-            struct ASTNode * stmt;
+            ASTNode * expr;
+            ASTNode * stmt;
         } switch_stmt;
         
     };
