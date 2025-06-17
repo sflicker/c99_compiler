@@ -33,11 +33,11 @@ char * ctype_to_string(CType * ctype) {
     }
 }
 
-CType CTYPE_CHAR_T = {CTYPE_CHAR, 1, 1, NULL};
-CType CTYPE_SHORT_T = {CTYPE_SHORT, 2, 1, NULL};
-CType CTYPE_INT_T = {CTYPE_INT, 4, 1, NULL};
-CType CTYPE_LONG_T = {CTYPE_LONG, 8, 1, NULL};
-CType CTYPE_PTR_INT_T = {CTYPE_PTR, 8, 1, &CTYPE_INT_T};
+CType CTYPE_CHAR_T = {CTYPE_CHAR, 1, 1, RANK_CHAR};
+CType CTYPE_SHORT_T = {CTYPE_SHORT, 2, 1, RANK_SHORT};
+CType CTYPE_INT_T = {CTYPE_INT, 4, 1, RANK_INT};
+CType CTYPE_LONG_T = {CTYPE_LONG, 8, 1, RANK_LONG};
+CType CTYPE_PTR_INT_T = {CTYPE_PTR, 8, 1, NULL};
 
 void free_ctype(CType * ctype) {
     // do nothing

@@ -8,6 +8,18 @@
 #include "ctypes.h"
 #include "symbol_table.h"
 
+CType * apply_integer_promotions(CType * t) {
+    if (t->kind == CTYPE_CHAR || t->kind == CTYPE_SHORT) {
+        return &CTYPE_INT_T;
+    }
+    return t;
+}
+
+CType * usual_arithmetic_conversion(CType * a, CType * b) {
+    if (a == b) return a;
+    if (a->rank > b->rank) return a;
+    return b;
+}
 
 void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
 
@@ -23,8 +35,10 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
     }
     add_function_symbol(node->function_decl.name, node->ctype,
         node->function_decl.param_count, typeList);
+    CType * saved = ctx->current_function_return_type;
     ctx->current_function_return_type = node->ctype;
-    analyze(node->function_decl.body, false);
+    analyze(ctx, node->function_decl.body);
+    ctx->current_function_return_type = saved;
     exit_scope();
 }
 
@@ -33,9 +47,11 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
     switch (node->type) {
         case AST_TRANSLATION_UNIT: {
+            enter_scope();
             for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
                 analyze(ctx, n->value);
             }
+            exit_scope();
             break;
         }
         case AST_FUNCTION_DECL: {
@@ -59,43 +75,45 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         }
 
         case AST_BLOCK:
-            if (ctx->make_new_scope) enter_scope();
+            if (node->block.introduce_scope) enter_scope();
 
             for (ASTNode_list_node * n = node->block.statements->head; n != NULL; n = n->next) {
                 analyze(ctx, n->value);
             }
 
-            if (ctx->make_new_scope) exit_scope();
+            if (node->block.introduce_scope) exit_scope();
             break;
 
         case AST_VAR_DECL:
             add_symbol(node->var_decl.name, node->ctype);
             if (node->var_decl.init_expr) {
-                ctx->make_new_scope = false;
                 analyze(ctx, node->var_decl.init_expr);
             }
             break;
 
         case AST_BINARY_EXPR:
-            ctx->make_new_scope = true;
             analyze(ctx, node->binary.lhs);
-
-            ctx->make_new_scope = true;
             analyze(ctx, node->binary.rhs);
 
             CType * lhsCType = node->binary.lhs->ctype;
             CType * rhsCType = node->binary.rhs->ctype;
 
-            if (!lhsCType || !rhsCType) {
-                error("Missing type on expression operands");
-                break;
-            }
+            CType * promoted_left = apply_integer_promotions(lhsCType);
+            CType * promoted_right = apply_integer_promotions(rhsCType);
 
-            node->ctype = common_type(lhsCType, rhsCType);
+            CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
+
+            node->ctype = result_type;
+
+            // if (!lhsCType || !rhsCType) {
+            //     error("Missing type on expression operands");
+            //     break;
+            // }
+            //
+            // node->ctype = common_type(lhsCType, rhsCType);
             break;
 
         case AST_UNARY_EXPR:
-            ctx->make_new_scope = true;
             analyze(ctx, node->unary.operand);
             node->ctype = node->unary.operand->ctype;
             break;
@@ -107,7 +125,6 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_RETURN_STMT:
-            ctx->make_new_scope = true;
             analyze(ctx, node->return_stmt.expr);
             node->ctype = node->return_stmt.expr->ctype;
             if (!ctype_equal_or_compatible(ctx->current_function_return_type,
@@ -116,8 +133,57 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             }
             break;
 
+        case AST_IF_STMT:
+            analyze(ctx, node->if_stmt.cond);
+            analyze(ctx, node->if_stmt.then_stmt);
+            analyze(ctx, node->if_stmt.else_stmt);
+            break;
 
+        case AST_WHILE_STMT:
+            analyze(ctx, node->while_stmt.cond);
+            analyze(ctx, node->while_stmt.body);
+            break;
+
+        case AST_FOR_STMT:
+            analyze(ctx, node->for_stmt.init_expr);
+            analyze(ctx, node->for_stmt.cond_expr);
+            analyze(ctx, node->for_stmt.update_expr);
+            analyze(ctx, node->for_stmt.body);
+            break;
+
+        case AST_DO_WHILE_STMT:
+            analyze(ctx, node->do_while_stmt.expr);
+            analyze(ctx, node->do_while_stmt.body);
+            break;
+
+        case AST_LABELED_STMT:
+            analyze(ctx, node->labeled_stmt.stmt);
+            break;
+
+        case AST_CASE_STMT:
+            analyze(ctx, node->case_stmt.constExpression);
+            analyze(ctx, node->case_stmt.stmt);
+            break;
+
+        case AST_DEFAULT_STMT:
+            analyze(ctx, node->default_stmt.stmt);
+            break;
+
+        case AST_SWITCH_STMT:
+            analyze(ctx, node->switch_stmt.expr);
+            analyze(ctx, node->switch_stmt.stmt);
+            break;
+
+        case AST_EXPRESSION_STMT:
+        case AST_ASSERT_EXTENSION_STATEMENT:
+        case AST_PRINT_EXTENSION_STATEMENT:
+            analyze(ctx, node->expr_stmt.expr);
+            break;
+
+        case AST_GOTO_STMT:
         case AST_INT_LITERAL:
+        case AST_BREAK_STMT:
+        case AST_CONTINUE_STMT:
             // DO NOTHING
             break;
 

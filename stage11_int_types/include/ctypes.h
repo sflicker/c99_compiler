@@ -5,6 +5,11 @@
 
 #include "list_util.h"
 
+#define RANK_CHAR 1
+#define RANK_SHORT 2
+#define RANK_INT 3
+#define RANK_LONG 4
+
 typedef struct CType CType;
 
 typedef enum {
@@ -19,6 +24,7 @@ typedef struct CType {
     CTypeKind kind;
     int size;
     int is_signed;
+    int rank;
     CType * ptr_to;
 } CType;
 
@@ -27,6 +33,8 @@ extern CType CTYPE_SHORT_T;
 extern CType CTYPE_INT_T;
 extern CType CTYPE_LONG_T;
 extern CType CTYPE_PTR_INT_T;
+
+
 
 int sizeof_ctype(CType * ctype);
 char * ctype_to_string(CType * ctype);

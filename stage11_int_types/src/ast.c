@@ -44,8 +44,8 @@ void free_astnode(ASTNode * node) {
 
         case AST_IF_STMT:
             free_astnode(node->if_stmt.cond);
-            free_astnode(node->if_stmt.then_statement);
-            free_astnode(node->if_stmt.else_statement);
+            free_astnode(node->if_stmt.then_stmt);
+            free_astnode(node->if_stmt.else_stmt);
             break;
 
         case AST_WHILE_STMT:
@@ -88,7 +88,6 @@ void free_astnode(ASTNode * node) {
             break;
 
         case AST_CASE_STMT:
-            free(node->case_stmt.label);
             free_astnode(node->case_stmt.constExpression);
             free_astnode(node->case_stmt.stmt);
             break;
@@ -132,7 +131,7 @@ void free_astnode(ASTNode * node) {
 
         case AST_DO_WHILE_STMT:
             free_astnode(node->do_while_stmt.expr);
-            free_astnode(node->do_while_stmt.stmt);
+            free_astnode(node->do_while_stmt.body);
             break;
 
         case AST_CONTINUE_STMT:

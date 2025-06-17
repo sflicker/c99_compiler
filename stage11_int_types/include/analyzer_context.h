@@ -8,9 +8,9 @@
 #include "ctypes.h"
 typedef struct AnalyzerContext {
     CType * current_function_return_type;
-    bool make_new_scope;
 } AnalyzerContext;
 
 AnalyzerContext * analyzer_context_new();
+void analyzer_context_free(AnalyzerContext * context);
 
 #endif //ANALYZER_CONTEXT_H

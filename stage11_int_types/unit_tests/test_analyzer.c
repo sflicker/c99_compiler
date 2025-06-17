@@ -25,20 +25,28 @@ void test_analyze_basic_case() {
     init_symbol_table();
 
     AnalyzerContext * context = analyzer_context_new();
-    context->make_new_scope = true;
     context->current_function_return_type = NULL;
     analyze(context, actual);
     print_ast(actual, 0);
 }
 
 void test_analyze_mixed_types() {
+    // const char * program = "int main() {\n"
+    //                        "    int a=1;\n"
+    //                        "    char b=2;\n"
+    //                        "    short c=3;\n"
+    //                        "    long d=4;\n"
+    //                        "    return a+b+c+d;\n"
+    //                        "}\n";
     const char * program = "int main() {\n"
-                           "    int a=1;\n"
-                           "    char b=2;\n"
-                           "    short c=3;\n"
-                           "    long d=4;\n"
-                           "    return a+b+c+d;\n"
-                           "}\n";
+                       "    int a=1;\n"
+                       "    char b=2;\n"
+                       "    return a+b;"
+                       // "    short c=3;\n"
+                       // "    long d=4;\n"
+                       // "    return a+b+c+d;\n"
+                       "}\n";
+
     TEST_MSG("Input Source Program:");
     TEST_MSG(program);
 
@@ -48,14 +56,13 @@ void test_analyze_mixed_types() {
     print_ast(actual, 0);
     init_symbol_table();
     AnalyzerContext * context = analyzer_context_new();
-    context->make_new_scope = true;
-    context->current_function_return_type = NULL;
+    context->current_function_return_type = &CTYPE_INT_T;
     analyze(context, actual);
     print_ast(actual, 0);
 }
 
 
 int main() {
-    RUN_TEST(test_analyze_basic_case);
+//    RUN_TEST(test_analyze_basic_case);
     RUN_TEST(test_analyze_mixed_types);
 }

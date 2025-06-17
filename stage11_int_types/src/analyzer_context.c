@@ -11,6 +11,9 @@
 AnalyzerContext * analyzer_context_new() {
     AnalyzerContext * context = (AnalyzerContext *)malloc(sizeof(AnalyzerContext));
     context->current_function_return_type = NULL;
-    context->make_new_scope = false;
     return context;
+}
+
+void analyzer_context_free(AnalyzerContext * context) {
+    free(context);
 }

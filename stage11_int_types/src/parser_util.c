@@ -69,8 +69,8 @@ ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * then
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_IF_STMT;
     node->if_stmt.cond = condExpression;
-    node->if_stmt.then_statement = thenStatement;
-    node->if_stmt.else_statement = elseStatement;
+    node->if_stmt.then_stmt = thenStatement;
+    node->if_stmt.else_stmt = elseStatement;
     return node;
 }
 
@@ -95,7 +95,6 @@ ASTNode * create_ast_case_statement_node(ASTNode * constantExpression, ASTNode *
     node->type = AST_CASE_STMT;
     node->case_stmt.constExpression = constantExpression;
     node->case_stmt.stmt = stmt;
-    node->case_stmt.label = NULL;
     return node;
 }
 
@@ -117,7 +116,7 @@ ASTNode * create_goto_statement(const char * label) {
 ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_DO_WHILE_STMT;
-    node->do_while_stmt.stmt = stmt;
+    node->do_while_stmt.body = stmt;
     node->do_while_stmt.expr = expr;
     return node;
 }
@@ -159,6 +158,9 @@ ASTNode * create_function_declaration_node(const char * name, CType * returnType
     func->function_decl.body = body;
     func->function_decl.param_list = param_list;
     func->function_decl.declaration_only = declaration_only;
+    if (func->function_decl.body != NULL) {
+        func->function_decl.body->block.introduce_scope = false;
+    }
     return func;
 }
 
@@ -205,6 +207,9 @@ ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
     node->for_stmt.cond_expr = cond_expr;
     node->for_stmt.update_expr = update_expr;
     node->for_stmt.body = body;
+    if (node->for_stmt.body != NULL) {
+        node->for_stmt.body->block.introduce_scope = false;
+    }
     return node;
 }
 
@@ -227,6 +232,7 @@ ASTNode * create_block_node(ASTNode_list * stmts) {
     node->type = AST_BLOCK;
     node->block.statements = stmts;
     node->block.count = stmts->count;
+    node->block.introduce_scope = true;
 
     return node;
 }

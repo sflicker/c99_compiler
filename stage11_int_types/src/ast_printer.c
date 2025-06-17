@@ -118,8 +118,8 @@ void print_ast(ASTNode * node, int indent) {
         case AST_IF_STMT:
             printf("IfStmt: \n");
             print_ast(node->if_stmt.cond, indent+1);
-            print_ast(node->if_stmt.then_statement, indent+1);
-            print_ast(node->if_stmt.else_statement, indent+1);
+            print_ast(node->if_stmt.then_stmt, indent+1);
+            print_ast(node->if_stmt.else_stmt, indent+1);
             break;
         case AST_WHILE_STMT:
             printf("WhileStmt:\n");
@@ -141,7 +141,7 @@ void print_ast(ASTNode * node, int indent) {
             break;
         case AST_DO_WHILE_STMT:
             printf("DoWhileStmt:\n");
-            print_ast(node->do_while_stmt.stmt, indent+1);
+            print_ast(node->do_while_stmt.body, indent+1);
             print_ast(node->do_while_stmt.expr, indent+1);
             break;
         case AST_SWITCH_STMT:

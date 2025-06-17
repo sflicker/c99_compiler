@@ -16,6 +16,7 @@
 #include "ast_printer.h"
 #include "tokenizer_context.h"
 #include "analyzer.h"
+#include "analyzer_context.h"
 
 void token_formatted_output(const char * label, const char * text, TokenType tokenType, int num, int line, int col) {
     char left[64];
@@ -54,7 +55,9 @@ int main(int argc, char ** argv) {
     tokenlist_free(tokens);
     free(tokens);
 
-    analyze(astNode, true);
+    AnalyzerContext * ctx = analyzer_context_new();
+    analyze(ctx, astNode);
+    analyzer_context_free(ctx);
 
 //    populate_symbol_table(astNode, true);
     print_ast(astNode, 0);

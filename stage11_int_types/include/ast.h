@@ -126,8 +126,8 @@ typedef struct ASTNode {
 
         struct {
             ASTNode_list * statements;
+            bool introduce_scope;
             int count;
-            int capacity;
         } block;
 
         struct {
@@ -136,8 +136,8 @@ typedef struct ASTNode {
 
         struct {
             ASTNode * cond;
-            ASTNode * then_statement;
-            ASTNode * else_statement;
+            ASTNode * then_stmt;
+            ASTNode * else_stmt;
         } if_stmt;
 
         struct {
@@ -164,12 +164,10 @@ typedef struct ASTNode {
         struct {
             ASTNode * constExpression;
             ASTNode * stmt;
-            char * label;
         } case_stmt;
 
         struct {
             ASTNode * stmt;
-            char * label;
         } default_stmt;
 
         struct {
@@ -177,7 +175,7 @@ typedef struct ASTNode {
         } goto_stmt;
 
         struct {
-            ASTNode * stmt;
+            ASTNode * body;
             ASTNode * expr;
         } do_while_stmt;
 
