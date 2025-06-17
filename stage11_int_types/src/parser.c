@@ -502,13 +502,6 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
 
     ASTNode * lhs = parse_logical_or(parserContext);
 
-    if (lhs == NULL ) {
-        error("lhs must not be null\n");
-    }
-    else if (!is_lvalue(lhs)) {
-        return lhs;
-    }
-
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
         expect_token(parserContext, TOKEN_ASSIGN);
         ASTNode * rhs = parse_assignment_expression(parserContext);

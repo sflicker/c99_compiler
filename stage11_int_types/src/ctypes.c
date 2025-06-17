@@ -37,7 +37,7 @@ CType CTYPE_CHAR_T = {CTYPE_CHAR, 1, 1, RANK_CHAR};
 CType CTYPE_SHORT_T = {CTYPE_SHORT, 2, 1, RANK_SHORT};
 CType CTYPE_INT_T = {CTYPE_INT, 4, 1, RANK_INT};
 CType CTYPE_LONG_T = {CTYPE_LONG, 8, 1, RANK_LONG};
-CType CTYPE_PTR_INT_T = {CTYPE_PTR, 8, 1, NULL};
+CType CTYPE_PTR_INT_T = {CTYPE_PTR, 8, 1};
 
 void free_ctype(CType * ctype) {
     // do nothing
@@ -79,8 +79,26 @@ bool ctype_equals(CType * a, CType * b) {
     return false;
 }
 
+bool is_integer_type(CType * ctype) {
+    return ctype->kind == CTYPE_INT ||
+            ctype->kind == CTYPE_LONG ||
+            ctype->kind == CTYPE_SHORT ||
+            ctype->kind == CTYPE_CHAR;
+}
+
+bool type_is_compatible(CType * expected, CType * actual) {
+    if (expected == NULL || actual == NULL) return false;
+    if (expected->kind == actual->kind) return true;   // TODO need to add check for unsigned
+    if (is_integer_type(expected) && is_integer_type(actual)) {
+        if (actual->rank <= expected->rank) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool ctype_equal_or_compatible(CType * a, CType * b) {
-    return ctype_equals(a, b);
+    return ctype_equals(a, b) || type_is_compatible(a, b);
 }
 
 bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b) {

@@ -194,11 +194,6 @@ ASTNode * create_var_ref_node(const char * name) {
     return node;
 }
 
-bool is_lvalue(ASTNode * node) {
-    assert(((node != NULL) && "node must not be null"));
-    return node->type == AST_VAR_REF;
-}
-
 ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
             ASTNode * update_expr, ASTNode * body) {
     ASTNode * node = malloc(sizeof(ASTNode));

@@ -6,6 +6,7 @@
 #include "analyzer.h"
 #include "error.h"
 #include "ctypes.h"
+#include "parser_util.h"
 #include "symbol_table.h"
 
 CType * apply_integer_promotions(CType * t) {
@@ -20,6 +21,15 @@ CType * usual_arithmetic_conversion(CType * a, CType * b) {
     if (a->rank > b->rank) return a;
     return b;
 }
+
+bool is_lvalue(ASTNode * node) {
+    if (node == NULL) {
+        error("node must not be null");
+    }
+    return node->type == AST_VAR_REF;
+    // TODO more logic
+}
+
 
 void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
 
@@ -42,6 +52,11 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
     exit_scope();
 }
 
+bool is_assignment(ASTNode * node) {
+    return node->binary.op == BINOP_ASSIGNMENT ||
+                node->binary.op == BINOP_COMPOUND_ADD_ASSIGN ||
+                node->binary.op == BINOP_COMPOUND_SUB_ASSIGN;
+}
 void analyze(AnalyzerContext * ctx, ASTNode * node) {
     if (!node) return;
 
@@ -95,6 +110,12 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             analyze(ctx, node->binary.lhs);
             analyze(ctx, node->binary.rhs);
 
+            if (is_assignment(node)) {
+                if (!is_lvalue(node)) {
+                    error("Assignment must be to an lvalue");
+                }
+            }
+
             CType * lhsCType = node->binary.lhs->ctype;
             CType * rhsCType = node->binary.rhs->ctype;
 
@@ -129,7 +150,8 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->ctype = node->return_stmt.expr->ctype;
             if (!ctype_equal_or_compatible(ctx->current_function_return_type,
                 node->ctype)) {
-                error("Function return type not compatible");
+                error("Function return type not compatible: expected %s, got %s",
+                    ctype_to_string(ctx->current_function_return_type), ctype_to_string(node->ctype));
             }
             break;
 
