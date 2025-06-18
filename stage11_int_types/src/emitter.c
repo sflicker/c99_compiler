@@ -11,6 +11,7 @@
 #include "token.h"
 #include "util.h"
 #include "error.h"
+#include "runtime_info_decorator.h"
 
 void emit_tree_node(FILE * out, ASTNode * node);
 void emit_var_declaration(FILE *out, ASTNode * node);
@@ -1067,7 +1068,7 @@ void emit_print_int_extension_code(FILE * out) {
 
 void emit(ASTNode * translation_unit, const char * output_file) {
     FILE * out = fopen(output_file, "w");
-    
+    populate_symbol_table(translation_unit);
     emit_tree_node(out, translation_unit);
 
     // emit referenced private functions
