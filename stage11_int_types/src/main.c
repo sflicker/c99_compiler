@@ -62,7 +62,7 @@ int main(int argc, char ** argv) {
 //    populate_symbol_table(astNode, true);
     print_ast(astNode, 0);
 
-//    emit(astNode, output_file);
+    emit(astNode, output_file);
 
     // TODO THIS NEEDS TO BE FIXED and OTHER CLEAN AS WELL.
     // cleanup_token_list(&tokenList);

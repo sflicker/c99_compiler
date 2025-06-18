@@ -10,13 +10,14 @@
 #include "emitter.h"
 #include "token.h"
 #include "util.h"
+#include "error.h"
 
 void emit_tree_node(FILE * out, ASTNode * node);
 void emit_var_declaration(FILE *out, ASTNode * node);
 
 // Register order for integer/pointer args in AMD64
-static const char* ARG_REGS[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
-const int ARG_REG_COUNT=6;
+// static const char* ARG_REGS[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
+// const int ARG_REG_COUNT=6;
 
 bool emit_print_int_extension = false;
 
@@ -29,24 +30,24 @@ typedef struct FunctionExitContext {
 
 static FunctionExitContext * functionExitStack = NULL;
 
-char * create_variable_reference(Address * addr) {
-    if (addr->kind == ADDR_STACK) {
-        int size = 20;
-        char * label = malloc(size);
-        snprintf(label, size, "[rbp%+d]", addr->stack_offset);
-        return label;
-    }
-    else if (addr->kind == ADDR_REGISTER) {
-        int size = 5;
-        char * label = malloc(size);
-        snprintf(label, size, "%s", ARG_REGS[addr->reg_index]);
-        return label;
-    }
-    else {
-        error("Variable Reference Addresses Must Be Assigned Before Usage\n");
-    }
-    return NULL;
-}
+// char * create_variable_reference(Address * addr) {
+//     if (addr->kind == ADDR_STACK) {
+//         int size = 20;
+//         char * label = malloc(size);
+//         snprintf(label, size, "[rbp%+d]", addr->stack_offset);
+//         return label;
+//     }
+//     else if (addr->kind == ADDR_REGISTER) {
+//         int size = 5;
+//         char * label = malloc(size);
+//         snprintf(label, size, "%s", ARG_REGS[addr->reg_index]);
+//         return label;
+//     }
+//     else {
+//         error("Variable Reference Addresses Must Be Assigned Before Usage\n");
+//     }
+//     return NULL;
+// }
 
 void push_function_exit_context(const char * exit_label) {
     FunctionExitContext * ctx = malloc(sizeof(FunctionExitContext));
@@ -236,6 +237,50 @@ void emit_print_extension_statement(FILE * out, ASTNode * node) {
     emit_print_int_extension = true;
 }
 
+void emit_binary_expr(FILE * out, ASTNode *node) {
+    switch (node->binary.op) {
+        case BINOP_EQ:
+        case BINOP_NE:
+        case BINOP_GT:
+        case BINOP_GE:
+        case BINOP_LT:
+        case BINOP_LE:
+            emit_binary_comparison(out, node);
+            break;
+        case BINOP_ADD:
+        case BINOP_SUB:
+        case BINOP_MUL:
+            emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+            emit_line(out, "push rax\n");                     // push lhs result
+            emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+            emit_line(out, "pop rcx\n");                      // pop lhs to ECX
+            emit_binary_op(out, node->binary.op);        // emit proper for op
+            break;
+        case BINOP_DIV:
+            emit_binary_div(out, node);
+            break;
+        case BINOP_MOD:
+            emit_binary_mod(out, node);
+            break;
+        case BINOP_LOGICAL_AND:
+            emit_logical_and(out, node);
+            break;
+
+        case BINOP_LOGICAL_OR:
+            emit_logical_or(out, node);
+            break;
+        case BINOP_ASSIGNMENT:
+            emit_assignment(out, node);
+            break;
+        case BINOP_COMPOUND_ADD_ASSIGN:
+            emit_add_assignment(out, node);
+            break;
+        case BINOP_COMPOUND_SUB_ASSIGN:
+            emit_sub_assignment(out, node);
+            break;
+    }
+}
+
 void emit_logical_and(FILE * out, ASTNode * node) {
     int label_false = label_id++;
     int label_end = label_id++;
@@ -280,6 +325,26 @@ void emit_logical_or(FILE* out, ASTNode* node) {
     emit_label(out, "end", label_end);
 }
 
+void emit_binary_div(FILE* out, ASTNode * node) {
+    emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+    emit_line(out, "push rax\n");                     // push lhs result
+    emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+    emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
+    emit_line(out, "pop rax\n");                      // restore numerator to eax
+    emit_line(out, "cdq\n");
+    emit_line(out, "idiv ecx\n");
+}
+
+void emit_binary_mod(FILE *out, ASTNode * node) {
+    emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+    emit_line(out, "push rax\n");                     // push lhs result
+    emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+    emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
+    emit_line(out, "pop rax\n");                      // restore numerator to eax
+    emit_line(out, "cdq\n");
+    emit_line(out, "idiv ecx\n");               // divide eax by ecx. result goes to eax, remainder to edx
+    emit_line(out, "mov eax, edx\n");           // move remainer in edx to eax
+}
 
 void emit_binary_comparison(FILE * out, ASTNode * node) {
     // eval left-hand side -> result in eax -> push results onto the stack
@@ -298,28 +363,28 @@ void emit_binary_comparison(FILE * out, ASTNode * node) {
     emit_line(out, "cmp ecx, eax\n");
 
     // emit proper setX based on operator type
-    switch (node->type) {
-        case AST_EQUAL:
+    switch (node->binary.op) {
+        case BINOP_EQ:
             emit_line(out, "sete al\n");
             break;
 
-        case AST_NOT_EQUAL:
+        case BINOP_NE:
             emit_line(out, "setne al\n");
             break;
 
-        case AST_LESS_THAN:
+        case BINOP_LT:
             emit_line(out, "setl al\n");
             break;
 
-        case AST_LESS_EQUAL:
+        case BINOP_LE:
             emit_line(out, "setle al\n");
             break;
 
-        case AST_GREATER_THAN:
+        case BINOP_GT:
             emit_line(out, "setg al\n");
             break;
 
-        case AST_GREATER_EQUAL:
+        case BINOP_GE:
             emit_line(out, "setge al\n");
             break;
 
@@ -335,17 +400,17 @@ void emit_binary_comparison(FILE * out, ASTNode * node) {
 }
 
 
-void emit_binary_op(FILE * out, ASTNodeType op) {
+void emit_binary_op(FILE * out, BinaryOperator op) {
     switch(op) {
-        case AST_ADD:
+        case BINOP_ADD:
             emit_line(out, "add eax, ecx\n");
             break;
-        case AST_SUB:
+        case BINOP_SUB:
 //            emit_line(out, "sub eax, ecx\n");
               emit_line(out, "sub ecx, eax\n");
               emit_line(out, "mov eax, ecx\n");
             break;
-        case AST_MUL:
+        case BINOP_MUL:
             emit_line(out, "imul eax, ecx\n");
             break;
         default:
@@ -354,22 +419,22 @@ void emit_binary_op(FILE * out, ASTNodeType op) {
 }
 
 void emit_unary(FILE *out, ASTNode * node) {
-    switch (node->type) {
-        case AST_UNARY_NEGATE:
+    switch (node->unary.op) {
+        case UNARY_NEGATE:
             emit_tree_node(out, node->unary.operand);
             emit_line(out, "neg eax\n");
             break;
-        case AST_UNARY_PLUS:
+        case UNARY_PLUS:
             // noop
             break;
-        case AST_UNARY_NOT:
+        case UNARY_NOT:
             // !x becomes (x == 0) -> 1 else 0
             emit_tree_node(out, node->unary.operand);
             emit_line(out, "cmp eax, 0\n");
             emit_line(out, "sete al\n");
             emit_line(out, "movzx eax, al\n");
             break;
-        case AST_UNARY_PRE_INC: {
+        case UNARY_PRE_INC: {
             char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
 //            emit_line(out, "mov eax, [rbp%+d]\n", offset);            
             emit_line(out, "mov eax, %s\n", reference_label);            
@@ -377,7 +442,7 @@ void emit_unary(FILE *out, ASTNode * node) {
             emit_line(out, "mov %s, eax\n", reference_label);
             break;
         }
-        case AST_UNARY_PRE_DEC: {
+        case UNARY_PRE_DEC: {
             char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
             //int offset = node->unary.operand->var_ref->offset;
             emit_line(out, "mov eax, %s\n", reference_label);            
@@ -385,7 +450,7 @@ void emit_unary(FILE *out, ASTNode * node) {
             emit_line(out, "mov %s, eax\n", reference_label);
         break;
         }
-        case AST_UNARY_POST_INC: {
+        case UNARY_POST_INC: {
             char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
             emit_line(out, "mov eax, %s\n", reference_label);
             emit_line(out, "mov ecx, eax\n");
@@ -394,7 +459,7 @@ void emit_unary(FILE *out, ASTNode * node) {
             emit_line(out, "mov eax, ecx\n");
             break;
         }
-        case AST_UNARY_POST_DEC: {
+        case UNARY_POST_DEC: {
 //            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
             emit_line(out, "mov eax, %s\n", reference_label);
@@ -419,16 +484,16 @@ void emit_if_statement(FILE * out, ASTNode * node) {
     // compare result with 0
     emit_line(out, "cmp eax, 0\n");
 
-    if (node->if_stmt.else_statement) {
+    if (node->if_stmt.else_stmt) {
         emit_line(out, "je .Lelse%d\n", id);  // jump to else if false
-        emit_tree_node(out, node->if_stmt.then_statement);
+        emit_tree_node(out, node->if_stmt.then_stmt);
         emit_line(out, "jmp .Lend%d\n", id);  // jump to end over else
         emit_label(out, "else", id);
-        emit_tree_node(out, node->if_stmt.else_statement);
+        emit_tree_node(out, node->if_stmt.else_stmt);
     }
     else {
         emit_line(out, "je .Lend%d\n", id);  // skip over if false
-        emit_tree_node(out, node->if_stmt.then_statement);
+        emit_tree_node(out, node->if_stmt.then_stmt);
     }
     emit_label(out, "end", id);
 }
@@ -466,7 +531,7 @@ void emit_while_statement(FILE* out, ASTNode * node) {
 void emit_do_while_statement(FILE * out, ASTNode * node) {
     int id = label_id++;
     emit_label(out, "do_while_start", id);
-    emit_tree_node(out, node->do_while_stmt.stmt);
+    emit_tree_node(out, node->do_while_stmt.body);
     emit_tree_node(out, node->do_while_stmt.expr);
     emit_line(out, "cmp eax, 0\n");
     emit_jump(out, "jne", "do_while_start", id);
@@ -810,15 +875,15 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_VAR_DECL:
             emit_var_declaration(out, node);
             break;
-        case AST_ASSIGNMENT: 
-            emit_assignment(out, node);
-            break;
-        case AST_COMPOUND_ADD_ASSIGN:
-            emit_add_assignment(out, node);
-            break;
-        case AST_COMPOUND_SUB_ASSIGN:
-            emit_sub_assignment(out, node);
-            break;
+        // case AST_ASSIGNMENT:
+        //     emit_assignment(out, node);
+        //     break;
+        // case AST_COMPOUND_ADD_ASSIGN:
+        //     emit_add_assignment(out, node);
+        //     break;
+        // case AST_COMPOUND_SUB_ASSIGN:
+        //     emit_sub_assignment(out, node);
+        //     break;
         case AST_RETURN_STMT:
             emit_tree_node(out, node->return_stmt.expr);
             if (functionExitStack && functionExitStack->exit_label) {
@@ -863,63 +928,71 @@ void emit_tree_node(FILE * out, ASTNode * node) {
         case AST_CONTINUE_STMT:
             emit_continue_statement(out, node);
             break;
-        case AST_DIV: {
-            emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
-            emit_line(out, "push rax\n");                     // push lhs result
-            emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
-            emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
-            emit_line(out, "pop rax\n");                      // restore numerator to eax
-            emit_line(out, "cdq\n");
-            emit_line(out, "idiv ecx\n");
-            break;
-        }
-        case AST_MOD: {
-            emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
-            emit_line(out, "push rax\n");                     // push lhs result
-            emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
-            emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
-            emit_line(out, "pop rax\n");                      // restore numerator to eax
-            emit_line(out, "cdq\n");
-            emit_line(out, "idiv ecx\n");               // divide eax by ecx. result goes to eax, remainder to edx
-            emit_line(out, "mov eax, edx\n");           // move remainer in edx to eax
-            break;
-        }
-        case AST_ADD:
-        case AST_SUB:
-        case AST_MUL:
-            emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
-            emit_line(out, "push rax\n");                     // push lhs result
-            emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
-            emit_line(out, "pop rcx\n");                      // pop lhs to ECX
-            emit_binary_op(out, node->type);        // emit proper for op
-        break;
 
-        case AST_EQUAL:
-        case AST_NOT_EQUAL:
-        case AST_LESS_EQUAL:
-        case AST_LESS_THAN:
-        case AST_GREATER_EQUAL:
-        case AST_GREATER_THAN:
-            emit_binary_comparison(out, node);
-            break;
+        case AST_BINARY_EXPR:
+            emit_binary_expr(out, node);
 
-        case AST_UNARY_POST_INC:
-        case AST_UNARY_POST_DEC:
-        case AST_UNARY_PRE_INC:
-        case AST_UNARY_PRE_DEC:
-        case AST_UNARY_NEGATE:
-        case AST_UNARY_NOT:
-        case AST_UNARY_PLUS:
+
+        // case AST_DIV: {
+        //     emit_binary_div(out, node);
+        //     emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+        //     emit_line(out, "push rax\n");                     // push lhs result
+        //     emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+        //     emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
+        //     emit_line(out, "pop rax\n");                      // restore numerator to eax
+        //     emit_line(out, "cdq\n");
+        //     emit_line(out, "idiv ecx\n");
+        //     break;
+        // }
+        // case AST_MOD: {
+        //     emit_binary_mod(out, node);
+        //     emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+        //     emit_line(out, "push rax\n");                     // push lhs result
+        //     emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+        //     emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
+        //     emit_line(out, "pop rax\n");                      // restore numerator to eax
+        //     emit_line(out, "cdq\n");
+        //     emit_line(out, "idiv ecx\n");               // divide eax by ecx. result goes to eax, remainder to edx
+        //     emit_line(out, "mov eax, edx\n");           // move remainer in edx to eax
+        //     break;
+        // }
+        // case AST_ADD:
+        // case AST_SUB:
+        // case AST_MUL:
+        //     emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
+        //     emit_line(out, "push rax\n");                     // push lhs result
+        //     emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
+        //     emit_line(out, "pop rcx\n");                      // pop lhs to ECX
+        //     emit_binary_op(out, node->binary.op);        // emit proper for op
+        // break;
+
+        // case AST_EQUAL:
+        // case AST_NOT_EQUAL:
+        // case AST_LESS_EQUAL:
+        // case AST_LESS_THAN:
+        // case AST_GREATER_EQUAL:
+        // case AST_GREATER_THAN:
+        //     emit_binary_comparison(out, node);
+        //     break;
+
+        // case AST_UNARY_POST_INC:
+        // case AST_UNARY_POST_DEC:
+        // case AST_UNARY_PRE_INC:
+        // case AST_UNARY_PRE_DEC:
+        // case AST_UNARY_NEGATE:
+        // case AST_UNARY_NOT:
+        // case AST_UNARY_PLUS:
+        // case AST_UNARY_EXPR:
             emit_unary(out, node);
             break;
 
-        case AST_LOGICAL_AND:
-            emit_logical_and(out, node);
-            break;
-
-        case AST_LOGICAL_OR:
-            emit_logical_or(out, node);
-            break;
+        // case AST_LOGICAL_AND:
+        //     emit_logical_and(out, node);
+        //     break;
+        //
+        // case AST_LOGICAL_OR:
+        //     emit_logical_or(out, node);
+        //     break;
 
         case AST_INT_LITERAL:
             emit_line(out, "mov eax, %d\n", node->int_value);
