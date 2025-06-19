@@ -14,6 +14,9 @@ EmitterContext * create_emitter_context(const char * filename) {
     ctx->filename = strdup(filename);
     ctx->out = fopen(ctx->filename, "w");
     ctx->emit_print_int_extension = false;
+    ctx->functionExitStack = NULL;
+    ctx->switch_stack = NULL;
+    ctx->loop_stack = NULL;
     return ctx;
 }
 
@@ -25,4 +28,65 @@ void emitter_finalize(EmitterContext * ctx) {
 
 int get_label_id(EmitterContext * ctx) {
     return ctx->label_id++;
+}
+
+void push_function_exit_context(EmitterContext * ctx, const char * exit_label) {
+    FunctionExitContext * functionCtx = malloc(sizeof(FunctionExitContext));
+    functionCtx->exit_label = strdup(exit_label);
+    functionCtx->next = ctx->functionExitStack;
+    ctx->functionExitStack = functionCtx;
+}
+
+void pop_function_exit_context(EmitterContext * ctx) {
+    if (ctx->functionExitStack) {
+        FunctionExitContext * old = ctx->functionExitStack;
+        ctx->functionExitStack = old->next;
+        free(old->exit_label);
+        free(old);
+    }
+}
+
+char * get_function_exit_label(EmitterContext * ctx) {
+    if (ctx->functionExitStack) {
+        return ctx->functionExitStack->exit_label;
+    }
+    return NULL;
+}
+
+void push_switch_context(EmitterContext * ctx, const char * break_label) {
+    SwitchContext * switchContext = malloc(sizeof(SwitchContext));
+    switchContext->break_label = strdup(break_label);
+    switchContext->next = ctx->switch_stack;
+    ctx->switch_stack = switchContext;
+}
+
+void pop_switch_context(EmitterContext * ctx) {
+    if (ctx->switch_stack) {
+        SwitchContext * old = ctx->switch_stack;
+        ctx->switch_stack = old->next;
+        free(old);
+    }
+}
+
+const char * current_switch_break_label(EmitterContext * ctx) {
+    if (ctx->switch_stack) {
+        return ctx->switch_stack->break_label;
+    }
+    return NULL;  // error break outside switch
+}
+
+void push_loop_context(EmitterContext * ctx, const char * start_label, const char * end_label) {
+    LoopContext * loopContext = malloc(sizeof(LoopContext));
+    loopContext->start_label = start_label;
+    loopContext->end_label = end_label;
+    loopContext->next = ctx->loop_stack;
+    ctx->loop_stack = loopContext;
+}
+
+void pop_loop_context(EmitterContext * ctx) {
+    if (ctx->loop_stack) {
+        LoopContext * old = ctx->loop_stack;
+        ctx->loop_stack = old->next;
+        free(old);
+    }
 }

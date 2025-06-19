@@ -20,6 +20,8 @@ void emit_jump(EmitterContext * ctx, const char * op, const char * prefix, int n
 void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * label);
 void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node);
 void emit_print_extension_statement(EmitterContext * ctx, ASTNode * node);
+void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node);
+void emit_print_int_extension_function(EmitterContext * ctx);
 
 void emit_binary_expr(EmitterContext * ctx, ASTNode *node);
 void emit_binary_op(EmitterContext * ctx, BinaryOperator op);
@@ -50,5 +52,7 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node);
 void emit_case_statement(EmitterContext * ctx, ASTNode * node);
 const char * get_break_label(EmitterContext * ctx);
 const char * get_continue_label(EmitterContext * ctx);
+void emit_break_statement(EmitterContext * ctx, ASTNode * node);
+void emit_continue_statement(EmitterContext * ctx, ASTNode * node);
 
 #endif

@@ -21,16 +21,16 @@ void emit_var_declaration(FILE *out, ASTNode * node);
 // static const char* ARG_REGS[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
 // const int ARG_REG_COUNT=6;
 
-bool emit_print_int_extension = false;
+//bool emit_print_int_extension = false;
 
 //static int label_id = 0;
 
-typedef struct FunctionExitContext {
-    char * exit_label;
-    struct FunctionExitContext * next;
-} FunctionExitContext;
+// typedef struct FunctionExitContext {
+//     char * exit_label;
+//     struct FunctionExitContext * next;
+// } FunctionExitContext;
 
-static FunctionExitContext * functionExitStack = NULL;
+//static FunctionExitContext * functionExitStack = NULL;
 
 // char * create_variable_reference(Address * addr) {
 //     if (addr->kind == ADDR_STACK) {
@@ -51,80 +51,80 @@ static FunctionExitContext * functionExitStack = NULL;
 //     return NULL;
 // }
 
-void push_function_exit_context(const char * exit_label) {
-    FunctionExitContext * ctx = malloc(sizeof(FunctionExitContext));
-    ctx->exit_label = strdup(exit_label);
-    ctx->next = functionExitStack;
-    functionExitStack = ctx;
-}
+// void push_function_exit_context(EmitterContext * ctx, const char * exit_label) {
+//     FunctionExitContext * functionCtx = malloc(sizeof(FunctionExitContext));
+//     functionCtx->exit_label = strdup(exit_label);
+//     functionCtx->next = ctx->functionExitStack;
+//     ctx->functionExitStack = functionCtx;
+// }
 
-void pop_function_exit_context() {
-    if (functionExitStack) {
-        FunctionExitContext * old = functionExitStack;
-        functionExitStack = old->next;
-        free(old->exit_label);
-        free(old);
-    }
-}
+// void pop_function_exit_context(EmitterContext * ctx) {
+//     if (functionExitStack) {
+//         FunctionExitContext * old = functionExitStack;
+//         functionExitStack = old->next;
+//         free(old->exit_label);
+//         free(old);
+//     }
+// }
 
-char * get_function_exit_label() {
-    if (functionExitStack) {
-        return functionExitStack->exit_label;
-    }
-    return NULL;
-}
-typedef struct SwitchContext {
-    const char * break_label;
-    struct SwitchContext * next;
-} SwitchContext;
+// char * get_function_exit_label() {
+//     if (functionExitStack) {
+//         return functionExitStack->exit_label;
+//     }
+//     return NULL;
+// }
+// typedef struct SwitchContext {
+//     const char * break_label;
+//     struct SwitchContext * next;
+// } SwitchContext;
+//
+// static SwitchContext * switch_stack = NULL;
 
-static SwitchContext * switch_stack = NULL;
+// void push_switch_context(const char * break_label) {
+//     SwitchContext * ctx = malloc(sizeof(SwitchContext));
+//     ctx->break_label = strdup(break_label);
+//     ctx->next = switch_stack;
+//     switch_stack = ctx;
+// }
+//
+// void pop_switch_context() {
+//     if (switch_stack) {
+//         SwitchContext * old = switch_stack;
+//         switch_stack = old->next;
+//         free(old);
+//     }
+// }
 
-void push_switch_context(const char * break_label) {
-    SwitchContext * ctx = malloc(sizeof(SwitchContext));
-    ctx->break_label = strdup(break_label);
-    ctx->next = switch_stack;
-    switch_stack = ctx;
-}
+// typedef struct LoopContext {
+//     const char * start_label;
+//     const char * end_label;
+//     struct LoopContext * next;
+// } LoopContext;
 
-void pop_switch_context() {
-    if (switch_stack) {
-        SwitchContext * old = switch_stack;
-        switch_stack = old->next;
-        free(old);
-    }
-}
+//static LoopContext * loop_stack = NULL;
 
-typedef struct LoopContext {
-    const char * start_label;
-    const char * end_label;
-    struct LoopContext * next;
-} LoopContext;
+// void push_loop_context(const char * start_label, const char * end_label) {
+//     LoopContext * ctx = malloc(sizeof(LoopContext));
+//     ctx->start_label = start_label;
+//     ctx->end_label = end_label;
+//     ctx->next = loop_stack;
+//     loop_stack = ctx;
+// }
+//
+// void pop_loop_context() {
+//     if (loop_stack) {
+//         LoopContext * old = loop_stack;
+//         loop_stack = old->next;
+//         free(old);
+//     }
+// }
 
-static LoopContext * loop_stack = NULL;
-
-void push_loop_context(const char * start_label, const char * end_label) {
-    LoopContext * ctx = malloc(sizeof(LoopContext));
-    ctx->start_label = start_label;
-    ctx->end_label = end_label;
-    ctx->next = loop_stack;
-    loop_stack = ctx;
-}
-
-void pop_loop_context() {
-    if (loop_stack) {
-        LoopContext * old = loop_stack;
-        loop_stack = old->next;
-        free(old);
-    }
-}
-
-const char * current_switch_break_label() {
-    if (switch_stack) {
-        return switch_stack->break_label;
-    }
-    return NULL;  // error break outside switch
-}
+// const char * current_switch_break_label(EmitterContext * ctx) {
+//     if (ctx->switch_stack) {
+//         return ctx->switch_stack->break_label;
+//     }
+//     return NULL;  // error break outside switch
+// }
 
 void emit_line(EmitterContext * ctx, const char* fmt, ...) {
     va_list args;
@@ -232,7 +232,7 @@ void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
 
 }
 
-void emit_print_extension_statement(EmitterContext * ctx, ASTNode * node) {
+void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node) {
     // emit the expression storing it in EAX
     emit_tree_node(ctx, node->expr_stmt.expr);
     emit_line(ctx, "call print_int\n");
@@ -505,7 +505,7 @@ void emit_while_statement(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->switch_stmt.expr);
     emit_line(ctx, "push rax   ; save switch expression\n");
 
-    push_loop_context(loop_start_label, loop_end_label);
+    push_loop_context(ctx, loop_start_label, loop_end_label);
     
     //int id = label_id++;
     
@@ -553,7 +553,7 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     }
 
     char * func_end_label = make_label_text("func_end", get_label_id(ctx));
-    push_function_exit_context(func_end_label);
+    push_function_exit_context(ctx, func_end_label);
 
     emit_text_section_header(ctx);
 
@@ -588,7 +588,7 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "leave\n");
     emit_line(ctx, "ret\n");
 
-    pop_function_exit_context();
+    pop_function_exit_context(ctx);
     free(func_end_label);
 }
 
@@ -632,7 +632,7 @@ void emit_for_statement(EmitterContext * ctx, FILE * out, ASTNode * node) {
     char * condition_label = make_label_text("for_condition", get_label_id(ctx));
     char * continue_label = make_label_text("for_continue", get_label_id(ctx));
 
-    push_loop_context(continue_label, end_label);
+    push_loop_context(ctx, continue_label, end_label);
 
     // int label_start = label_id++;
     // int label_cond = label_id++;
@@ -671,7 +671,7 @@ void emit_for_statement(EmitterContext * ctx, FILE * out, ASTNode * node) {
     // end/break label
     emit_label_from_text(ctx, end_label);
 
-    pop_loop_context();
+    pop_loop_context(ctx);
 
 //    exit_scope();
 
@@ -794,7 +794,7 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->switch_stmt.expr);
     emit_line(ctx, "push rax   ; save switch expression\n");
 
-    push_switch_context(break_label);
+    push_switch_context(ctx, break_label);
 
     // first pass emit all comparisons and jumps
 //    emit_switch_dispatch(out, node->switch_stmt.stmt);
@@ -808,7 +808,7 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
     // TODO MAY NEED TO EMIT A STACK restore
     //emit_line(out, "add rsp, 8  ; restore stack\n");
 
-    pop_switch_context();
+    pop_switch_context(ctx);
 
     free(break_label);
 }
@@ -830,49 +830,50 @@ void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->case_stmt.stmt);
     // emit jump to break
 
-    emit_line(ctx, "jmp %s\n", switch_stack->break_label);
+    emit_line(ctx, "jmp %s\n", current_switch_break_label(ctx));
 
     free(case_label);
 }
 
 const char * get_break_label(EmitterContext * ctx) {
-    if (loop_stack) return loop_stack->end_label; 
-    if (switch_stack) return switch_stack->break_label;
-    return NULL;
+    if (ctx->loop_stack) return ctx->loop_stack->end_label;
+    return current_switch_break_label(ctx);
+    // if (switch_stack) return switch_stack->break_label;
+    // return NULL;
 }
 
 const char * get_continue_label(EmitterContext * ctx) {
-    if (loop_stack) return loop_stack->start_label;
+    if (ctx->loop_stack) return ctx->loop_stack->start_label;
     return NULL;
 }
 
-void emit_break_statement(EmitterContext * ctx, FILE * out, ASTNode * node) {
-    const char * label = get_break_label();
-    emit_jump_from_text(out, "jmp", label);
+void emit_break_statement(EmitterContext * ctx, ASTNode * node) {
+    const char * label = get_break_label(ctx);
+    emit_jump_from_text(ctx, "jmp", label);
 }
 
-void emit_continue_statement(EmitterContext * ctx, FILE * out, ASTNode * node) {
-    const char * label = get_continue_label();
-    emit_jump_from_text(out, "jmp", label);
+void emit_continue_statement(EmitterContext * ctx, ASTNode * node) {
+    const char * label = get_continue_label(ctx);
+    emit_jump_from_text(ctx, "jmp", label);
 }
 
-void emit_tree_node(EmitterContext * ctx, FILE * out, ASTNode * node) {
+void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
         {
-            emit_header(out);
+            emit_header(ctx);
             for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
-                 emit_tree_node(out, n->value);
+                 emit_tree_node(ctx, n->value);
             }
-            emit_trailer(out);
+            emit_trailer(ctx);
             break;
         }
         case AST_FUNCTION_DECL:
-            emit_function(out, node);
+            emit_function(ctx, node);
             break;
         case AST_VAR_DECL:
-            emit_var_declaration(out, node);
+            emit_var_declaration(ctx, node);
             break;
         // case AST_ASSIGNMENT:
         //     emit_assignment(out, node);
@@ -884,52 +885,52 @@ void emit_tree_node(EmitterContext * ctx, FILE * out, ASTNode * node) {
         //     emit_sub_assignment(out, node);
         //     break;
         case AST_RETURN_STMT:
-            emit_tree_node(out, node->return_stmt.expr);
-            if (functionExitStack && functionExitStack->exit_label) {
-                emit_jump_from_text(out, "jmp", functionExitStack->exit_label);
+            emit_tree_node(ctx, node->return_stmt.expr);
+            if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
+                emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
             }
             // emit_line(out, "leave\n");
             // emit_line(out, "ret\n");
             break;
         case AST_FUNCTION_CALL:
-            emit_function_call(out, node);
+            emit_function_call(ctx, node);
             break;
         case AST_EXPRESSION_STMT:
-            emit_tree_node(out, node->expr_stmt.expr);
+            emit_tree_node(ctx, node->expr_stmt.expr);
             break;
         case AST_ASSERT_EXTENSION_STATEMENT:
-            emit_assert_extension_statement(out, node);
+            emit_assert_extension_statement(ctx, node);
             break;
         case AST_PRINT_EXTENSION_STATEMENT:
-            emit_print_extension_statement(out, node);
+            emit_print_extension_statement(ctx, node);
             break;
         case AST_BLOCK:
-            emit_block(out, node, true);
+            emit_block(ctx, node, true);
             break;
         case AST_IF_STMT:
-            emit_if_statement(out, node);
+            emit_if_statement(ctx, node);
             break;
         case AST_WHILE_STMT:
-            emit_while_statement(out, node);
+            emit_while_statement(ctx, node);
             break;
         case AST_DO_WHILE_STMT:
-            emit_do_while_statement(out, node);
+            emit_do_while_statement(ctx, node);
             break;
         case AST_SWITCH_STMT:
-            emit_switch_statement(out, node);
+            emit_switch_statement(ctx, node);
             break;
         case AST_CASE_STMT:
-            emit_case_statement(out, node);
+            emit_case_statement(ctx, node);
             break;
         case AST_BREAK_STMT:
-            emit_break_statement(out, node);
+            emit_break_statement(ctx, node);
             break;
         case AST_CONTINUE_STMT:
-            emit_continue_statement(out, node);
+            emit_continue_statement(ctx, node);
             break;
 
         case AST_BINARY_EXPR:
-            emit_binary_expr(out, node);
+            emit_binary_expr(ctx, node);
 
 
         // case AST_DIV: {
@@ -982,7 +983,7 @@ void emit_tree_node(EmitterContext * ctx, FILE * out, ASTNode * node) {
         // case AST_UNARY_NOT:
         // case AST_UNARY_PLUS:
         // case AST_UNARY_EXPR:
-            emit_unary(out, node);
+        emit_unary(ctx, node);
             break;
 
         // case AST_LOGICAL_AND:
@@ -994,22 +995,22 @@ void emit_tree_node(EmitterContext * ctx, FILE * out, ASTNode * node) {
         //     break;
 
         case AST_INT_LITERAL:
-            emit_line(out, "mov eax, %d\n", node->int_value);
+            emit_line(ctx, "mov eax, %d\n", node->int_value);
             break;
         case AST_VAR_REF:
             int offset = node->var_ref.addr.stack_offset;
-            emit_line(out, "mov eax, [rbp%+d]\n", offset);
+            emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
             break;
         case AST_FOR_STMT:
-            emit_for_statement(out, node);
+            emit_for_statement(ctx, node);
             break;
         case AST_GOTO_STMT:
-            emit_jump(out, "jmp", node->goto_stmt.label, 0);
+            emit_jump(ctx, "jmp", node->goto_stmt.label, 0);
             break;
 
         case AST_LABELED_STMT:
-            emit_label(out, node->labeled_stmt.label, 0);
-            emit_tree_node(out, node->labeled_stmt.stmt);
+            emit_label(ctx, node->labeled_stmt.label, 0);
+            emit_tree_node(ctx, node->labeled_stmt.stmt);
             break;
         default:
             error("Unhandled type %s\n", node->type);
@@ -1018,61 +1019,60 @@ void emit_tree_node(EmitterContext * ctx, FILE * out, ASTNode * node) {
     }
 }
 
-void emit_print_int_extension_code(EmitterContext * ctx, FILE * out) {
+void emit_print_int_extension_function(EmitterContext * ctx) {
     int label_convert = get_label_id(ctx);
     int label_done = get_label_id(ctx);
     int label_buffer = get_label_id(ctx);
     int label_loop = get_label_id(ctx);
 
-    emit_bss_section_header(out);
-    emit_line(out, "buffer%d resb 20\n", label_buffer);
+    emit_bss_section_header(ctx);
+    emit_line(ctx, "buffer%d resb 20\n", label_buffer);
 
-    emit_text_section_header(out);
-    emit_line(out, "print_int:\n");
-    emit_line(out, "; assumes integer to print is in eax\n");
-    emit_line(out, "; converts and prints using syscall\n");
-    emit_line(out, "mov rcx, buffer%d + 19\n", label_buffer);
-    emit_line(out, "mov byte [rcx], 10\n");
-    emit_line(out, "dec rcx\n");
-    emit_line(out, "\n");
-    emit_line(out, "cmp eax, 0\n");
-    emit_jump(out, "jne", "convert", label_convert);
-    emit_line(out, "mov byte [rcx], '0'\n");
-    emit_line(out, "dec rcx\n");
-    emit_jump(out, "jmp", "done", label_done);
-    emit_line(out, "\n");
-    emit_label(out, "convert", label_convert);
-    emit_line(out, "xor edx, edx\n");
-    emit_line(out, "mov ebx, 10\n");
-    emit_label(out, "loop", label_loop);
-    emit_line(out, "xor edx, edx\n");
-    emit_line(out, "div ebx\n");
-    emit_line(out, "add dl, '0'\n");
-    emit_line(out, "mov [rcx], dl\n");
-    emit_line(out, "dec rcx\n");
-    emit_line(out, "test eax, eax\n");
-    emit_jump(out, "jnz", "loop", label_loop);
-    emit_line(out, "\n");
-    emit_label(out, "done", label_done);
-    emit_line(out, "lea rsi, [rcx + 1]\n");
-    emit_line(out, "mov rdx, buffer%d + 20\n", label_buffer);
-    emit_line(out, "sub rdx, rsi\n");
-    emit_line(out, "mov rax, 1\n");
-    emit_line(out, "mov rdi, 1\n");
-    emit_line(out, "syscall\n");
-    emit_line(out, "ret\n");
+    emit_text_section_header(ctx);
+    emit_line(ctx, "print_int:\n");
+    emit_line(ctx, "; assumes integer to print is in eax\n");
+    emit_line(ctx, "; converts and prints using syscall\n");
+    emit_line(ctx, "mov rcx, buffer%d + 19\n", label_buffer);
+    emit_line(ctx, "mov byte [rcx], 10\n");
+    emit_line(ctx, "dec rcx\n");
+    emit_line(ctx, "\n");
+    emit_line(ctx, "cmp eax, 0\n");
+    emit_jump(ctx, "jne", "convert", label_convert);
+    emit_line(ctx, "mov byte [rcx], '0'\n");
+    emit_line(ctx, "dec rcx\n");
+    emit_jump(ctx, "jmp", "done", label_done);
+    emit_line(ctx, "\n");
+    emit_label(ctx, "convert", label_convert);
+    emit_line(ctx, "xor edx, edx\n");
+    emit_line(ctx, "mov ebx, 10\n");
+    emit_label(ctx, "loop", label_loop);
+    emit_line(ctx, "xor edx, edx\n");
+    emit_line(ctx, "div ebx\n");
+    emit_line(ctx, "add dl, '0'\n");
+    emit_line(ctx, "mov [rcx], dl\n");
+    emit_line(ctx, "dec rcx\n");
+    emit_line(ctx, "test eax, eax\n");
+    emit_jump(ctx, "jnz", "loop", label_loop);
+    emit_line(ctx, "\n");
+    emit_label(ctx, "done", label_done);
+    emit_line(ctx, "lea rsi, [rcx + 1]\n");
+    emit_line(ctx, "mov rdx, buffer%d + 20\n", label_buffer);
+    emit_line(ctx, "sub rdx, rsi\n");
+    emit_line(ctx, "mov rax, 1\n");
+    emit_line(ctx, "mov rdi, 1\n");
+    emit_line(ctx, "syscall\n");
+    emit_line(ctx, "ret\n");
 
 }
 
 void emit(EmitterContext * ctx, ASTNode * translation_unit) {
  //   FILE * out = fopen(output_file, "w");
     populate_symbol_table(translation_unit);
-    emit_tree_node(out, translation_unit);
+    emit_tree_node(ctx, translation_unit);
 
     // emit referenced private functions
-    if (emit_print_int_extension) {
-        emit_print_int_extension_code(ctx, out);
+    if (ctx->emit_print_int_extension) {
+        emit_print_int_extension_function(ctx);
     }
 
-    fclose(out);
 }
