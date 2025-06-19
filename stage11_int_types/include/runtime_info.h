@@ -7,7 +7,7 @@
 
 #include "ast.h"
 #include "list_util.h"
-typedef runtime_info {
+typedef struct RuntimeInfo {
     ASTNode * node;
     int offset;
     int size;

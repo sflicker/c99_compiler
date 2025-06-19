@@ -7,7 +7,7 @@
 #include "ast.h"
 #include "emitter.h"
 #include "token.h"
-#include "type.h"
+#include "ctypes.h"
 #include "symbol_table.h"
 #include "util.h"
 #include "error.h"
@@ -26,8 +26,8 @@ void add_runtime_info(RuntimeInfo * node) {
 
 RuntimeInfo * find_runtime_info(ASTNode * node) {
     for (RuntimeInfo_list_node * n = runtime_info_list->head; n != NULL; n = n->next) {
-        RuntimeInfo * info = (RuntimeInfo *)n->value;
-        if (info.node == node) {
+        RuntimeInfo * info = n->value;
+        if (info->node == node) {
             return n->value;
         }
     }
