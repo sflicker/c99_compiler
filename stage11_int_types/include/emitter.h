@@ -2,16 +2,53 @@
 #define EMITTER_H
 
 #include "ast.h"
+#include "emitter_context.h"
 
-void emit(ASTNode * program, const char * output_file);
+char * make_label_text(const char * prefix, int num);
 
-void emit_binary_op(FILE * out, BinaryOperator op);
-void emit_binary_comparison(FILE * out, ASTNode * node);
-void emit_logical_and(FILE * out, ASTNode * node);
-void emit_logical_or(FILE * out, ASTNode * node);
-void emit_assignment(FILE * out, ASTNode* node);
-void emit_add_assignment(FILE *out, ASTNode * node);
-void emit_sub_assignment(FILE *out, ASTNode * node);
-void emit_binary_div(FILE* out, ASTNode * node);
-void emit_binary_mod(FILE *out, ASTNode * node);
+void emit(EmitterContext * ctx, ASTNode * program);
+void emit_tree_node(EmitterContext * ctx, ASTNode * node);
+void emit_line(EmitterContext * ctx, const char* fmt, ...);
+void emit_header(EmitterContext * ctx);
+void emit_trailer(EmitterContext * ctx);
+void emit_text_section_header(EmitterContext * ctx);
+void emit_data_section_header(EmitterContext * ctx);
+void emit_bss_section_header(EmitterContext * ctx);
+void emit_label(EmitterContext * ctx, const char * prefix, int num);
+void emit_label_from_text(EmitterContext *ctx, const char * label);
+void emit_jump(EmitterContext * ctx, const char * op, const char * prefix, int num);
+void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * label);
+void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node);
+void emit_print_extension_statement(EmitterContext * ctx, ASTNode * node);
+
+void emit_binary_expr(EmitterContext * ctx, ASTNode *node);
+void emit_binary_op(EmitterContext * ctx, BinaryOperator op);
+void emit_binary_comparison(EmitterContext * ctx, ASTNode * node);
+void emit_logical_and(EmitterContext * ctx, ASTNode * node);
+void emit_logical_or(EmitterContext * ctx, ASTNode * node);
+void emit_assignment(EmitterContext * ctx, ASTNode* node);
+void emit_add_assignment(EmitterContext * ctx, ASTNode * node);
+void emit_sub_assignment(EmitterContext * ctx, ASTNode * node);
+void emit_binary_div(EmitterContext * ctx, ASTNode * node);
+void emit_binary_mod(EmitterContext * ctx, ASTNode * node);
+void emit_unary(EmitterContext * ctx, ASTNode * node);
+void emit_if_statement(EmitterContext * ctx, ASTNode * node);
+void emit_while_statement(EmitterContext * ctx, ASTNode * node);
+void emit_do_while_statement(EmitterContext * ctx, ASTNode * node);
+void emit_block(EmitterContext * ctx, ASTNode * node, bool enterNewScope);
+void emit_function(EmitterContext * ctx, ASTNode * node);
+void emit_var_declaration(EmitterContext * ctx, ASTNode * node);
+void emit_assignment(EmitterContext * ctx, ASTNode* node);
+void emit_add_assignment(EmitterContext * ctx, ASTNode * node);
+void emit_sub_assignment(EmitterContext * ctx, ASTNode * node);
+void emit_for_statement(EmitterContext * ctx, ASTNode * node);
+void emit_pass_argument(EmitterContext * ctx, Type * type, Address * addr, ASTNode * node);
+void emit_function_call(EmitterContext * ctx, ASTNode * node);
+void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node);
+void emit_switch_bodies(EmitterContext * ctx, ASTNode * node);
+void emit_switch_statement(EmitterContext * ctx, ASTNode * node);
+void emit_case_statement(EmitterContext * ctx, ASTNode * node);
+const char * get_break_label(EmitterContext * ctx);
+const char * get_continue_label(EmitterContext * ctx);
+
 #endif

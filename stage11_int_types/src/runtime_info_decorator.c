@@ -17,15 +17,22 @@ RuntimeInfo_list * runtime_info_list = NULL;
 
 void init_runtime_info_list() {
     runtime_info_list = malloc(sizeof(RuntimeInfo_list));
-    RuntimeInfo_list_init(runtime_info_list);
+    RuntimeInfo_list_init(runtime_info_list, free_runtime_info);
 }
 
 void add_runtime_info(RuntimeInfo * node) {
-    //TODO FIX
+    RuntimeInfo_list_append(runtime_info_list, node);
 }
 
 RuntimeInfo * find_runtime_info(ASTNode * node) {
-    return NULL;  //TODO FIX
+    for (RuntimeInfo_list_node * n = runtime_info_list->head; n != NULL; n = n->next) {
+        RuntimeInfo * info = (RuntimeInfo *)n->value;
+        if (info.node == node) {
+            return n->value;
+        }
+    }
+
+    return NULL;
 }
 
 void populate_symbol_table(ASTNode * node) {
