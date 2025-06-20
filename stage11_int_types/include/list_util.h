@@ -92,6 +92,6 @@ typedef struct ASTNode ASTNode;
 
 DEFINE_LINKED_LIST(ASTNode*, ASTNode_list);
 
-
+void reverse_ASTNode_list(ASTNode_list * list);
 
 #endif // LIST_UTIL_H

@@ -1,3 +1,5 @@
+#include "runtime_info_decorator.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -20,11 +22,17 @@ void init_runtime_info_list() {
     RuntimeInfo_list_init(runtime_info_list, free_runtime_info);
 }
 
-void add_runtime_info(RuntimeInfo * node) {
-    RuntimeInfo_list_append(runtime_info_list, node);
+void add_runtime_info_offset(ASTNode * astNode, int offset) {
+    RuntimeInfo * runtimeNode = runtime_info(astNode);
+    if (runtimeNode == NULL) {
+        runtimeNode = malloc(sizeof(RuntimeInfo));
+        runtimeNode->node = astNode;
+        RuntimeInfo_list_append(runtime_info_list, runtimeNode);
+    }
+    runtimeNode->offset = offset;
 }
 
-RuntimeInfo * find_runtime_info(ASTNode * node) {
+RuntimeInfo * runtime_info(ASTNode * node) {
     for (RuntimeInfo_list_node * n = runtime_info_list->head; n != NULL; n = n->next) {
         RuntimeInfo * info = n->value;
         if (info->node == node) {
@@ -32,7 +40,10 @@ RuntimeInfo * find_runtime_info(ASTNode * node) {
         }
     }
 
-    return NULL;
+    RuntimeInfo * runtimeNode = malloc(sizeof(RuntimeInfo));
+    runtimeNode->node = node;
+    RuntimeInfo_list_append(runtime_info_list, runtimeNode);
+    return runtimeNode;
 }
 
 void populate_symbol_table(ASTNode * node) {
@@ -54,35 +65,35 @@ void populate_symbol_table(ASTNode * node) {
         }
         case AST_FUNCTION_DECL:
             {
-                set_current_offset(0);
-                reset_storage_size();
-                enter_scope();
-                TypePtr_list * type_list = NULL;
-                if (node->function_decl.param_list && node->function_decl.param_list->count > 0) {
-                    type_list = malloc(sizeof(TypePtr_list));
-                    TypePtr_list_init(type_list, free_type);
-
-                    int offset = 16;
-                    for (ASTNode_list_node * n = node->function_decl.param_list->head;n;n=n->next) {
-                        ASTNode * astNode = n->value;
-                        add_symbol(astNode->var_decl.name, astNode->var_decl.var_type);
-                        offset += astNode->var_decl.var_type->size;
-                        TypePtr_list_append(type_list, astNode->var_decl.var_type);
-                    }
-                    //for(int i=0;i<node->function_decl.param_count;i++) {
-                    //     ASTNode * astNode = node->function_decl.param_list[i];                        
-                    //     offset = add_symbol_with_offset(astNode->var_decl.name, offset, astNode->var_decl.var_type);
-                    //     astNode->var_decl.offset = offset;
-                    //     offset += astNode->var_decl.var_type->size;
-                    //     //offset += 8;
-                    // }
-                }
-                //Type * param_type;
-                add_function_symbol(node->function_decl.name, node->function_decl.return_type, 
-                     ((node->function_decl.param_list != NULL) ? node->function_decl.param_list->count : 0), type_list);
-                populate_symbol_table(node->function_decl.body, false);
-                node->function_decl.size = get_symbol_total_space();
-                exit_scope();
+                // set_current_offset(0);
+                // reset_storage_size();
+                // enter_scope();
+                // TypePtr_list * type_list = NULL;
+                // if (node->function_decl.param_list && node->function_decl.param_list->count > 0) {
+                //     type_list = malloc(sizeof(TypePtr_list));
+                //     TypePtr_list_init(type_list, free_type);
+                //
+                //     int offset = 16;
+                //     for (ASTNode_list_node * n = node->function_decl.param_list->head;n;n=n->next) {
+                //         ASTNode * astNode = n->value;
+                //         add_symbol(astNode->var_decl.name, astNode->var_decl.var_type);
+                //         offset += astNode->var_decl.var_type->size;
+                //         TypePtr_list_append(type_list, astNode->var_decl.var_type);
+                //     }
+                //     //for(int i=0;i<node->function_decl.param_count;i++) {
+                //     //     ASTNode * astNode = node->function_decl.param_list[i];
+                //     //     offset = add_symbol_with_offset(astNode->var_decl.name, offset, astNode->var_decl.var_type);
+                //     //     astNode->var_decl.offset = offset;
+                //     //     offset += astNode->var_decl.var_type->size;
+                //     //     //offset += 8;
+                //     // }
+                // }
+                // //Type * param_type;
+                // add_function_symbol(node->function_decl.name, node->function_decl.return_type,
+                //      ((node->function_decl.param_list != NULL) ? node->function_decl.param_list->count : 0), type_list);
+                // populate_symbol_table(node->function_decl.body, false);
+                // node->function_decl.size = get_symbol_total_space();
+                // exit_scope();
                 break;
             }
         // case AST_PARAM_LIST: {
@@ -92,7 +103,7 @@ void populate_symbol_table(ASTNode * node) {
         //     break;
         // }
         case AST_BLOCK:
-            if (make_new_scope) enter_scope();
+            if (node->block.introduce_scope) enter_scope();
 
             for (ASTNode_list_node * n = node->block.statements->head; n; n = n->next) {
                 populate_symbol_table(n->value);
@@ -102,33 +113,36 @@ void populate_symbol_table(ASTNode * node) {
             //     populate_symbol_table(node->block.statements[i], true);
             // }
             
-            if (make_new_scope) exit_scope();
+            if (node->block.introduce_scope) exit_scope();
             break;
         case AST_VAR_DECL:
-            int offset = add_symbol(node->var_decl.name, node->var_decl.var_type);
-            node->var_decl.addr = offset;
+            Symbol * symbol = add_symbol(node->var_decl.name, node->ctype, node);
+            int offset = 0;     // TODO FIX
+            runtime_info(node)->offset = offset;
+//            add_runtime_info(node, offset);
+//            node->var_decl.addr = offset;
             if (node->var_decl.init_expr) {
                 populate_symbol_table(node->var_decl.init_expr);
             }
             break;
-        case AST_ASSIGNMENT:
-        case AST_COMPOUND_ADD_ASSIGN:
-        case AST_COMPOUND_SUB_ASSIGN: {
-//            add_symbol(node->assignment.name);
-            Address addr = lookup_symbol(node->assignment.name);
-            node->assignment.offset = offset;
-            populate_symbol_table(node->assignment.expr);
-            break;
-        }
+//         case AST_ASSIGNMENT:
+//         case AST_COMPOUND_ADD_ASSIGN:
+//         case AST_COMPOUND_SUB_ASSIGN: {
+// //            add_symbol(node->assignment.name);
+//             Address addr = lookup_symbol(node->assignment.name);
+//             node->assignment.offset = offset;
+//             populate_symbol_table(node->assignment.expr);
+//             break;
+//         }
         case AST_RETURN_STMT:
             populate_symbol_table(node->return_stmt.expr);
             break;
 
         case AST_IF_STMT:
             populate_symbol_table(node->if_stmt.cond);
-            populate_symbol_table(node->if_stmt.then_statement);
-            if (node->if_stmt.else_statement) {
-                populate_symbol_table(node->if_stmt.else_statement);
+            populate_symbol_table(node->if_stmt.then_stmt);
+            if (node->if_stmt.else_stmt) {
+                populate_symbol_table(node->if_stmt.else_stmt);
             }
             break;
 
@@ -136,18 +150,21 @@ void populate_symbol_table(ASTNode * node) {
             populate_symbol_table(node->expr_stmt.expr);
             break;
 
-        case AST_UNARY_POST_INC:
-        case AST_UNARY_POST_DEC:
-        case AST_UNARY_PRE_INC:
-        case AST_UNARY_PRE_DEC:
-        case AST_UNARY_NEGATE:
-        case AST_UNARY_NOT:
-        case AST_UNARY_PLUS:
+        // case AST_UNARY_POST_INC:
+        // case AST_UNARY_POST_DEC:
+        // case AST_UNARY_PRE_INC:
+        // case AST_UNARY_PRE_DEC:
+        // case AST_UNARY_NEGATE:
+        // case AST_UNARY_NOT:
+        // case AST_UNARY_PLUS:
+        case AST_UNARY_EXPR:
             populate_symbol_table(node->unary.operand);
             break;
         case AST_VAR_REF: {
-            Address addr = lookup_symbol(node->var_ref.name);
-            node->var_ref.addr = offset;
+            Symbol * symbol = lookup_symbol(node->var_ref.name);
+            // TODO
+            runtime_info(node)->offset = runtime_info(symbol->node)->offset;
+            //node->var_ref.addr = offset;
             break;
         }
 

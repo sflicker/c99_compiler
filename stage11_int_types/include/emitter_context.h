@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "ast.h"
+
 typedef struct FunctionExitContext {
     char * exit_label;
     struct FunctionExitContext * next;
@@ -47,5 +49,7 @@ const char * current_switch_break_label(EmitterContext * ctx);
 
 void push_loop_context(EmitterContext * ctx, const char * start_label, const char * end_label);
 void pop_loop_context(EmitterContext * ctx);
+
+int get_offset(EmitterContext * ctx, ASTNode * node);
 
 #endif //EMITTER_CONTEXT_H

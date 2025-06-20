@@ -5,10 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "runtime_info.h"
+#include "runtime_info_decorator.h"
 #include "emitter_context.h"
 
 
 EmitterContext * create_emitter_context(const char * filename) {
+
+    init_runtime_info_list();
+
     EmitterContext * ctx = malloc(sizeof(EmitterContext));
     ctx->label_id = 0;
     ctx->filename = strdup(filename);
@@ -89,4 +94,8 @@ void pop_loop_context(EmitterContext * ctx) {
         ctx->loop_stack = old->next;
         free(old);
     }
+}
+
+int get_offset(EmitterContext * ctx, ASTNode * node) {
+    return runtime_info(node)->offset;
 }

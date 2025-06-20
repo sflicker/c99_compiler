@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "ctypes.h"
 #include "ast.h"
 #include "emitter.h"
 #include "token.h"
@@ -15,7 +16,6 @@
 #include "emitter_context.h"
 
 
-void emit_var_declaration(FILE *out, ASTNode * node);
 
 // Register order for integer/pointer args in AMD64
 // static const char* ARG_REGS[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
@@ -31,6 +31,15 @@ void emit_var_declaration(FILE *out, ASTNode * node);
 // } FunctionExitContext;
 
 //static FunctionExitContext * functionExitStack = NULL;
+
+char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
+    int size = 20;
+    int offset = get_offset(ctx, node);
+    char * label = malloc(size);
+    snprintf(label, size, "[rbp%+d", offset);
+    return label;
+}
+
 
 // char * create_variable_reference(Address * addr) {
 //     if (addr->kind == ADDR_STACK) {
@@ -280,6 +289,8 @@ void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
         case BINOP_COMPOUND_SUB_ASSIGN:
             emit_sub_assignment(ctx, node);
             break;
+        default:
+            error("Unknown binary operator");
     }
 }
 
@@ -435,7 +446,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "movzx eax, al\n");
             break;
         case UNARY_PRE_INC: {
-            char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
+            char * reference_label = create_variable_reference(ctx, node);
 //            emit_line(out, "mov eax, [rbp%+d]\n", offset);            
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "add eax, 1\n");
@@ -443,7 +454,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             break;
         }
         case UNARY_PRE_DEC: {
-            char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
+            char * reference_label = create_variable_reference(ctx, node);
             //int offset = node->unary.operand->var_ref->offset;
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "sub eax, 1\n");
@@ -451,7 +462,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
         break;
         }
         case UNARY_POST_INC: {
-            char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
+            char * reference_label = create_variable_reference(ctx, node);
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "mov ecx, eax\n");
             emit_line(ctx, "add eax, 1\n");
@@ -461,7 +472,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
         }
         case UNARY_POST_DEC: {
 //            int offset = lookup_symbol(node->unary.operand->var_expr.name);
-            char * reference_label = create_variable_reference(&node->unary.operand->var_ref.addr);
+            char * reference_label = create_variable_reference(ctx, node);
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "mov ecx, eax\n");
             emit_line(ctx, "sub eax, 1\n");
@@ -556,8 +567,8 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     push_function_exit_context(ctx, func_end_label);
 
     emit_text_section_header(ctx);
-
-    int local_space = node->function_decl.size;
+    int local_space = runtime_info(node)->size;
+    //int local_space = node->function_decl.size;
 
     emit_line(ctx, "%s:\n", node->function_decl.name);
 
@@ -594,40 +605,40 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
 
 void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
     if (node->var_decl.init_expr) {
-        char * reference_label = create_variable_reference(&node->var_decl.addr);
+        char * reference_label = create_variable_reference(ctx, node);
         emit_tree_node(ctx, node->var_decl.init_expr);
         emit_line(ctx, "mov %s, eax\n", reference_label);
     }
 }
 
 void emit_assignment(EmitterContext * ctx, ASTNode* node) {
-    emit_tree_node(ctx, node->assignment.expr);
-    char * reference_label = create_variable_reference(&node->assignment.addr);
+    emit_tree_node(ctx, node->binary.rhs);
+    char * reference_label = create_variable_reference(ctx, node);
     emit_line(ctx, "mov %s, eax\n", reference_label);
 }
 
 void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
-    char * reference_label = create_variable_reference(&node->assignment.addr);
+    char * reference_label = create_variable_reference(ctx, node);
     emit_line(ctx, "mov eax, %s\n", reference_label);
     emit_line(ctx, "push rax\n");
-    emit_tree_node(ctx, node->assignment.expr);
+    emit_tree_node(ctx, node->binary.rhs);
     emit_line(ctx, "pop rcx\n");
     emit_line(ctx, "add eax, ecx\n");
     emit_line(ctx, "mov %s, eax\n", reference_label);
 }
 
 void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
-    char * reference_label  = create_variable_reference(&node->assignment.addr);
-    emit_tree_node(ctx, node->assignment.expr);
+    char * reference_label  = create_variable_reference(ctx, node);
+    emit_tree_node(ctx, node->binary.rhs);
     emit_line(ctx, "mov ecx, eax\n");
     emit_line(ctx, "mov eax, %s\n", reference_label);
     emit_line(ctx, "sub eax, ecx\n");
     emit_line(ctx, "mov %s, eax\n", reference_label);
 }
 
-void emit_for_statement(EmitterContext * ctx, FILE * out, ASTNode * node) {
+void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
 
-    char * start_label = make_label_text("for_start", get_label_id(ctx);
+    char * start_label = make_label_text("for_start", get_label_id(ctx));
     char * end_label = make_label_text("for_end", get_label_id(ctx));
     char * condition_label = make_label_text("for_condition", get_label_id(ctx));
     char * continue_label = make_label_text("for_continue", get_label_id(ctx));
@@ -682,9 +693,9 @@ void emit_for_statement(EmitterContext * ctx, FILE * out, ASTNode * node) {
 
 }
 
-void emit_pass_argument(EmitterContext * ctx, Type * type, Address * addr, ASTNode * node) {
+void emit_pass_argument(EmitterContext * ctx, CType * type, ASTNode * node) {
     emit_tree_node(ctx, node);
-    char * reference_label = create_variable_reference(addr);
+    char * reference_label = create_variable_reference(ctx, node);
     switch(type->size) {
         case 1:
             emit_line(ctx, "mov byte %s, al\n", reference_label);
@@ -709,16 +720,21 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
     // then emit each arg then push it
     //struct node_list * reversed_list = NULL;
 
-    int arg_count=0;
+    //int arg_count=0;
     if (node->function_call.arg_list) {
+        reverse_ASTNode_list(node->function_call.arg_list);
+
         for (ASTNode_list_node *n = node->function_call.arg_list->head;n;n=n->next) {
             ASTNode * argNode = n->value;
             emit_tree_node(ctx, argNode);
-            if (arg_count<ARG_REG_COUNT) {
-                const char * reg = ARG_REGS[arg_count];
-                emit_line(ctx, "mov %s, rax\n", reg);
-            }  //TODO SUPPORT MORE THAN 6 arguments using the stack
+            emit_line(ctx, "push rax\n");
+            // if (arg_count<ARG_REG_COUNT) {
+            //     const char * reg = ARG_REGS[arg_count];
+            //     emit_line(ctx, "mov %s, rax\n", reg);
+            // }  //TODO SUPPORT MORE THAN 6 arguments using the stack
         }
+
+        reverse_ASTNode_list(node->function_call.arg_list);
     }
 
 //     if (node->function_call.argument_expression_list) {
@@ -755,14 +771,17 @@ void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
     for (ASTNode_list_node * n = block->block.statements->head; n; n = n->next) {
         ASTNode * statement = n->value;        
         if (statement->type == AST_CASE_STMT) {
-            statement->case_stmt.label = make_label_text("case", label_id++);
+            runtime_info(statement)->label = make_label_text("case", get_label_id(ctx));
             emit_line(ctx, "mov rax, [rsp]\n");
             emit_line(ctx, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
-            emit_line(ctx, "je %s\n", statement->case_stmt.label);
+//            emit_line(ctx, "je %s\n", statement->case_stmt.label);
+            emit_line(ctx, "je %s\n",  runtime_info(statement)->label);
         }
         else if (statement->type == AST_DEFAULT_STMT) {
-            statement->default_stmt.label = make_label_text("default", label_id++);
-            emit_line(ctx, "jmp %s\n", statement->default_stmt.label);
+            // statement->default_stmt.label = make_label_text("default", label_id++);
+            // emit_line(ctx, "jmp %s\n", statement->default_stmt.label);
+            runtime_info(statement)->label = make_label_text("default", get_label_id(ctx));
+            emit_line(ctx, "jmp %s\n", runtime_info(statement)->label);
         }
     }
 }
@@ -816,7 +835,8 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
 void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
     int case_label_id = get_label_id(ctx);
     char * case_label = make_label_text("case", case_label_id);
-    node->case_stmt.label = strdup(case_label);
+//    node->case_stmt.label = strdup(case_label);
+    runtime_info(node)->label = strdup(case_label);
 
     // load switch value back from the stack
     emit_line(ctx, "mov rax, [rsp] ; reload switch expr\n");
@@ -826,7 +846,8 @@ void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "je %s\n", case_label);
 
     // emit the case body
-    emit_line(ctx, "%s\n", node->case_stmt.label);
+//    emit_line(ctx, "%s\n", node->case_stmt.label);
+    emit_line(ctx, "%s\n", runtime_info(node)->label);
     emit_tree_node(ctx, node->case_stmt.stmt);
     // emit jump to break
 
@@ -902,7 +923,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_assert_extension_statement(ctx, node);
             break;
         case AST_PRINT_EXTENSION_STATEMENT:
-            emit_print_extension_statement(ctx, node);
+            emit_print_int_extension_call(ctx, node);
             break;
         case AST_BLOCK:
             emit_block(ctx, node, true);
@@ -931,6 +952,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
 
         case AST_BINARY_EXPR:
             emit_binary_expr(ctx, node);
+            break;
 
 
         // case AST_DIV: {
@@ -998,7 +1020,8 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "mov eax, %d\n", node->int_value);
             break;
         case AST_VAR_REF:
-            int offset = node->var_ref.addr.stack_offset;
+            int offset = runtime_info(node)->offset;
+//            int offset = node->var_ref.addr.stack_offset;
             emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
             break;
         case AST_FOR_STMT:

@@ -11,6 +11,7 @@ typedef struct RuntimeInfo {
     ASTNode * node;
     int offset;
     int size;
+    const char * label;
     // TODO MORE STUFF LIKE OFFSETS AND SPECIAL LABELS
 } RuntimeInfo;
 

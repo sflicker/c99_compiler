@@ -17,16 +17,19 @@ fi
 PROG=$1
 
 echo "Cleaning previous runs..."
-rm -f tests/*.s tests/*.o
+rm -rf tests/build
+#rm -f tests/*.s tests/*.o
 
 
-for bin in tests/test*.c; do
-    base="${cfile%.*}"
-    if [ -f "$base" ]; then
-        echo "Deleting binary $base"
-        rm -f "$base"
-    fi
-done
+#for bin in tests/test*.c; do
+#    base="${cfile%.*}"
+#    if [ -f "$base" ]; then
+#        echo "Deleting binary $base"
+#        rm -f "$base"
+#    fi
+#done
+
+mkdir tests/build
 
 echo "Running all tests..."
 

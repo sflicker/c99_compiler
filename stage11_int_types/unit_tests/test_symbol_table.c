@@ -70,7 +70,7 @@ void test_add_function_symbol__with_args() {
 void test_add_symbol() {
     init_symbol_table();
     enter_scope();
-    Symbol * symbol = add_symbol("a", &CTYPE_INT_T);
+    Symbol * symbol = add_symbol("a", &CTYPE_INT_T, NULL);
 
     TEST_ASSERT("Verifying symbol is not null", symbol != NULL);
     TEST_ASSERT("Verifying symbol name is 'a'", strcmp(symbol->name, symbol->name) == 0);
@@ -81,7 +81,7 @@ void test_add_symbol() {
 void test_lookup_symbol() {
     init_symbol_table();
     enter_scope();
-    add_symbol("a", &CTYPE_INT_T);
+    add_symbol("a", &CTYPE_INT_T, NULL);
     Symbol * symbol = lookup_symbol("a");
 
     TEST_ASSERT("Verifying symbol is not null", symbol != NULL);
@@ -93,19 +93,19 @@ void test_lookup_symbol() {
 void test_add_symbol_in_scope() {
     init_symbol_table();
     enter_scope();
-    add_symbol("a", &CTYPE_INT_T);
+    add_symbol("a", &CTYPE_INT_T, NULL);
 
     enter_scope();
-    add_symbol("b", &CTYPE_INT_T);
+    add_symbol("b", &CTYPE_INT_T, NULL);
 }
 
 void test_lookup_symbol_in_scope() {
     init_symbol_table();
     enter_scope();
-    add_symbol("a", &CTYPE_INT_T);
+    add_symbol("a", &CTYPE_INT_T, NULL);
 
     enter_scope();
-    add_symbol("b", &CTYPE_INT_T);
+    add_symbol("b", &CTYPE_INT_T, NULL);
 
     Symbol * a_symbol = lookup_symbol("a");
     Symbol * b_symbol = lookup_symbol("b");
@@ -118,13 +118,13 @@ void test_lookup_symbol_in_scope() {
 void test_add_nested_symbols() {
     init_symbol_table();
     enter_scope();
-    add_symbol("a", &CTYPE_INT_T);
+    add_symbol("a", &CTYPE_INT_T, NULL);
 
     enter_scope();
-    add_symbol("a", &CTYPE_LONG_T);
+    add_symbol("a", &CTYPE_LONG_T, NULL);
 
     enter_scope();
-    add_symbol("a", &CTYPE_SHORT_T);
+    add_symbol("a", &CTYPE_SHORT_T, NULL);
 
 
 }
@@ -132,13 +132,13 @@ void test_add_nested_symbols() {
 void test_nested_symbol_lookup() {
     init_symbol_table();
     enter_scope();
-    add_symbol("a", &CTYPE_INT_T);
+    add_symbol("a", &CTYPE_INT_T, NULL);
 
     enter_scope();
-    add_symbol("a", &CTYPE_LONG_T);
+    add_symbol("a", &CTYPE_LONG_T, NULL);
 
     enter_scope();
-    add_symbol("a", &CTYPE_SHORT_T);
+    add_symbol("a", &CTYPE_SHORT_T, NULL);
 
     Symbol * a_symbol = lookup_symbol("a");
 

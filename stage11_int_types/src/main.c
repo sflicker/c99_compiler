@@ -18,6 +18,8 @@
 #include "analyzer.h"
 #include "analyzer_context.h"
 #include "emitter_context.h"
+#include "error.h"
+#include "symbol_table.h"
 
 void token_formatted_output(const char * label, const char * text, TokenType tokenType, int num, int line, int col) {
     char left[64];
@@ -32,13 +34,37 @@ void token_formatted_output(const char * label, const char * text, TokenType tok
 int main(int argc, char ** argv) {
 
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <source file>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <source file> [-o <output file]\n", argv[0]);
         return 1;
     }
-    const char * program_file = argv[1];
-    char * output_file = change_extension(program_file, ".s");
+
+    const char * program_file = NULL;
+    const char * output_file = NULL;
+
+    // parse args
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+            output_file = argv[++i];
+        } else if (!program_file) {
+            program_file = argv[i];
+        } else {
+            error("Unrecognized option: %s", argv[i]);
+        }
+    }
+
+    if (!program_file) {
+        error("No input file given");
+    }
+
+    if (!output_file) {
+        output_file = change_extension(program_file, ".s");
+    }
 
     char * program_text = read_text_file(program_file);
+    if (!program_text) {
+        error("Could not read file: %s", program_file);
+    }
+
     printf("Compiling\n\n%s\n\n", program_text);
 
     tokenlist * tokens = tokenize(program_text);
@@ -56,14 +82,21 @@ int main(int argc, char ** argv) {
     tokenlist_free(tokens);
     free(tokens);
 
+    printf("\nAST After Parsing\n");
+    print_ast(astNode, 0);
+
+    init_symbol_table();
     AnalyzerContext * ctx = analyzer_context_new();
     analyze(ctx, astNode);
     analyzer_context_free(ctx);
 
 //    populate_symbol_table(astNode, true);
+
+    printf("\nAST After Analyzer\n");
     print_ast(astNode, 0);
 
     EmitterContext * emitter_context = create_emitter_context(output_file);
+
 
     emit(emitter_context, astNode);
 

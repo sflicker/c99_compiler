@@ -62,7 +62,7 @@ FunctionSymbol * add_function_symbol(const char * name, CType * returnCType, int
     return new_symbol;
 }
 
-Symbol * add_symbol(const char * name, CType * ctype) {
+Symbol * add_symbol(const char * name, CType * ctype, ASTNode * node) {
     // check if symbol currently exists in current scope only
     // error and exit if so.
 
@@ -76,6 +76,7 @@ Symbol * add_symbol(const char * name, CType * ctype) {
     Symbol * new_symbol = malloc(sizeof(Symbol));
     new_symbol->name = strdup(name);
     new_symbol->ctype = ctype;
+    new_symbol->node = node;
 
     symbollist_append(current_scope->symbols, new_symbol);
     return new_symbol;
@@ -103,4 +104,12 @@ FunctionSymbol * lookup_function_symbol(const char * name) {
     }
     error("Unknown function symbol '%s'\n", name);
     return NULL;
+}
+
+void set_current_offset(int offset) {
+
+}
+
+void reset_storage_size() {
+
 }

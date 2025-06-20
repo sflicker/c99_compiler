@@ -9,6 +9,7 @@
 typedef struct Symbol {
     char* name;
     CType * ctype;
+    ASTNode * node;
 //    Address addr;
 //    struct Symbol* next;
 } Symbol;
@@ -31,7 +32,7 @@ typedef struct Scope {
 } Scope;
 
 void init_symbol_table();
-Symbol * add_symbol(const char * name, CType * type);
+Symbol * add_symbol(const char * name, CType * type, ASTNode * node);
 //Symbol * add_symbol_with_offset(const char * name, int offset, Type * type);
 FunctionSymbol * add_function_symbol(const char * name, CType * returnType, int param_count, CTypePtr_list * param_types);
 Symbol * lookup_symbol(const char * name);
@@ -42,7 +43,7 @@ void enter_scope();
 void exit_scope();
 void free_function_symbol(FunctionSymbol * function_symbol);
 void free_symbol(Symbol * symbol);
-// void set_current_offset(int offset);
-// void reset_storage_size();
+void set_current_offset(int offset);
+ void reset_storage_size();
 // int get_node_offset(void * node);
 #endif

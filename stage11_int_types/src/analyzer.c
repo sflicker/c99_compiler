@@ -39,7 +39,7 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
     // CTypePtr_list_init(typeList, free_ctype);
     if (node->function_decl.param_list != NULL) {
         for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
-            add_symbol(n->value->var_decl.name, n->value->ctype);
+            add_symbol(n->value->var_decl.name, n->value->ctype, node);
             //     CTypePtr_list_append(typeList, node->ctype);
         }
     }
@@ -100,7 +100,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_VAR_DECL:
-            add_symbol(node->var_decl.name, node->ctype);
+            add_symbol(node->var_decl.name, node->ctype, node);
             if (node->var_decl.init_expr) {
                 analyze(ctx, node->var_decl.init_expr);
             }
