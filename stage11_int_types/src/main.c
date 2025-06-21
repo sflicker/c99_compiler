@@ -40,6 +40,7 @@ int main(int argc, char ** argv) {
 
     const char * program_file = NULL;
     const char * output_file = NULL;
+    bool output_file_owned = false;
 
     // parse args
     for (int i = 1; i < argc; i++) {
@@ -58,6 +59,7 @@ int main(int argc, char ** argv) {
 
     if (!output_file) {
         output_file = change_extension(program_file, ".s");
+        output_file_owned = true;
     }
 
     char * program_text = read_text_file(program_file);
@@ -106,7 +108,9 @@ int main(int argc, char ** argv) {
     // cleanup_token_list(&tokenList);
 
     free_astnode(astNode);
-    free(output_file);
+    if (output_file_owned) {
+        free((void*)output_file);
+    }
     free(program_text);
     exit(0);
 }                             

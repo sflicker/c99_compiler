@@ -24,9 +24,14 @@ echo SRC=$SRC
 echo EXPECTED=$EXPECTED
 echo PROG=$PROG
 
-ASM_FILE="${SRC%.c}.s"
-OBJ_FILE="${SRC%.c}.o"
-EXE_FILE="${SRC%.*}"
+filename=$(basename "$SRC" .c)
+ASM_FILE="integration_tests/build/${filename}.s"
+OBJ_FILE="integration_tests/build/${filename}.o"
+EXE_FILE="integration_tests/build/${filename}"
+
+#ASM_FILE="${SRC%.c}.s"
+#OBJ_FILE="${SRC%.c}.o"
+#EXE_FILE="${SRC%.*}"
 
 echo ASM_FILE=$ASM_FILE
 echo OBJ_FILE=$OBJ_FILE
@@ -35,7 +40,7 @@ echo EXE_FILE=$EXE_FILE
 set -e
 
 # compile C to ASM
-CMD="./$PROG $SRC"
+CMD="./$PROG $SRC -o $ASM_FILE"
 if [ "$USE_VALGRIND" -eq 1 ]; then
     echo "🔍 Running under Valgrind: $CMD"
     CMD="valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=2 $CMD"

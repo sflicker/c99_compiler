@@ -17,7 +17,7 @@ fi
 PROG=$1
 
 echo "Cleaning previous runs..."
-rm -rf tests/build
+rm -rf integration_tests/build
 #rm -f tests/*.s tests/*.o
 
 
@@ -29,7 +29,7 @@ rm -rf tests/build
 #    fi
 #done
 
-mkdir tests/build
+mkdir -p integration_tests/build
 
 echo "Running all tests..."
 
@@ -46,7 +46,8 @@ TIMEOUT_TOTAL=0
 WRONG_OUTPUT_TOTAL=0
 UNKNOWN_FAILURE_TOTAL=0
 
-for cfile in tests/test*.c; do
+for cfile in integration_tests/test*.c; do
+    echo $cfile
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
 
     filename=$(basename "$cfile")
