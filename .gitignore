@@ -7,8 +7,10 @@
 *.exe
 *.out
 *.txt
+!CMakeLists.txt
 *.log
 *.dSYM/
+
 
 mimic99
 runner
