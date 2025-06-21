@@ -111,7 +111,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             analyze(ctx, node->binary.rhs);
 
             if (is_assignment(node)) {
-                if (!is_lvalue(node)) {
+                if (!is_lvalue(node->binary.lhs)) {
                     error("Assignment must be to an lvalue");
                 }
             }
