@@ -16,6 +16,7 @@
 const char * current_test = NULL;
 
 void test_analyze_basic_case() {
+    init_global_table();
     const char * program = "int main() { return 4+6+12+20; }";
 
     tokenlist * tokens = tokenize(program);
@@ -31,6 +32,7 @@ void test_analyze_basic_case() {
 }
 
 void test_analyze_mixed_types() {
+    init_global_table();
 
     const char * program = "int main() {\n"
                        "    int a=1;\n"
@@ -53,6 +55,8 @@ void test_analyze_mixed_types() {
 }
 
 void test_analyze_multi_mixed_types() {
+    init_global_table();
+
     const char * program = "int main() {\n"
                            "    int a=1;\n"
                            "    char b=2;\n"
@@ -77,6 +81,8 @@ void test_analyze_multi_mixed_types() {
 }
 
 void test_analyze_multi_mixed_types_including_long() {
+    init_global_table();
+
     const char * program = "long main() {\n"
                            "    int a=1;\n"
                            "    char b=2;\n"
@@ -102,6 +108,8 @@ void test_analyze_multi_mixed_types_including_long() {
 }
 
 void test_analyze_unary_post_increment() {
+    init_global_table();
+
     const char * program =
         "int main() {\n"
         "    int a=1;\n"

@@ -33,7 +33,7 @@ bool is_lvalue(ASTNode * node) {
 
 
 int astNodeListLength(ASTNode_list * ast_nodes) {
-    return ast_nodes->count;
+    return (ast_nodes != NULL) ? ast_nodes->count : 0;
 }
 
 void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
@@ -53,6 +53,7 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
     Symbol * symbol = create_symbol(node->function_decl.name, SYMBOL_FUNC, node->ctype, node);
     symbol->info.func.num_params = astNodeListLength(node->function_decl.param_list);
     add_global_symbol(symbol);
+    node->symbol = symbol;
 
     // add_function_symbol(node->function_decl.name, node->ctype,
     //     node->function_decl.param_count, typeList);
@@ -113,6 +114,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         case AST_VAR_DECL:
             Symbol * symbol = create_symbol(node->var_decl.name, SYMBOL_VAR, node->ctype, node);
             add_symbol(symbol);
+            node->symbol = symbol;
             if (node->var_decl.init_expr) {
                 analyze(ctx, node->var_decl.init_expr);
             }

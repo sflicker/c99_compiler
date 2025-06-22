@@ -21,6 +21,8 @@ SymbolTable * getCurrentScope() {
 
 void init_global_table() {
     global_scope = (SymbolTable *) malloc(sizeof(SymbolTable));
+    global_scope->symbols = malloc(sizeof(Symbol_list));
+    Symbol_list_init(global_scope->symbols, free_symbol);
     global_scope->parent = NULL;
 
     current_scope = global_scope;
@@ -47,7 +49,7 @@ void enter_scope() {
 }
 
 void exit_scope() {
-    if (current_scope != NULL) {
+    if (current_scope == NULL) {
         error("tried to pop symbol table but no current_scope");
     }
     SymbolTable * old_scope = current_scope;
@@ -57,10 +59,16 @@ void exit_scope() {
 }
 
 Symbol * lookup_symbol(const char * name) {
-    for (Symbol_list_node * n = current_scope->symbols->head; n != NULL; n = n->next) {
-        if (strcmp(n->value->name , name) == 0) {
-            return n->value;
+
+    SymbolTable * scope = current_scope;
+
+    while (scope) {
+        for (Symbol_list_node * n = scope->symbols->head; n != NULL; n = n->next) {
+            if (strcmp(n->value->name , name) == 0) {
+                return n->value;
+            }
         }
+        scope = scope->parent;
     }
     return NULL;
 }
