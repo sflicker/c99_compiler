@@ -97,9 +97,13 @@ int main(int argc, char ** argv) {
     printf("\nAST After Analyzer\n");
     print_ast(astNode, 0);
 
+    printf("\n");
+    printf("--------------------------------------------\n");
+    printf("Beginning Code Generation\n");
+    printf("--------------------------------------------\n\n\n");
+
+
     EmitterContext * emitter_context = create_emitter_context(output_file);
-
-
     emit(emitter_context, astNode);
 
     emitter_finalize(emitter_context);

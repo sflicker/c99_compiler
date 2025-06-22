@@ -14,7 +14,7 @@
 #include "error.h"
 #include "runtime_info_decorator.h"
 #include "emitter_context.h"
-
+#include "symbol.h"
 
 
 // Register order for integer/pointer args in AMD64
@@ -36,7 +36,7 @@ char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
     int size = 20;
     int offset = get_offset(ctx, node);
     char * label = malloc(size);
-    snprintf(label, size, "[rbp%+d", offset);
+    snprintf(label, size, "[rbp%+d]", offset);
     return label;
 }
 
@@ -567,8 +567,8 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     push_function_exit_context(ctx, func_end_label);
 
     emit_text_section_header(ctx);
-    int local_space = runtime_info(node)->size;
-    //int local_space = node->function_decl.size;
+//    int local_space = runtime_info(node)->size;
+    int local_space = node->function_decl.size;
 
     emit_line(ctx, "%s:\n", node->function_decl.name);
 
@@ -771,17 +771,21 @@ void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
     for (ASTNode_list_node * n = block->block.statements->head; n; n = n->next) {
         ASTNode * statement = n->value;        
         if (statement->type == AST_CASE_STMT) {
-            runtime_info(statement)->label = make_label_text("case", get_label_id(ctx));
+            statement->case_stmt.label = make_label_text("case", get_label_id(ctx));
+//            runtime_info(statement)->label = make_label_text("case", get_label_id(ctx));
             emit_line(ctx, "mov rax, [rsp]\n");
             emit_line(ctx, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
 //            emit_line(ctx, "je %s\n", statement->case_stmt.label);
-            emit_line(ctx, "je %s\n",  runtime_info(statement)->label);
+//            emit_line(ctx, "je %s\n",  runtime_info(statement)->label);
+            emit_line(ctx, "je %s\n",  statement->case_stmt.label);
         }
         else if (statement->type == AST_DEFAULT_STMT) {
             // statement->default_stmt.label = make_label_text("default", label_id++);
             // emit_line(ctx, "jmp %s\n", statement->default_stmt.label);
-            runtime_info(statement)->label = make_label_text("default", get_label_id(ctx));
-            emit_line(ctx, "jmp %s\n", runtime_info(statement)->label);
+            // runtime_info(statement)->label = make_label_text("default", get_label_id(ctx));
+            // emit_line(ctx, "jmp %s\n", runtime_info(statement)->label);
+            node->default_stmt.label = make_label_text("default", get_label_id(ctx));
+            emit_line(ctx, "jmp %s\n", node->default_stmt.label);
         }
     }
 }
@@ -835,8 +839,8 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
 void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
     int case_label_id = get_label_id(ctx);
     char * case_label = make_label_text("case", case_label_id);
-//    node->case_stmt.label = strdup(case_label);
-    runtime_info(node)->label = strdup(case_label);
+    node->case_stmt.label = strdup(case_label);
+//    runtime_info(node)->label = strdup(case_label);
 
     // load switch value back from the stack
     emit_line(ctx, "mov rax, [rsp] ; reload switch expr\n");
@@ -846,8 +850,8 @@ void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "je %s\n", case_label);
 
     // emit the case body
-//    emit_line(ctx, "%s\n", node->case_stmt.label);
-    emit_line(ctx, "%s\n", runtime_info(node)->label);
+    emit_line(ctx, "%s\n", node->case_stmt.label);
+///    emit_line(ctx, "%s\n", runtime_info(node)->label);
     emit_tree_node(ctx, node->case_stmt.stmt);
     // emit jump to break
 
@@ -1020,8 +1024,9 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "mov eax, %d\n", node->int_value);
             break;
         case AST_VAR_REF:
-            int offset = runtime_info(node)->offset;
+//            int offset = runtime_info(node)->offset;
 //            int offset = node->var_ref.addr.stack_offset;
+            int offset = node->symbol->info.var.offset;
             emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
             break;
         case AST_FOR_STMT:

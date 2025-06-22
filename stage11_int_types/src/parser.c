@@ -154,6 +154,7 @@ ASTNode_list * parse_param_list(ParserContext * parserContext) {
         CType * ctype = parse_ctype(parserContext);
         Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
         ASTNode * param = create_var_decl_node(param_name->text, ctype, NULL);
+        param->var_decl.is_param = true;
         ASTNode_list_append(param_list, param);
     } while (match_token(parserContext, TOKEN_COMMA));
     return param_list;

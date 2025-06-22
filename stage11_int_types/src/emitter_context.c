@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ast.h"
+#include "symbol.h"
 #include "runtime_info.h"
 #include "runtime_info_decorator.h"
 #include "emitter_context.h"
@@ -97,5 +99,9 @@ void pop_loop_context(EmitterContext * ctx) {
 }
 
 int get_offset(EmitterContext * ctx, ASTNode * node) {
-    return runtime_info(node)->offset;
+    //return runtime_info(node)->offset;
+    if (node->type == AST_VAR_DECL || node->type == AST_VAR_REF) {
+        return node->symbol->info.var.offset;
+    }
+    return 0;
 }

@@ -101,7 +101,7 @@ typedef struct ASTNode {
             int param_count;
             ASTNode* body;
             bool declaration_only;
-//            int size;
+            int size;
         } function_decl;
 
         // struct {
@@ -119,6 +119,7 @@ typedef struct ASTNode {
         struct {
             char* name;
             struct ASTNode * init_expr; // NULL if no initializer
+            bool is_param;
         } var_decl;
 
         struct {
