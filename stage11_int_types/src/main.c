@@ -87,7 +87,7 @@ int main(int argc, char ** argv) {
     printf("\nAST After Parsing\n");
     print_ast(astNode, 0);
 
-    init_symbol_table();
+    init_global_table();
     AnalyzerContext * ctx = analyzer_context_new();
     analyze(ctx, astNode);
     analyzer_context_free(ctx);

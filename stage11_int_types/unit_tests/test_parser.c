@@ -588,7 +588,8 @@ void test_parse_expression__1() {
     ASTNode * actual = parse_expression(ctx);
     print_ast(actual, 0);
 
-    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    bool equal = ast_equal(expected, actual);
+    TEST_ASSERT("Verifying node is correct", equal);
     free_astnode(expected);
     free_astnode(actual);
 

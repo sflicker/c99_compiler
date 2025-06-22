@@ -7,6 +7,7 @@
 #include "error.h"
 #include "ctypes.h"
 #include "parser_util.h"
+#include "symbol.h"
 #include "symbol_table.h"
 
 CType * apply_integer_promotions(CType * t) {
@@ -31,20 +32,30 @@ bool is_lvalue(ASTNode * node) {
 }
 
 
+int astNodeListLength(ASTNode_list * ast_nodes) {
+    return ast_nodes->count;
+}
+
 void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
 
     enter_scope();
-    CTypePtr_list * typeList = astNodeListToTypeList(node->function_decl.param_list);
+    //CTypePtr_list * typeList = astNodeListToTypeList(node->function_decl.param_list);
     // CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
     // CTypePtr_list_init(typeList, free_ctype);
     if (node->function_decl.param_list != NULL) {
         for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
-            add_symbol(n->value->var_decl.name, n->value->ctype, node);
+            Symbol * symbol = create_symbol(n->value->var_decl.name, SYMBOL_VAR, n->value->ctype, n->value);
+            add_symbol(symbol);
+            //add_symbol(n->value->var_decl.name, n->value->ctype, node);
             //     CTypePtr_list_append(typeList, node->ctype);
         }
     }
-    add_function_symbol(node->function_decl.name, node->ctype,
-        node->function_decl.param_count, typeList);
+    Symbol * symbol = create_symbol(node->function_decl.name, SYMBOL_FUNC, node->ctype, node);
+    symbol->info.func.num_params = astNodeListLength(node->function_decl.param_list);
+    add_global_symbol(symbol);
+
+    // add_function_symbol(node->function_decl.name, node->ctype,
+    //     node->function_decl.param_count, typeList);
     CType * saved = ctx->current_function_return_type;
     ctx->current_function_return_type = node->ctype;
     analyze(ctx, node->function_decl.body);
@@ -75,15 +86,15 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         }
 
         case AST_FUNCTION_CALL: {
-            FunctionSymbol * functionSymbol = lookup_function_symbol(node->function_call.name);
+            Symbol * functionSymbol = lookup_symbol(node->function_call.name);
             if (!functionSymbol) {
                 error("Function symbol not found");
                 return;
             }
-            if (functionSymbol->param_count != node->function_call.arg_list->count) {
+            if (functionSymbol->info.func.num_params != node->function_call.arg_list->count) {
                 error("Function arguments count not equal");
             }
-            if (!ctype_lists_equal(functionSymbol->param_types, astNodeListToTypeList( node->function_call.arg_list))) {
+            if (!ctype_lists_equal(astNodeListToTypeList(functionSymbol->node->function_decl.param_list), astNodeListToTypeList( node->function_call.arg_list))) {
                 error("Function parameter types not equal");
             }
             break;
@@ -100,7 +111,8 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_VAR_DECL:
-            add_symbol(node->var_decl.name, node->ctype, node);
+            Symbol * symbol = create_symbol(node->var_decl.name, SYMBOL_VAR, node->ctype, node);
+            add_symbol(symbol);
             if (node->var_decl.init_expr) {
                 analyze(ctx, node->var_decl.init_expr);
             }
@@ -139,21 +151,23 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->ctype = node->unary.operand->ctype;
             break;
 
-        case AST_VAR_REF:
+        case AST_VAR_REF: {
             Symbol * symbol = lookup_symbol(node->var_ref.name);
             if (!symbol) { error("Symbol not found"); return; }
             node->ctype = symbol->ctype;
             break;
+        }
 
-        case AST_RETURN_STMT:
+        case AST_RETURN_STMT: {
             analyze(ctx, node->return_stmt.expr);
             node->ctype = node->return_stmt.expr->ctype;
             if (!ctype_equal_or_compatible(ctx->current_function_return_type,
                 node->ctype)) {
                 error("Function return type not compatible: expected %s, got %s",
                     ctype_to_string(ctx->current_function_return_type), ctype_to_string(node->ctype));
-            }
+                }
             break;
+        }
 
         case AST_IF_STMT:
             analyze(ctx, node->if_stmt.cond);

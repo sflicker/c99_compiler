@@ -92,6 +92,10 @@ typedef struct ASTNode ASTNode;
 
 DEFINE_LINKED_LIST(ASTNode*, ASTNode_list);
 
+typedef struct Symbol Symbol;
+
+DEFINE_LINKED_LIST(Symbol*, Symbol_list);
+
 void reverse_ASTNode_list(ASTNode_list * list);
 
 #endif // LIST_UTIL_H

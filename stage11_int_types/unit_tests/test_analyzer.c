@@ -22,7 +22,7 @@ void test_analyze_basic_case() {
 
     ASTNode * actual = parse(tokens);
     print_ast(actual, 0);
-    init_symbol_table();
+    init_global_table();
 
     AnalyzerContext * context = analyzer_context_new();
     context->current_function_return_type = NULL;
@@ -45,7 +45,7 @@ void test_analyze_mixed_types() {
 
     ASTNode * actual = parse(tokens);
     print_ast(actual, 0);
-    init_symbol_table();
+    init_global_table();
     AnalyzerContext * context = analyzer_context_new();
     context->current_function_return_type = &CTYPE_INT_T;
     analyze(context, actual);
@@ -69,7 +69,7 @@ void test_analyze_multi_mixed_types() {
 
     ASTNode * actual = parse(tokens);
     print_ast(actual, 0);
-    init_symbol_table();
+    init_global_table();
     AnalyzerContext * context = analyzer_context_new();
     context->current_function_return_type = &CTYPE_INT_T;
     analyze(context, actual);
@@ -93,7 +93,7 @@ void test_analyze_multi_mixed_types_including_long() {
 
     ASTNode * actual = parse(tokens);
     print_ast(actual, 0);
-    init_symbol_table();
+    init_global_table();
     AnalyzerContext * context = analyzer_context_new();
     context->current_function_return_type = &CTYPE_INT_T;
     analyze(context, actual);
@@ -115,7 +115,7 @@ void test_analyze_unary_post_increment() {
 
     ASTNode * actual = parse(tokens);
     print_ast(actual, 0);
-    init_symbol_table();
+    init_global_table();
     AnalyzerContext * context = analyzer_context_new();
     context->current_function_return_type = &CTYPE_INT_T;
     analyze(context, actual);

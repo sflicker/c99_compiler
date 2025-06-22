@@ -11,6 +11,7 @@
 #include "token.h"
 #include "ctypes.h"
 #include "symbol_table.h"
+#include "symbol.h"
 #include "util.h"
 #include "error.h"
 #include "runtime_info.h"
@@ -116,9 +117,11 @@ void populate_symbol_table(ASTNode * node) {
             if (node->block.introduce_scope) exit_scope();
             break;
         case AST_VAR_DECL:
-            Symbol * symbol = add_symbol(node->var_decl.name, node->ctype, node);
+//            Symbol * symbol = add_symbol(node->var_decl.name, node->ctype, node);
+            Symbol * symbol = node->symbol;
             int offset = 0;     // TODO FIX
-            runtime_info(node)->offset = offset;
+            symbol->info.var.offset = offset;
+            //runtime_info(node)->offset = offset;
 //            add_runtime_info(node, offset);
 //            node->var_decl.addr = offset;
             if (node->var_decl.init_expr) {

@@ -181,7 +181,8 @@ const char * get_binary_op_name(BinaryOperator op) {
         case BINOP_ASSIGNMENT: return "ASN"; break;
         case BINOP_COMPOUND_ADD_ASSIGN: return "ADDASN"; break;
         case BINOP_COMPOUND_SUB_ASSIGN: return "SUBASN"; break;
-        case BINOP_UNASSIGNED_OP: return "UNASSIGNED"; break;
+        default:
+            return "UNASSIGNED"; break;
     }
     return NULL;
 }
@@ -200,23 +201,51 @@ const char * get_unary_op_name(UnaryOperator op) {
     return NULL;
 }
 
+bool binop_equal(BinaryOperator a, BinaryOperator b) {
+    if (a != b) {
+        fprintf(stderr, "binop do not match %s, %s",
+            get_binary_op_name(a), get_binary_op_name(b));
+        return false;
+    }
+    return true;
+}
+
 bool ast_equal(ASTNode * a, ASTNode * b) {
     if (!a || !b) return a == b;
 
-    if (a->type != b->type) return false;
-    if (!ctype_equals(a->ctype, b->ctype)) return false;
+    if (a->type != b->type) {
+        fprintf(stderr, "ast node types do not match %d, %d", a->type, b->type);
+        return false;
+    }
+    if (!ctype_equals(a->ctype, b->ctype)) {
+        fprintf(stderr, "ast node ctypes do not match %s, %s",
+            ctype_to_string(a->ctype), ctype_to_string(b->ctype));
+        return false;
+    }
     switch (a->type) {
         case AST_VAR_DECL:
-            return strcmp(a->var_decl.name, b->var_decl.name) == 0;
+            if (!strcmp(a->var_decl.name, b->var_decl.name) == 0) {
+                fprintf(stderr, "ast variable names do not match - %s, %s\n",
+                    a->var_decl.name, a->var_decl.name);
+                return false;
+            } else {
+                return true;
+            }
             break;
         case AST_VAR_REF:
-            return strcmp(a->var_ref.name, b->var_ref.name) == 0;
+            if (!strcmp(a->var_ref.name, b->var_ref.name) == 0) {
+                fprintf(stderr, "ast variable names do not match - %s, %s\n",
+                    a->var_ref.name, b->var_ref.name);
+                return false;
+            } else {
+                return true;
+            }
             break;
         case AST_INT_LITERAL:
             return a->int_value == b->int_value;
             break;
         case AST_BINARY_EXPR:
-            return (a->binary.op == b->binary.op) &&
+            return (binop_equal(a->binary.op, b->binary.op)) &&
                 ast_equal(a->binary.lhs, b->binary.lhs ) &&
                 ast_equal(a->binary.rhs, b->binary.rhs);
         case AST_UNARY_EXPR:
@@ -232,5 +261,6 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
         default:
             error("Invalid AST Node Type: %d\n", a->type);
     }
+    fprintf(stderr, "ASTNodes are not equal\n");
     return false;
 }

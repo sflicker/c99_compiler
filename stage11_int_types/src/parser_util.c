@@ -20,6 +20,7 @@ ASTNode * create_translation_unit_node(ASTNode_list * functions) {
     node->type = AST_TRANSLATION_UNIT;
     node->translation_unit.functions = functions;
     node->translation_unit.count = functions->count;
+    node->symbol = NULL;
     return node;
 }
 
@@ -28,6 +29,8 @@ ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand) {
     node->type = AST_UNARY_EXPR;
     node->unary.operand = operand;
     node->unary.op = op;
+    node->symbol = NULL;
+    node->ctype = NULL;
     return node;
 }
 
@@ -37,7 +40,9 @@ ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
     node->binary.op = op;
     node->binary.lhs = lhs;
     node->binary.rhs = rhs;
-    return node;    
+    node->symbol = NULL;
+    node->ctype = NULL;
+    return node;
 }
 
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok) {
@@ -71,6 +76,7 @@ ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * then
     node->if_stmt.cond = condExpression;
     node->if_stmt.then_stmt = thenStatement;
     node->if_stmt.else_stmt = elseStatement;
+    node->symbol = NULL;
     return node;
 }
 
@@ -79,6 +85,7 @@ ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodySt
     node->type = AST_WHILE_STMT;
     node->while_stmt.cond = condExpression;
     node->while_stmt.body = bodyStatement;
+    node->symbol = NULL;
     return node;
 }
 
@@ -87,6 +94,7 @@ ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt) 
     node->type = AST_LABELED_STMT;
     node->labeled_stmt.label = strdup(label);
     node->labeled_stmt.stmt = stmt;
+    node->symbol = NULL;
     return node;
 }
 
@@ -95,6 +103,7 @@ ASTNode * create_ast_case_statement_node(ASTNode * constantExpression, ASTNode *
     node->type = AST_CASE_STMT;
     node->case_stmt.constExpression = constantExpression;
     node->case_stmt.stmt = stmt;
+    node->symbol = NULL;
     return node;
 }
 
@@ -102,6 +111,7 @@ ASTNode * create_ast_default_statement_node(ASTNode * stmt) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_DEFAULT_STMT;
     node->default_stmt.stmt = stmt;
+    node->symbol = NULL;
     return node;
 }
 
@@ -109,6 +119,7 @@ ASTNode * create_goto_statement(const char * label) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_GOTO_STMT;
     node->goto_stmt.label = strdup(label);
+    node->symbol = NULL;
 
     return node;
 }
@@ -118,6 +129,7 @@ ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr) {
     node->type = AST_DO_WHILE_STMT;
     node->do_while_stmt.body = stmt;
     node->do_while_stmt.expr = expr;
+    node->symbol = NULL;
     return node;
 }
 
@@ -126,18 +138,21 @@ ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt) {
     node->type = AST_SWITCH_STMT;
     node->switch_stmt.expr = expr;
     node->switch_stmt.stmt = stmt;
+    node->symbol = NULL;
     return node;
 }
 
 ASTNode * create_break_statement_node() {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_BREAK_STMT;
+    node->symbol = NULL;
     return node;
 }
 
 ASTNode * create_continue_statement_node() {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_CONTINUE_STMT;
+    node->symbol = NULL;
     return node;
 }
 
@@ -146,12 +161,14 @@ ASTNode * create_int_literal_node(int value) {
     node->type = AST_INT_LITERAL;
     node->int_value = value;
     node->ctype = &CTYPE_INT_T;
+    node->symbol = NULL;
     return node;
 }
 
 ASTNode * create_function_declaration_node(const char * name, CType * returnType,
         ASTNode_list * param_list, ASTNode * body, bool declaration_only) {
     ASTNode * func = malloc(sizeof(ASTNode));
+    func->symbol = NULL;
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = strdup(name);
     func->ctype = returnType;
@@ -169,7 +186,7 @@ ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
     node->type = AST_FUNCTION_CALL;
     node->function_call.name = strdup(name);
     node->function_call.arg_list = args;
-//    node->ctype = NULL;
+    node->ctype = NULL;
     return node;
 }
 
