@@ -86,6 +86,7 @@ ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodySt
     node->while_stmt.cond = condExpression;
     node->while_stmt.body = bodyStatement;
     node->symbol = NULL;
+    node->ctype = NULL;
     return node;
 }
 
@@ -95,6 +96,7 @@ ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt) 
     node->labeled_stmt.label = strdup(label);
     node->labeled_stmt.stmt = stmt;
     node->symbol = NULL;
+    node->ctype = NULL;
     return node;
 }
 
@@ -104,6 +106,7 @@ ASTNode * create_ast_case_statement_node(ASTNode * constantExpression, ASTNode *
     node->case_stmt.constExpression = constantExpression;
     node->case_stmt.stmt = stmt;
     node->symbol = NULL;
+    node->ctype = NULL;
     return node;
 }
 
@@ -112,6 +115,7 @@ ASTNode * create_ast_default_statement_node(ASTNode * stmt) {
     node->type = AST_DEFAULT_STMT;
     node->default_stmt.stmt = stmt;
     node->symbol = NULL;
+    node->ctype = NULL;
     return node;
 }
 
@@ -120,6 +124,7 @@ ASTNode * create_goto_statement(const char * label) {
     node->type = AST_GOTO_STMT;
     node->goto_stmt.label = strdup(label);
     node->symbol = NULL;
+    node->ctype = NULL;
 
     return node;
 }
@@ -130,6 +135,8 @@ ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr) {
     node->do_while_stmt.body = stmt;
     node->do_while_stmt.expr = expr;
     node->symbol = NULL;
+    node->ctype = NULL;
+
     return node;
 }
 
@@ -139,6 +146,7 @@ ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt) {
     node->switch_stmt.expr = expr;
     node->switch_stmt.stmt = stmt;
     node->symbol = NULL;
+    node->ctype = NULL;
     return node;
 }
 
@@ -146,6 +154,7 @@ ASTNode * create_break_statement_node() {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_BREAK_STMT;
     node->symbol = NULL;
+    node->ctype = NULL;
     return node;
 }
 
@@ -153,6 +162,7 @@ ASTNode * create_continue_statement_node() {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_CONTINUE_STMT;
     node->symbol = NULL;
+    node->ctype = NULL;
     return node;
 }
 
@@ -229,6 +239,8 @@ ASTNode * create_return_statement_node(ASTNode * expr) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_RETURN_STMT;
     node->return_stmt.expr = expr;
+    node->ctype = NULL;
+    node->symbol = NULL;
     return node;
 }
 
