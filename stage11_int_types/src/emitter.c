@@ -446,7 +446,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "movzx eax, al\n");
             break;
         case UNARY_PRE_INC: {
-            char * reference_label = create_variable_reference(ctx, node);
+            char * reference_label = create_variable_reference(ctx, node->unary.operand);
 //            emit_line(out, "mov eax, [rbp%+d]\n", offset);            
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "add eax, 1\n");
@@ -454,7 +454,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             break;
         }
         case UNARY_PRE_DEC: {
-            char * reference_label = create_variable_reference(ctx, node);
+            char * reference_label = create_variable_reference(ctx, node->unary.operand);
             //int offset = node->unary.operand->var_ref->offset;
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "sub eax, 1\n");
@@ -462,7 +462,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
         break;
         }
         case UNARY_POST_INC: {
-            char * reference_label = create_variable_reference(ctx, node);
+            char * reference_label = create_variable_reference(ctx, node->unary.operand);
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "mov ecx, eax\n");
             emit_line(ctx, "add eax, 1\n");
@@ -472,7 +472,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
         }
         case UNARY_POST_DEC: {
 //            int offset = lookup_symbol(node->unary.operand->var_expr.name);
-            char * reference_label = create_variable_reference(ctx, node);
+            char * reference_label = create_variable_reference(ctx, node->unary.operand);
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "mov ecx, eax\n");
             emit_line(ctx, "sub eax, 1\n");
@@ -628,7 +628,7 @@ void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
-    char * reference_label  = create_variable_reference(ctx, node);
+    char * reference_label  = create_variable_reference(ctx, node->binary.lhs);
     emit_tree_node(ctx, node->binary.rhs);
     emit_line(ctx, "mov ecx, eax\n");
     emit_line(ctx, "mov eax, %s\n", reference_label);
@@ -1011,6 +1011,11 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         // case AST_UNARY_EXPR:
         emit_unary(ctx, node);
             break;
+
+        case AST_UNARY_EXPR:
+            emit_unary(ctx, node);
+            break;
+
 
         // case AST_LOGICAL_AND:
         //     emit_logical_and(out, node);

@@ -205,10 +205,12 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_FOR_STMT:
+            enter_scope();
             analyze(ctx, node->for_stmt.init_expr);
             analyze(ctx, node->for_stmt.cond_expr);
             analyze(ctx, node->for_stmt.update_expr);
             analyze(ctx, node->for_stmt.body);
+            exit_scope();
             break;
 
         case AST_DO_WHILE_STMT:
