@@ -12,6 +12,7 @@
 
 int local_offset = -8;
 int param_offset = 16;
+int function_local_storage = 0;
 
 CType * apply_integer_promotions(CType * t) {
     if (t->kind == CTYPE_CHAR || t->kind == CTYPE_SHORT) {
@@ -44,6 +45,7 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
     enter_scope();
     local_offset = -8;
     param_offset = 16;
+    function_local_storage = 0;
     //CTypePtr_list * typeList = astNodeListToTypeList(node->function_decl.param_list);
     // CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
     // CTypePtr_list_init(typeList, free_ctype);
@@ -70,6 +72,7 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
     ctx->current_function_return_type = node->ctype;
     analyze(ctx, node->function_decl.body);
     ctx->current_function_return_type = saved;
+    node->function_decl.size = function_local_storage;
     exit_scope();
 }
 
@@ -129,6 +132,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             else {
                 symbol->info.var.offset = local_offset;
                 local_offset -= 8;
+                function_local_storage += 8;
             }
             add_symbol(symbol);
             node->symbol = symbol;
