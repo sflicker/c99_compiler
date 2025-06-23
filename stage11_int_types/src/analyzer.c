@@ -105,12 +105,13 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 error("Function symbol not found");
                 return;
             }
-            if (functionSymbol->info.func.num_params != node->function_call.arg_list->count) {
+            if (functionSymbol->info.func.num_params != node->function_call.arg_count) {
                 error("Function arguments count not equal");
             }
             if (!ctype_lists_equal(astNodeListToTypeList(functionSymbol->node->function_decl.param_list), astNodeListToTypeList( node->function_call.arg_list))) {
                 error("Function parameter types not equal");
             }
+            node->ctype = functionSymbol->node->ctype;
             break;
         }
 

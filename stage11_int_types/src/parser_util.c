@@ -196,6 +196,7 @@ ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
     node->type = AST_FUNCTION_CALL;
     node->function_call.name = strdup(name);
     node->function_call.arg_list = args;
+    node->function_call.arg_count = (args != NULL) ? args->count : 0;
     node->ctype = NULL;
     return node;
 }

@@ -113,7 +113,7 @@ typedef struct ASTNode {
             ASTNode_list * arg_list;
             //struct ASTNode ** argument_expression_list;
             //arglist arg_list;
-            //int arg_count;
+            int arg_count;
         } function_call;
 
         struct {
