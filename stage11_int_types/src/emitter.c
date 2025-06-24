@@ -720,7 +720,7 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
     // then emit each arg then push it
     //struct node_list * reversed_list = NULL;
 
-    //int arg_count=0;
+    int arg_count=0;
     if (node->function_call.arg_list) {
      //   reverse_ASTNode_list(node->function_call.arg_list);
 
@@ -728,6 +728,7 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
             ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
             emit_tree_node(ctx, argNode);
             emit_line(ctx, "push rax\n");
+            arg_count++;
         }
 
         // for (ASTNode_list_node *n = node->function_call.arg_list->head;n;n=n->next) {
@@ -759,6 +760,9 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "call %s\n", node->function_call.name);
 
     // // clean up arguments
+    if (arg_count > 0) {
+        emit_line(ctx, "add rsp, %d\n", arg_count*8);
+    }
     // int total_arg_size = get_node_list_count(reversed_list) * 8;
     // if (total_arg_size > 0) {
     //     emit_line(out, "add rsp, %d\n", total_arg_size);
