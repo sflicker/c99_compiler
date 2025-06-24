@@ -621,6 +621,57 @@ void test_parse_expression__2() {
 
 }
 
+void test_return_statement() {
+    ASTNode * expected = create_return_statement_node(
+        create_binary_node(
+            create_int_literal_node(20),
+            BINOP_ADD,
+            create_int_literal_node(22)
+        )
+    );
+    printf("Expected\n");
+    print_ast(expected, 0);
+
+    tokenlist * tokens = tokenize("return 20+22;");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * actual = parse_statement(ctx);
+    printf("Actual\n");
+    print_ast(actual, 0);
+
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
+}
+
+void test_expression_statement() {
+    ASTNode * expected = create_expression_statement_node(
+        create_binary_node(
+            create_var_ref_node("a"),
+            BINOP_ASSIGNMENT,
+            create_binary_node(
+                create_var_ref_node("b"),
+                BINOP_MUL,
+                create_function_call_node("myfunc", NULL)
+            )
+        )
+    );
+
+    printf("Expected\n");
+    print_ast(expected, 0);
+
+    tokenlist * tokens = tokenize("a = b * myfunc();");
+    ParserContext * ctx = create_parser_context(tokens);
+    ASTNode * actual = parse_statement(ctx);
+    printf("Actual\n");
+    print_ast(actual, 0);
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
+}
+
 int main() {
     RUN_TEST(test_parse_primary__int_literal);
     RUN_TEST(test_parse_primary__parens);
@@ -654,5 +705,6 @@ int main() {
     RUN_TEST(test_parse_assignment_expression__sub_assign);
     RUN_TEST(test_parse_expression__1);
     RUN_TEST(test_parse_expression__2);
-
+    RUN_TEST(test_return_statement);
+    RUN_TEST(test_expression_statement);
 }

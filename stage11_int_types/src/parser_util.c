@@ -250,6 +250,7 @@ ASTNode * create_expression_statement_node(ASTNode * expr) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_EXPRESSION_STMT;
     node->expr_stmt.expr = expr;
+    node->ctype = NULL;
     return node;
 }
 

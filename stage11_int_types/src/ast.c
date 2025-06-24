@@ -258,6 +258,10 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
                     astNodeListToTypeList(b->function_call.arg_list)
                 )
             );
+        case AST_EXPRESSION_STMT:
+        case AST_RETURN_STMT:
+            return ast_equal(a->return_stmt.expr, b->return_stmt.expr);
+            break;
         default:
             error("Invalid AST Node Type: %d\n", a->type);
     }
