@@ -199,19 +199,19 @@ char * make_label_text(const char * prefix, int num) {
 }
 
 void emit_label(EmitterContext * ctx, const char * prefix, int num) {
-    emit_line(ctx, ".L%s%d:\n", prefix, num);
+    emit_line(ctx, "L%s%d:\n", prefix, num);
 }
 
 void emit_label_from_text(EmitterContext *ctx, const char * label) {
-    emit_line(ctx, ".L%s:\n", label);
+    emit_line(ctx, "L%s:\n", label);
 }
 
 void emit_jump(EmitterContext * ctx, const char * op, const char * prefix, int num) {
-    emit_line(ctx, "%s .L%s%d\n", op, prefix, num);
+    emit_line(ctx, "%s L%s%d\n", op, prefix, num);
 }
 
 void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * label) {
-    emit_line(ctx, "%s .L%s\n", op, label);
+    emit_line(ctx, "%s L%s\n", op, label);
 }
 
 void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
@@ -495,14 +495,14 @@ void emit_if_statement(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "cmp eax, 0\n");
 
     if (node->if_stmt.else_stmt) {
-        emit_line(ctx, "je .Lelse%d\n", id);  // jump to else if false
+        emit_line(ctx, "je Lelse%d\n", id);  // jump to else if false
         emit_tree_node(ctx, node->if_stmt.then_stmt);
-        emit_line(ctx, "jmp .Lend%d\n", id);  // jump to end over else
+        emit_line(ctx, "jmp Lend%d\n", id);  // jump to end over else
         emit_label(ctx, "else", id);
         emit_tree_node(ctx, node->if_stmt.else_stmt);
     }
     else {
-        emit_line(ctx, "je .Lend%d\n", id);  // skip over if false
+        emit_line(ctx, "je Lend%d\n", id);  // skip over if false
         emit_tree_node(ctx, node->if_stmt.then_stmt);
     }
     emit_label(ctx, "end", id);
@@ -790,8 +790,8 @@ void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
             // emit_line(ctx, "jmp %s\n", statement->default_stmt.label);
             // runtime_info(statement)->label = make_label_text("default", get_label_id(ctx));
             // emit_line(ctx, "jmp %s\n", runtime_info(statement)->label);
-            node->default_stmt.label = make_label_text("default", get_label_id(ctx));
-            emit_line(ctx, "jmp %s\n", node->default_stmt.label);
+            statement->default_stmt.label = make_label_text("default", get_label_id(ctx));
+            emit_line(ctx, "jmp %s\n", statement->default_stmt.label);
         }
     }
 }
@@ -800,6 +800,19 @@ void emit_switch_bodies(EmitterContext * ctx, ASTNode * node) {
         assert(node->type == AST_SWITCH_STMT);
     ASTNode * block = node->switch_stmt.stmt;
     assert(block->type == AST_BLOCK);
+
+    for (ASTNode_list_node * n = block->block.statements->head; n; n = n->next) {
+        ASTNode * statement = n->value;
+
+        if (statement->type == AST_CASE_STMT) {
+            emit_line(ctx, "\n%s:\n", statement->case_stmt.label);
+            emit_tree_node(ctx, statement->case_stmt.stmt);
+        }
+        else if (statement->type == AST_DEFAULT_STMT) {
+            emit_line(ctx, "\n%s:\n", statement->default_stmt.label);
+            emit_tree_node(ctx, statement->default_stmt.stmt);
+        }
+    }
 
     // for (int i=0;i<block->block.count;i++) {
     //     ASTNode * statement = block->block.statements[i];
@@ -833,7 +846,7 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
 //    emit_switch_bodies(out, node->switch_stmt.stmt);
     emit_switch_bodies(ctx, node);
 
-    emit_line(ctx, "%s\n", break_label);
+    emit_line(ctx, "\n%s:\n", break_label);
     // TODO MAY NEED TO EMIT A STACK restore
     //emit_line(out, "add rsp, 8  ; restore stack\n");
 
