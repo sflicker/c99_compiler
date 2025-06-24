@@ -110,19 +110,21 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             }
 
             size_t arg_index = 0;
-            for (ASTNode_list_node * arg = node->function_call.arg_list->head; arg != NULL; arg = arg->next) {
-                analyze(ctx, arg->value);
-                CType * arg_type = arg->value->ctype;
+            if (node->function_call.arg_list != NULL) {
+                for (ASTNode_list_node * arg = node->function_call.arg_list->head; arg != NULL; arg = arg->next) {
+                    analyze(ctx, arg->value);
+                    CType * arg_type = arg->value->ctype;
 
-                if (arg_index >= functionSymbol->info.func.num_params) {
-                    error("Too many arguments for function %s", node->function_call.name);
-                    return;
-                } else if (!ctype_equal_or_compatible(arg_type, Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype)) {
-                    error("Type mismatch for function %s", node->function_call.name);
-                    return;
+                    if (arg_index >= functionSymbol->info.func.num_params) {
+                        error("Too many arguments for function %s", node->function_call.name);
+                        return;
+                    } else if (!ctype_equal_or_compatible(arg_type, Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype)) {
+                        error("Type mismatch for function %s", node->function_call.name);
+                        return;
+                    }
+
+                    arg_index++;
                 }
-
-                arg_index++;
             }
 
             if (arg_index < functionSymbol->info.func.num_params) {

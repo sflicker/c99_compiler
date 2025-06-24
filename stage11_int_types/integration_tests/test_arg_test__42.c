@@ -1,6 +1,6 @@
 
 
-int func(char a, short b, int c, long d) {
+long func(char a, short b, int c, int d) {
     _print(a);  _assert(a == 9);
     _print(b);  _assert(b == 10);
     _print(c);  _assert(c == 11);
