@@ -74,7 +74,7 @@ static inline type name##_cursor_peek_next(name##_cursor * cursor) {         \
     return NULL;                                                             \
 }                                                                            \
                                                                              \
-static inline void name##_free(name* list) {                                  \
+static inline void name##_free(name* list) {                                 \
     if (!list) return;                                                       \
     name##_node * curr = list->head;                                         \
     while(curr) {                                                            \
@@ -86,6 +86,17 @@ static inline void name##_free(name* list) {                                  \
     list->head = list->tail = NULL;                                          \
     list->count = 0;                                                         \
                                                                              \
+}                                                                            \
+                                                                             \
+static inline type name##_get(name * list, size_t index) {                   \
+     size_t i = 0;                                                           \
+     name##_node * curr = list->head;                                        \
+     while(curr) {                                                           \
+         if (i == index) return curr->value;                                 \
+         curr = curr->next;                                                  \
+         i++;                                                                \
+     }                                                                       \
+     return NULL;                                                            \
 }
 
 typedef struct ASTNode ASTNode;

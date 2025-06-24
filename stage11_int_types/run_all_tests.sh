@@ -108,7 +108,7 @@ for cfile in integration_tests/test*.c; do
         echo -e "${RED}❓ $testname failed with unknown status $STATUS${NC}"
         FAILED_TOTAL=$((FAILED_TOTAL + 1))
         FAILED_TESTS+=("$testname (unknown status $STATUS)")
-        UNKNOWN_FAILURE_TOTEL=$((UNKNOWN_FAILURE_TOTAL + 1))
+        UNKNOWN_FAILURE_TOTAL=$((UNKNOWN_FAILURE_TOTAL + 1))
     fi
 
 

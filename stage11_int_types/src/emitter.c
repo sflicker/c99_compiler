@@ -722,19 +722,25 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
 
     //int arg_count=0;
     if (node->function_call.arg_list) {
-        reverse_ASTNode_list(node->function_call.arg_list);
+     //   reverse_ASTNode_list(node->function_call.arg_list);
 
-        for (ASTNode_list_node *n = node->function_call.arg_list->head;n;n=n->next) {
-            ASTNode * argNode = n->value;
+        for (int i = node->function_call.arg_list->count - 1; i >= 0; i--) {
+            ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
             emit_tree_node(ctx, argNode);
             emit_line(ctx, "push rax\n");
-            // if (arg_count<ARG_REG_COUNT) {
-            //     const char * reg = ARG_REGS[arg_count];
-            //     emit_line(ctx, "mov %s, rax\n", reg);
-            // }  //TODO SUPPORT MORE THAN 6 arguments using the stack
         }
 
-        reverse_ASTNode_list(node->function_call.arg_list);
+        // for (ASTNode_list_node *n = node->function_call.arg_list->head;n;n=n->next) {
+        //     ASTNode * argNode = n->value;
+        //     emit_tree_node(ctx, argNode);
+        //     emit_line(ctx, "push rax\n");
+        //     // if (arg_count<ARG_REG_COUNT) {
+        //     //     const char * reg = ARG_REGS[arg_count];
+        //     //     emit_line(ctx, "mov %s, rax\n", reg);
+        //     // }  //TODO SUPPORT MORE THAN 6 arguments using the stack
+        // }
+
+    //    reverse_ASTNode_list(node->function_call.arg_list);
     }
 
 //     if (node->function_call.argument_expression_list) {

@@ -73,6 +73,15 @@ Symbol * lookup_symbol(const char * name) {
     return NULL;
 }
 
+Symbol * lookup_table_symbol(SymbolTable * table, const char * name) {
+    for (Symbol_list_node * n = table->symbols->head; n != NULL; n = n->next) {
+        if (strcmp(n->value->name , name) == 0) {
+            return n->value;
+        }
+    }
+    return NULL;
+}
+
 void add_symbol(Symbol * symbol) {
     Symbol_list_append(current_scope->symbols, symbol);
 }

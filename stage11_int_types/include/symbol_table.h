@@ -43,6 +43,9 @@ void init_global_table();
 // void symbol_table_push();
 // void symbol_table_pop();
 Symbol * lookup_symbol(const char * name);
+Symbol * lookup_table_symbol(SymbolTable * table, const char * name);
+
+
 void add_symbol(Symbol * symbol);
 void add_global_symbol(Symbol * symbol);
 

@@ -49,20 +49,24 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
     //CTypePtr_list * typeList = astNodeListToTypeList(node->function_decl.param_list);
     // CTypePtr_list * typeList = malloc(sizeof(CTypePtr_list));
     // CTypePtr_list_init(typeList, free_ctype);
+    Symbol_list * symbol_list = NULL;
     if (node->function_decl.param_list != NULL) {
-
+        symbol_list = malloc(sizeof(Symbol_list));
+        Symbol_list_init(symbol_list, free_symbol);;
         for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
             Symbol * symbol = create_symbol(n->value->var_decl.name, SYMBOL_VAR, n->value->ctype, n->value);
             symbol->info.var.offset = param_offset;
             param_offset += 8;
             add_symbol(symbol);
             n->value->symbol = symbol;
+            Symbol_list_append(symbol_list, symbol);
             //add_symbol(n->value->var_decl.name, n->value->ctype, node);
             //     CTypePtr_list_append(typeList, node->ctype);
         }
     }
     Symbol * symbol = create_symbol(node->function_decl.name, SYMBOL_FUNC, node->ctype, node);
     symbol->info.func.num_params = astNodeListLength(node->function_decl.param_list);
+    symbol->info.func.params_symbol_list = symbol_list;
     add_global_symbol(symbol);
     node->symbol = symbol;
 
@@ -99,18 +103,44 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         }
 
         case AST_FUNCTION_CALL: {
-            Symbol * functionSymbol = lookup_symbol(node->function_call.name);
-            node->symbol = functionSymbol;
+            Symbol * functionSymbol = lookup_table_symbol(getGlobalScope(), node->function_call.name);
             if (!functionSymbol) {
-                error("Function symbol not found");
+                error("function symbol not found - %s", node->function_call.name);
                 return;
             }
-            if (functionSymbol->info.func.num_params != node->function_call.arg_count) {
-                error("Function arguments count not equal");
+
+            size_t arg_index = 0;
+            for (ASTNode_list_node * arg = node->function_call.arg_list->head; arg != NULL; arg = arg->next) {
+                analyze(ctx, arg->value);
+                CType * arg_type = arg->value->ctype;
+
+                if (arg_index >= functionSymbol->info.func.num_params) {
+                    error("Too many arguments for function %s", node->function_call.name);
+                    return;
+                } else if (!ctype_equal_or_compatible(arg_type, Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype)) {
+                    error("Type mismatch for function %s", node->function_call.name);
+                    return;
+                }
+
+                arg_index++;
             }
-            if (!ctype_lists_equal(astNodeListToTypeList(functionSymbol->node->function_decl.param_list), astNodeListToTypeList( node->function_call.arg_list))) {
-                error("Function parameter types not equal");
+
+            if (arg_index < functionSymbol->info.func.num_params) {
+                error("Too few arguments to function %s", node->function_call.name);
+                return;
             }
+
+            node->symbol = functionSymbol;
+            // if (!functionSymbol) {
+            //     error("Function symbol not found");
+            //     return;
+            // }
+            // if (functionSymbol->info.func.num_params != node->function_call.arg_count) {
+            //     error("Function arguments count not equal");
+            // }
+            // if (!ctype_lists_equal(astNodeListToTypeList(functionSymbol->node->function_decl.param_list), astNodeListToTypeList( node->function_call.arg_list))) {
+            //     error("Function parameter types not equal");
+            // }
             node->ctype = functionSymbol->node->ctype;
             break;
         }
