@@ -46,7 +46,7 @@ TIMEOUT_TOTAL=0
 WRONG_OUTPUT_TOTAL=0
 UNKNOWN_FAILURE_TOTAL=0
 
-for cfile in integration_tests/test*.c; do
+for cfile in $(find integration_tests -name 'test*.c' | sort); do
     echo $cfile
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
 
