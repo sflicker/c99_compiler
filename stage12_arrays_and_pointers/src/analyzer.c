@@ -1,0 +1,265 @@
+//
+// Created by scott on 6/14/25.
+//
+
+#include "ast.h"
+#include "analyzer.h"
+#include "error.h"
+#include "ctypes.h"
+#include "parser_util.h"
+#include "symbol.h"
+#include "symbol_table.h"
+
+int local_offset = -8;
+int param_offset = 16;
+int function_local_storage = 0;
+
+CType * apply_integer_promotions(CType * t) {
+    if (t->kind == CTYPE_CHAR || t->kind == CTYPE_SHORT) {
+        return &CTYPE_INT_T;
+    }
+    return t;
+}
+
+CType * usual_arithmetic_conversion(CType * a, CType * b) {
+    if (a == b) return a;
+    if (a->rank > b->rank) return a;
+    return b;
+}
+
+bool is_lvalue(ASTNode * node) {
+    if (node == NULL) {
+        error("node must not be null");
+    }
+    return node->type == AST_VAR_REF;
+    // TODO more logic
+}
+
+
+int astNodeListLength(ASTNode_list * ast_nodes) {
+    return (ast_nodes != NULL) ? ast_nodes->count : 0;
+}
+
+void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
+
+    enter_scope();
+    local_offset = -8;
+    param_offset = 16;
+    function_local_storage = 0;
+    Symbol_list * symbol_list = NULL;
+    if (node->function_decl.param_list != NULL) {
+        symbol_list = malloc(sizeof(Symbol_list));
+        Symbol_list_init(symbol_list, free_symbol);;
+        for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
+            Symbol * symbol = create_symbol(n->value->var_decl.name, SYMBOL_VAR, n->value->ctype, n->value);
+            symbol->info.var.offset = param_offset;
+            param_offset += 8;
+            add_symbol(symbol);
+            n->value->symbol = symbol;
+            Symbol_list_append(symbol_list, symbol);
+        }
+    }
+    Symbol * symbol = create_symbol(node->function_decl.name, SYMBOL_FUNC, node->ctype, node);
+    symbol->info.func.num_params = astNodeListLength(node->function_decl.param_list);
+    symbol->info.func.params_symbol_list = symbol_list;
+    add_global_symbol(symbol);
+    node->symbol = symbol;
+
+    CType * saved = ctx->current_function_return_type;
+    ctx->current_function_return_type = node->ctype;
+    analyze(ctx, node->function_decl.body);
+    ctx->current_function_return_type = saved;
+    node->function_decl.size = function_local_storage;
+    exit_scope();
+}
+
+bool is_assignment(ASTNode * node) {
+    return node->binary.op == BINOP_ASSIGNMENT ||
+                node->binary.op == BINOP_COMPOUND_ADD_ASSIGN ||
+                node->binary.op == BINOP_COMPOUND_SUB_ASSIGN;
+}
+void analyze(AnalyzerContext * ctx, ASTNode * node) {
+    if (!node) return;
+
+    switch (node->type) {
+        case AST_TRANSLATION_UNIT: {
+            enter_scope();
+            for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
+                analyze(ctx, n->value);
+            }
+            exit_scope();
+            break;
+        }
+        case AST_FUNCTION_DECL: {
+            handle_function_declaration(ctx, node);
+            break;
+        }
+
+        case AST_FUNCTION_CALL: {
+            Symbol * functionSymbol = lookup_table_symbol(getGlobalScope(), node->function_call.name);
+            if (!functionSymbol) {
+                error("function symbol not found - %s", node->function_call.name);
+                return;
+            }
+
+            size_t arg_index = 0;
+            if (node->function_call.arg_list != NULL) {
+                for (ASTNode_list_node * arg = node->function_call.arg_list->head; arg != NULL; arg = arg->next) {
+                    analyze(ctx, arg->value);
+                    CType * arg_type = arg->value->ctype;
+
+                    if (arg_index >= functionSymbol->info.func.num_params) {
+                        error("Too many arguments for function %s", node->function_call.name);
+                        return;
+                    } else if (!ctype_equal_or_compatible(arg_type, Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype)) {
+                        error("Type mismatch for function %s", node->function_call.name);
+                        return;
+                    }
+
+                    arg_index++;
+                }
+            }
+
+            if (arg_index < functionSymbol->info.func.num_params) {
+                error("Too few arguments to function %s", node->function_call.name);
+                return;
+            }
+
+            node->symbol = functionSymbol;
+            node->ctype = functionSymbol->node->ctype;
+            break;
+        }
+
+        case AST_BLOCK:
+            if (node->block.introduce_scope) enter_scope();
+
+            for (ASTNode_list_node * n = node->block.statements->head; n != NULL; n = n->next) {
+                analyze(ctx, n->value);
+            }
+
+            if (node->block.introduce_scope) exit_scope();
+            break;
+
+        case AST_VAR_DECL:
+            Symbol * symbol = create_symbol(node->var_decl.name, SYMBOL_VAR, node->ctype, node);
+            if (node->var_decl.is_param) {
+                // probably shouldn't be here
+            }
+            else {
+                symbol->info.var.offset = local_offset;
+                local_offset -= 8;
+                function_local_storage += 8;
+            }
+            add_symbol(symbol);
+            node->symbol = symbol;
+            if (node->var_decl.init_expr) {
+                analyze(ctx, node->var_decl.init_expr);
+            }
+            break;
+
+        case AST_BINARY_EXPR:
+            analyze(ctx, node->binary.lhs);
+            analyze(ctx, node->binary.rhs);
+
+            if (is_assignment(node)) {
+                if (!is_lvalue(node->binary.lhs)) {
+                    error("Assignment must be to an lvalue");
+                }
+            }
+
+            CType * lhsCType = node->binary.lhs->ctype;
+            CType * rhsCType = node->binary.rhs->ctype;
+
+            CType * promoted_left = apply_integer_promotions(lhsCType);
+            CType * promoted_right = apply_integer_promotions(rhsCType);
+
+            CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
+
+            node->ctype = result_type;
+
+            break;
+
+        case AST_UNARY_EXPR:
+            analyze(ctx, node->unary.operand);
+            node->ctype = node->unary.operand->ctype;
+            break;
+
+        case AST_VAR_REF: {
+            Symbol * symbol = lookup_symbol(node->var_ref.name);
+            if (!symbol) { error("Symbol not found"); return; }
+            node->symbol = symbol;
+            node->ctype = symbol->ctype;
+            break;
+        }
+
+        case AST_RETURN_STMT: {
+            analyze(ctx, node->return_stmt.expr);
+            node->ctype = node->return_stmt.expr->ctype;
+            if (!ctype_equal_or_compatible(ctx->current_function_return_type,
+                node->ctype)) {
+                error("Function return type not compatible: expected %s, got %s",
+                    ctype_to_string(ctx->current_function_return_type), ctype_to_string(node->ctype));
+                }
+            break;
+        }
+
+        case AST_IF_STMT:
+            analyze(ctx, node->if_stmt.cond);
+            analyze(ctx, node->if_stmt.then_stmt);
+            analyze(ctx, node->if_stmt.else_stmt);
+            break;
+
+        case AST_WHILE_STMT:
+            analyze(ctx, node->while_stmt.cond);
+            analyze(ctx, node->while_stmt.body);
+            break;
+
+        case AST_FOR_STMT:
+            enter_scope();
+            analyze(ctx, node->for_stmt.init_expr);
+            analyze(ctx, node->for_stmt.cond_expr);
+            analyze(ctx, node->for_stmt.update_expr);
+            analyze(ctx, node->for_stmt.body);
+            exit_scope();
+            break;
+
+        case AST_DO_WHILE_STMT:
+            analyze(ctx, node->do_while_stmt.expr);
+            analyze(ctx, node->do_while_stmt.body);
+            break;
+
+        case AST_LABELED_STMT:
+            analyze(ctx, node->labeled_stmt.stmt);
+            break;
+
+        case AST_CASE_STMT:
+            analyze(ctx, node->case_stmt.constExpression);
+            analyze(ctx, node->case_stmt.stmt);
+            break;
+
+        case AST_DEFAULT_STMT:
+            analyze(ctx, node->default_stmt.stmt);
+            break;
+
+        case AST_SWITCH_STMT:
+            analyze(ctx, node->switch_stmt.expr);
+            analyze(ctx, node->switch_stmt.stmt);
+            break;
+
+        case AST_EXPRESSION_STMT:
+        case AST_ASSERT_EXTENSION_STATEMENT:
+        case AST_PRINT_EXTENSION_STATEMENT:
+            analyze(ctx, node->expr_stmt.expr);
+            break;
+
+        case AST_GOTO_STMT:
+        case AST_INT_LITERAL:
+        case AST_BREAK_STMT:
+        case AST_CONTINUE_STMT:
+            // DO NOTHING
+            break;
+
+        default:
+            error("Unrecognized node type");
+    }
+}
