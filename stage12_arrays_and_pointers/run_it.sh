@@ -1,4 +1,4 @@
 #! /bin/sh
 
-./run_all_tests.sh mimic99
+./run_all_tests.sh build/mimic99
 
