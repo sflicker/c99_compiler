@@ -7,14 +7,12 @@
 
 #include "ast.h"
 #include "symbol.h"
-#include "runtime_info.h"
-#include "runtime_info_decorator.h"
 #include "emitter_context.h"
 
 
 EmitterContext * create_emitter_context(const char * filename) {
 
-    init_runtime_info_list();
+//    init_runtime_info_list();
 
     EmitterContext * ctx = malloc(sizeof(EmitterContext));
     ctx->label_id = 0;
@@ -99,7 +97,6 @@ void pop_loop_context(EmitterContext * ctx) {
 }
 
 int get_offset(EmitterContext * ctx, ASTNode * node) {
-    //return runtime_info(node)->offset;
     if (node->type == AST_VAR_DECL || node->type == AST_VAR_REF) {
         return node->symbol->info.var.offset;
     }

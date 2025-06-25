@@ -12,7 +12,6 @@
 #include "token.h"
 #include "util.h"
 #include "error.h"
-#include "runtime_info_decorator.h"
 #include "emitter_context.h"
 #include "symbol.h"
 
@@ -875,7 +874,7 @@ void emit_print_int_extension_function(EmitterContext * ctx) {
 }
 
 void emit(EmitterContext * ctx, ASTNode * translation_unit) {
-    populate_symbol_table(translation_unit);
+   // populate_symbol_table(translation_unit);
     emit_tree_node(ctx, translation_unit);
 
     // emit referenced private functions
