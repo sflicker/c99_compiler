@@ -122,15 +122,20 @@ ASTNode* parse(tokenlist * tokens) {
 }
 
 ASTNode* parse_translation_unit(ParserContext * parserContext) {
-    ASTNode_list * external_decl_list = create_node_list();
+    ASTNode_list * functions_list = create_node_list();
+    ASTNode_list * globals_list = create_node_list();
 
     while (!is_current_token(parserContext, TOKEN_EOF)) {
         // currently only supporting functions as topmost. will need to add file level variables.
         ASTNode * external_decl = parse_external_declaration(parserContext);
-        ASTNode_list_append(external_decl_list, external_decl);
+        if (external_decl->type == AST_VAR_DECL) {
+            ASTNode_list_append(globals_list, external_decl);
+        } else {
+            ASTNode_list_append(functions_list, external_decl);
+        }
     }
 
-    return create_translation_unit_node(external_decl_list);
+    return create_translation_unit_node(functions_list, globals_list);
 }
 
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
@@ -138,7 +143,7 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
     CType * type = parse_ctype(parserContext);
 
     if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
-        Token * ident = peek(parserContext);
+//        Token * ident = peek(parserContext);
         Token * after = peek_next(parserContext);
 
         if (after->type == TOKEN_LPAREN) {
@@ -148,6 +153,7 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
     }
 
     error("Expected identifier after type");
+    return NULL;
 }
 
 ASTNode_list * parse_param_list(ParserContext * parserContext) {

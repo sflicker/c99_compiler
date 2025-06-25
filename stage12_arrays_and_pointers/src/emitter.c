@@ -23,11 +23,21 @@
 //bool emit_print_int_extension = false;
 
 char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
-    int size = 20;
-    int offset = get_offset(ctx, node);
-    char * label = malloc(size);
-    snprintf(label, size, "[rbp%+d]", offset);
-    return label;
+    Symbol * symbol = node->symbol;
+    if (node->var_decl.is_global) {
+        const char * name = symbol->name;
+        int size = snprintf(NULL, 0, "[rel %s]", name) + 1;
+        char * label = malloc(size);
+        snprintf(label, size, "[rel %s]", name);
+        return label;
+    }
+    else {
+        int offset = get_offset(ctx, node);
+        int size = snprintf(NULL, 0, "[rbp%+d]", offset) + 1;
+        char * label = malloc(size);
+        snprintf(label, size, "[rbp%+d]", offset);
+        return label;
+    }
 }
 
 void emit_line(EmitterContext * ctx, const char* fmt, ...) {
@@ -63,6 +73,7 @@ void emit_text_section_header(EmitterContext * ctx) {
     emit_line(ctx, ";---------------------------------------\n");
     emit_line(ctx, "\n");
     emit_line(ctx, "section .text\n");
+    emit_line(ctx, "global main\n");
     emit_line(ctx, "\n");
 }
 
@@ -107,6 +118,30 @@ void emit_jump(EmitterContext * ctx, const char * op, const char * prefix, int n
 
 void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * label) {
     emit_line(ctx, "%s L%s\n", op, label);
+}
+
+void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
+    emit_data_section_header(ctx);
+    for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
+        ASTNode * global_var = n->value;
+        if (global_var->var_decl.init_expr) {
+            // TODO write out correct emit_tree_node(ctx, n->value);
+        }
+    }
+
+    emit_bss_section_header(ctx);
+    for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
+        ASTNode * global_var = n->value;
+        if (!global_var->var_decl.init_expr) {
+            // TODO write out correct emit_tree_node(ctx, n->value);
+        }
+    }
+
+    emit_text_section_header(ctx);
+    for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
+        emit_tree_node(ctx, n->value);
+    }
+    emit_trailer(ctx);
 }
 
 void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
@@ -455,7 +490,7 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     char * func_end_label = make_label_text("func_end", get_label_id(ctx));
     push_function_exit_context(ctx, func_end_label);
 
-    emit_text_section_header(ctx);
+//    emit_text_section_header(ctx);
     int local_space = node->function_decl.size;
 
     emit_line(ctx, "%s:\n", node->function_decl.name);
@@ -737,14 +772,8 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
     if (!node) return;
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
-        {
-            emit_header(ctx);
-            for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
-                 emit_tree_node(ctx, n->value);
-            }
-            emit_trailer(ctx);
+            emit_translation_unit(ctx, node);
             break;
-        }
         case AST_FUNCTION_DECL:
             emit_function(ctx, node);
             break;

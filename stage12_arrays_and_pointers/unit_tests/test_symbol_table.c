@@ -23,16 +23,12 @@ void test_add_function_symbol__no_args() {
     init_global_table();
     const char * func_name = "main";
     CType * return_type = &CTYPE_INT_T;
-    int param_count = 0;
-    CTypePtr_list * param_types = NULL;
     ASTNode_list * param_nodes = NULL;
 
     ASTNode * funcNode = create_function_declaration_node(func_name, return_type,
         param_nodes, NULL, true);
 
-//    Symbol * function_symbol = add_global_symbol(func_name, return_type, param_count, param_types);
     Symbol * function_symbol = create_symbol(func_name, SYMBOL_FUNC, return_type, funcNode);
-
 
     TEST_ASSERT("Verifying function_symbol is not null", function_symbol != NULL);
     TEST_ASSERT("Verifying function name is 'main'", strcmp(function_symbol->name, func_name) == 0);

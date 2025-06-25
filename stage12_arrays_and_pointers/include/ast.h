@@ -89,6 +89,7 @@ typedef struct ASTNode {
         UnaryExpr unary;
         struct {
             ASTNode_list * functions;
+            ASTNode_list * globals;
             int count;
         } translation_unit;
 

@@ -84,6 +84,9 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
     switch (node->type) {
         case AST_TRANSLATION_UNIT: {
             enter_scope();
+            for (ASTNode_list_node * n = node->translation_unit.globals->head; n != NULL; n = n->next) {
+                analyze(ctx, n->value);
+            }
             for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
                 analyze(ctx, n->value);
             }

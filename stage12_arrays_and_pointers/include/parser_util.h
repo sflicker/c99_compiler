@@ -3,7 +3,7 @@
 #include "ast.h"
 #include "parser_context.h"
 
-ASTNode * create_translation_unit_node(ASTNode_list * functions);
+ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals);
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand);
 ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator  op, ASTNode *rhs);
 ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * thenStatement, ASTNode * elseStatement);

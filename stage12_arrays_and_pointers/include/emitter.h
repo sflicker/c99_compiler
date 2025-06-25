@@ -8,6 +8,7 @@ char * make_label_text(const char * prefix, int num);
 
 void emit(EmitterContext * ctx, ASTNode * program);
 void emit_tree_node(EmitterContext * ctx, ASTNode * node);
+void emit_translation_unit(EmitterContext * ctx, ASTNode * node);
 void emit_line(EmitterContext * ctx, const char* fmt, ...);
 void emit_header(EmitterContext * ctx);
 void emit_trailer(EmitterContext * ctx);
