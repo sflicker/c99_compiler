@@ -30,9 +30,6 @@ void print_ast(ASTNode * node, int indent) {
             for (ASTNode_list_node * n = functions->head ; n ; n = n->next) {
                 print_ast(n->value, indent+1);                
             }
-            // for (int i=0;i<node->translation_unit.count;i++) {
-            //    print_ast(node->translation_unit.functions[i], indent+1);
-            // }   
             break;
         }
         case AST_FUNCTION_DECL:
@@ -43,34 +40,10 @@ void print_ast(ASTNode * node, int indent) {
                     print_ast(n->value, indent+2);
                 }
             }
-           // if (node->function_decl.param_list) {
-                //TODO print the param_list
-                //print_ast(node->function_decl.param_list, indent+1);
-                // struct node_list * node_list = node->function_decl.param_list;
-                // while(node_list) {
-                //     print_ast(node_list->node, indent+1);
-                //     node_list = node_list->next;
-                // }
-           // }
             if (node->function_decl.body) {
                 print_ast(node->function_decl.body, indent+1);
             }
             break;
-        //case AST_PARAM_LIST: {
-          //   printf("ParameterList:\n");
-            //  ASTNode * paramCurr = node;
-            //  while(paramCurr) {
-            //      print_ast(paramCurr->param_list.param, indent + 1);
-            //      paramCurr = paramCurr->param_list.next;
-            //  }
-            //  break;
-            // struct node_list * node_list = node->param_list.node_list;
-            // while(node_list) {
-            //     print_ast(node_list->node, indent+1);
-            //     node_list = node_list->next;
-            // }
-        //    break;
-        //}
         case AST_FUNCTION_CALL:
             printf("FunctionCall: %s, type: %s\n", node->function_call.name, ctype_to_string(node->ctype));
             if (node->function_call.arg_list) {
@@ -79,24 +52,7 @@ void print_ast(ASTNode * node, int indent) {
                     print_ast(n->value, indent+2);
                 }
             }
-            //if (node->function_call.argument_expression_list) {
-                //TODO PRINT ARG LIST
-                // struct node_list * arg = node->function_call.argument_expression_list;
-                // while(arg) {
-                //     print_ast(arg->node, indent + 1);
-                //     arg = arg->next;
-                // }
-            //}
             break;
-        // case AST_ARG_LIST: {
-        //     printf("ArgumentList:\n");
-        //     struct node_list * arg = node;
-        //     while(arg) {
-        //          print_ast(arg->argument_list.expression, indent + 1);
-        //          arg = arg->argument_list.next;
-        //      }
-        //      break;
-        // }
         case AST_RETURN_STMT:
             printf("ReturnStmt: - type: %s\n", ctype_to_string(node->ctype));
             print_ast(node->return_stmt.expr, indent+1);

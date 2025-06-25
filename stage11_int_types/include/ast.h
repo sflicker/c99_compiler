@@ -88,15 +88,12 @@ typedef struct ASTNode {
         BinaryExpr binary;
         UnaryExpr unary;
         struct {
-            //struct ASTNode ** functions;
             ASTNode_list * functions;
             int count;
         } translation_unit;
 
         struct {
             char* name;
-            //struct ASTNode** param_list;
-            //paramlist param_list;
             ASTNode_list * param_list;
             int param_count;
             ASTNode* body;
@@ -104,15 +101,9 @@ typedef struct ASTNode {
             int size;
         } function_decl;
 
-        // struct {
-        //     struct node_list * node_list;
-        // } param_list;
-
         struct {
             char * name;
             ASTNode_list * arg_list;
-            //struct ASTNode ** argument_expression_list;
-            //arglist arg_list;
             int arg_count;
         } function_call;
 

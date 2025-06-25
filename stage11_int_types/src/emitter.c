@@ -23,15 +23,6 @@
 
 //bool emit_print_int_extension = false;
 
-//static int label_id = 0;
-
-// typedef struct FunctionExitContext {
-//     char * exit_label;
-//     struct FunctionExitContext * next;
-// } FunctionExitContext;
-
-//static FunctionExitContext * functionExitStack = NULL;
-
 char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
     int size = 20;
     int offset = get_offset(ctx, node);
@@ -39,101 +30,6 @@ char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
     snprintf(label, size, "[rbp%+d]", offset);
     return label;
 }
-
-
-// char * create_variable_reference(Address * addr) {
-//     if (addr->kind == ADDR_STACK) {
-//         int size = 20;
-//         char * label = malloc(size);
-//         snprintf(label, size, "[rbp%+d]", addr->stack_offset);
-//         return label;
-//     }
-//     else if (addr->kind == ADDR_REGISTER) {
-//         int size = 5;
-//         char * label = malloc(size);
-//         snprintf(label, size, "%s", ARG_REGS[addr->reg_index]);
-//         return label;
-//     }
-//     else {
-//         error("Variable Reference Addresses Must Be Assigned Before Usage\n");
-//     }
-//     return NULL;
-// }
-
-// void push_function_exit_context(EmitterContext * ctx, const char * exit_label) {
-//     FunctionExitContext * functionCtx = malloc(sizeof(FunctionExitContext));
-//     functionCtx->exit_label = strdup(exit_label);
-//     functionCtx->next = ctx->functionExitStack;
-//     ctx->functionExitStack = functionCtx;
-// }
-
-// void pop_function_exit_context(EmitterContext * ctx) {
-//     if (functionExitStack) {
-//         FunctionExitContext * old = functionExitStack;
-//         functionExitStack = old->next;
-//         free(old->exit_label);
-//         free(old);
-//     }
-// }
-
-// char * get_function_exit_label() {
-//     if (functionExitStack) {
-//         return functionExitStack->exit_label;
-//     }
-//     return NULL;
-// }
-// typedef struct SwitchContext {
-//     const char * break_label;
-//     struct SwitchContext * next;
-// } SwitchContext;
-//
-// static SwitchContext * switch_stack = NULL;
-
-// void push_switch_context(const char * break_label) {
-//     SwitchContext * ctx = malloc(sizeof(SwitchContext));
-//     ctx->break_label = strdup(break_label);
-//     ctx->next = switch_stack;
-//     switch_stack = ctx;
-// }
-//
-// void pop_switch_context() {
-//     if (switch_stack) {
-//         SwitchContext * old = switch_stack;
-//         switch_stack = old->next;
-//         free(old);
-//     }
-// }
-
-// typedef struct LoopContext {
-//     const char * start_label;
-//     const char * end_label;
-//     struct LoopContext * next;
-// } LoopContext;
-
-//static LoopContext * loop_stack = NULL;
-
-// void push_loop_context(const char * start_label, const char * end_label) {
-//     LoopContext * ctx = malloc(sizeof(LoopContext));
-//     ctx->start_label = start_label;
-//     ctx->end_label = end_label;
-//     ctx->next = loop_stack;
-//     loop_stack = ctx;
-// }
-//
-// void pop_loop_context() {
-//     if (loop_stack) {
-//         LoopContext * old = loop_stack;
-//         loop_stack = old->next;
-//         free(old);
-//     }
-// }
-
-// const char * current_switch_break_label(EmitterContext * ctx) {
-//     if (ctx->switch_stack) {
-//         return ctx->switch_stack->break_label;
-//     }
-//     return NULL;  // error break outside switch
-// }
 
 void emit_line(EmitterContext * ctx, const char* fmt, ...) {
     va_list args;
@@ -417,7 +313,6 @@ void emit_binary_op(EmitterContext * ctx, BinaryOperator op) {
             emit_line(ctx, "add eax, ecx\n");
             break;
         case BINOP_SUB:
-//            emit_line(out, "sub eax, ecx\n");
               emit_line(ctx, "sub ecx, eax\n");
               emit_line(ctx, "mov eax, ecx\n");
             break;
@@ -447,7 +342,6 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             break;
         case UNARY_PRE_INC: {
             char * reference_label = create_variable_reference(ctx, node->unary.operand);
-//            emit_line(out, "mov eax, [rbp%+d]\n", offset);            
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "add eax, 1\n");
             emit_line(ctx, "mov %s, eax\n", reference_label);
@@ -455,7 +349,6 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
         }
         case UNARY_PRE_DEC: {
             char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            //int offset = node->unary.operand->var_ref->offset;
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "sub eax, 1\n");
             emit_line(ctx, "mov %s, eax\n", reference_label);
@@ -471,7 +364,6 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             break;
         }
         case UNARY_POST_DEC: {
-//            int offset = lookup_symbol(node->unary.operand->var_expr.name);
             char * reference_label = create_variable_reference(ctx, node->unary.operand);
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "mov ecx, eax\n");
@@ -517,9 +409,7 @@ void emit_while_statement(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "push rax   ; save switch expression\n");
 
     push_loop_context(ctx, loop_start_label, loop_end_label);
-    
-    //int id = label_id++;
-    
+
     // start label
     emit_label_from_text(ctx, loop_start_label);
     // eval cond
@@ -567,7 +457,6 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     push_function_exit_context(ctx, func_end_label);
 
     emit_text_section_header(ctx);
-//    int local_space = runtime_info(node)->size;
     int local_space = node->function_decl.size;
 
     emit_line(ctx, "%s:\n", node->function_decl.name);
@@ -584,14 +473,6 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
             emit_var_declaration(ctx, n->value);
         }
     }
-
-    //TODO FIX THIS
-    // if (node->function_decl.param_list) {
-    //     for (struct node_list * param = node->function_decl.param_list->param_list.node_list; param != NULL; param = param->next) {
-    //         ASTNode * var_decl = param->node;
-    //         emit_var_declaration(out, var_decl);
-    //     }
-    // }
 
     emit_block(ctx, node->function_decl.body, false);
 
@@ -645,10 +526,6 @@ void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
 
     push_loop_context(ctx, continue_label, end_label);
 
-    // int label_start = label_id++;
-    // int label_cond = label_id++;
-    // int label_end = label_id++;
-
     // initializer
     if (node->for_stmt.init_expr) {
         emit_tree_node(ctx, node->for_stmt.init_expr);
@@ -683,8 +560,6 @@ void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
     emit_label_from_text(ctx, end_label);
 
     pop_loop_context(ctx);
-
-//    exit_scope();
 
     free(start_label);
     free(end_label);
@@ -722,8 +597,8 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
 
     int arg_count=0;
     if (node->function_call.arg_list) {
-     //   reverse_ASTNode_list(node->function_call.arg_list);
 
+        // loop through in reverse order pushing arguments to the stack
         for (int i = node->function_call.arg_list->count - 1; i >= 0; i--) {
             ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
             emit_tree_node(ctx, argNode);
@@ -741,20 +616,7 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
         //     // }  //TODO SUPPORT MORE THAN 6 arguments using the stack
         // }
 
-    //    reverse_ASTNode_list(node->function_call.arg_list);
     }
-
-//     if (node->function_call.argument_expression_list) {
-//  //       reversed_list = reverse_list(node->function_call.argument_expression_list);
-//         reversed_list = node->function_call.argument_expression_list;
-//         for (struct node_list * arg = reversed_list;arg != NULL; arg = arg->next) {
-//             ASTNode * argNode = (ASTNode*)arg;
-//             emit_pass_argument(out, argNode->var_decl.var_type, argNode->var_decl.offset, argNode);
-//  //           emit_tree_node(out, arg->node);
-// //            emit_line(out, "mov [rbp+%d], rax\n", arg->node.var_decl.offset);
-//         //    emit_line(out, "push rax\n");
-//         }
-//     }
 
     // // call the function
     emit_line(ctx, "call %s\n", node->function_call.name);
@@ -763,14 +625,6 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
     if (arg_count > 0) {
         emit_line(ctx, "add rsp, %d\n", arg_count*8);
     }
-    // int total_arg_size = get_node_list_count(reversed_list) * 8;
-    // if (total_arg_size > 0) {
-    //     emit_line(out, "add rsp, %d\n", total_arg_size);
-    // }
-
-    // if (reversed_list) {
-    //     free_node_list(reversed_list);
-    // }
 }
 
 void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
@@ -785,15 +639,9 @@ void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
 //            runtime_info(statement)->label = make_label_text("case", get_label_id(ctx));
             emit_line(ctx, "mov rax, [rsp]\n");
             emit_line(ctx, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
-//            emit_line(ctx, "je %s\n", statement->case_stmt.label);
-//            emit_line(ctx, "je %s\n",  runtime_info(statement)->label);
             emit_line(ctx, "je %s\n",  statement->case_stmt.label);
         }
         else if (statement->type == AST_DEFAULT_STMT) {
-            // statement->default_stmt.label = make_label_text("default", label_id++);
-            // emit_line(ctx, "jmp %s\n", statement->default_stmt.label);
-            // runtime_info(statement)->label = make_label_text("default", get_label_id(ctx));
-            // emit_line(ctx, "jmp %s\n", runtime_info(statement)->label);
             statement->default_stmt.label = make_label_text("default", get_label_id(ctx));
             emit_line(ctx, "jmp %s\n", statement->default_stmt.label);
         }
@@ -818,17 +666,6 @@ void emit_switch_bodies(EmitterContext * ctx, ASTNode * node) {
         }
     }
 
-    // for (int i=0;i<block->block.count;i++) {
-    //     ASTNode * statement = block->block.statements[i];
-    //     if (statement->type == AST_CASE_STMT) {
-    //         emit_line(out, "%s:\n", statement->case_stmt.label);
-    //         emit_tree_node(out, statement->case_stmt.stmt);
-    //     }
-    //     else if (statement->type == AST_DEFAULT_STMT) {
-    //         emit_line(out, "%s:\n", statement->default_stmt.label);
-    //         emit_tree_node(out, statement->default_stmt.stmt);
-    //     }
-    // }
 }
 
 void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
@@ -843,16 +680,12 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
     push_switch_context(ctx, break_label);
 
     // first pass emit all comparisons and jumps
-//    emit_switch_dispatch(out, node->switch_stmt.stmt);
     emit_switch_dispatch(ctx, node);
 
     // second pass emit all labels and bodies
-//    emit_switch_bodies(out, node->switch_stmt.stmt);
     emit_switch_bodies(ctx, node);
 
     emit_line(ctx, "\n%s:\n", break_label);
-    // TODO MAY NEED TO EMIT A STACK restore
-    //emit_line(out, "add rsp, 8  ; restore stack\n");
 
     pop_switch_context(ctx);
 
@@ -863,7 +696,6 @@ void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
     int case_label_id = get_label_id(ctx);
     char * case_label = make_label_text("case", case_label_id);
     node->case_stmt.label = strdup(case_label);
-//    runtime_info(node)->label = strdup(case_label);
 
     // load switch value back from the stack
     emit_line(ctx, "mov rax, [rsp] ; reload switch expr\n");
@@ -874,7 +706,6 @@ void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
 
     // emit the case body
     emit_line(ctx, "%s\n", node->case_stmt.label);
-///    emit_line(ctx, "%s\n", runtime_info(node)->label);
     emit_tree_node(ctx, node->case_stmt.stmt);
     // emit jump to break
 
@@ -886,8 +717,6 @@ void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
 const char * get_break_label(EmitterContext * ctx) {
     if (ctx->loop_stack) return ctx->loop_stack->end_label;
     return current_switch_break_label(ctx);
-    // if (switch_stack) return switch_stack->break_label;
-    // return NULL;
 }
 
 const char * get_continue_label(EmitterContext * ctx) {
@@ -923,22 +752,11 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_VAR_DECL:
             emit_var_declaration(ctx, node);
             break;
-        // case AST_ASSIGNMENT:
-        //     emit_assignment(out, node);
-        //     break;
-        // case AST_COMPOUND_ADD_ASSIGN:
-        //     emit_add_assignment(out, node);
-        //     break;
-        // case AST_COMPOUND_SUB_ASSIGN:
-        //     emit_sub_assignment(out, node);
-        //     break;
         case AST_RETURN_STMT:
             emit_tree_node(ctx, node->return_stmt.expr);
             if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
                 emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
             }
-            // emit_line(out, "leave\n");
-            // emit_line(out, "ret\n");
             break;
         case AST_FUNCTION_CALL:
             emit_function_call(ctx, node);
@@ -981,79 +799,14 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_binary_expr(ctx, node);
             break;
 
-
-        // case AST_DIV: {
-        //     emit_binary_div(out, node);
-        //     emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
-        //     emit_line(out, "push rax\n");                     // push lhs result
-        //     emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
-        //     emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
-        //     emit_line(out, "pop rax\n");                      // restore numerator to eax
-        //     emit_line(out, "cdq\n");
-        //     emit_line(out, "idiv ecx\n");
-        //     break;
-        // }
-        // case AST_MOD: {
-        //     emit_binary_mod(out, node);
-        //     emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
-        //     emit_line(out, "push rax\n");                     // push lhs result
-        //     emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
-        //     emit_line(out, "mov ecx, eax\n");                 // move denominator to ecx
-        //     emit_line(out, "pop rax\n");                      // restore numerator to eax
-        //     emit_line(out, "cdq\n");
-        //     emit_line(out, "idiv ecx\n");               // divide eax by ecx. result goes to eax, remainder to edx
-        //     emit_line(out, "mov eax, edx\n");           // move remainer in edx to eax
-        //     break;
-        // }
-        // case AST_ADD:
-        // case AST_SUB:
-        // case AST_MUL:
-        //     emit_tree_node(out, node->binary.lhs);       // codegen to eval lhs with result in EAX
-        //     emit_line(out, "push rax\n");                     // push lhs result
-        //     emit_tree_node(out, node->binary.rhs);       // codegen to eval rhs with result in EAX
-        //     emit_line(out, "pop rcx\n");                      // pop lhs to ECX
-        //     emit_binary_op(out, node->binary.op);        // emit proper for op
-        // break;
-
-        // case AST_EQUAL:
-        // case AST_NOT_EQUAL:
-        // case AST_LESS_EQUAL:
-        // case AST_LESS_THAN:
-        // case AST_GREATER_EQUAL:
-        // case AST_GREATER_THAN:
-        //     emit_binary_comparison(out, node);
-        //     break;
-
-        // case AST_UNARY_POST_INC:
-        // case AST_UNARY_POST_DEC:
-        // case AST_UNARY_PRE_INC:
-        // case AST_UNARY_PRE_DEC:
-        // case AST_UNARY_NEGATE:
-        // case AST_UNARY_NOT:
-        // case AST_UNARY_PLUS:
-        // case AST_UNARY_EXPR:
-        emit_unary(ctx, node);
-            break;
-
         case AST_UNARY_EXPR:
             emit_unary(ctx, node);
             break;
-
-
-        // case AST_LOGICAL_AND:
-        //     emit_logical_and(out, node);
-        //     break;
-        //
-        // case AST_LOGICAL_OR:
-        //     emit_logical_or(out, node);
-        //     break;
 
         case AST_INT_LITERAL:
             emit_line(ctx, "mov eax, %d\n", node->int_value);
             break;
         case AST_VAR_REF:
-//            int offset = runtime_info(node)->offset;
-//            int offset = node->var_ref.addr.stack_offset;
             int offset = node->symbol->info.var.offset;
             emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
             break;
@@ -1122,7 +875,6 @@ void emit_print_int_extension_function(EmitterContext * ctx) {
 }
 
 void emit(EmitterContext * ctx, ASTNode * translation_unit) {
- //   FILE * out = fopen(output_file, "w");
     populate_symbol_table(translation_unit);
     emit_tree_node(ctx, translation_unit);
 

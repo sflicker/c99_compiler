@@ -66,13 +66,6 @@ void free_astnode(ASTNode * node) {
             free_astnode(node->expr_stmt.expr);
             break;
 
-        // case AST_ASSIGNMENT:
-        // case AST_COMPOUND_ADD_ASSIGN:
-        // case AST_COMPOUND_SUB_ASSIGN:
-        //     free(node->assignment.name);
-        //     free_astnode(node->assignment.expr);
-        //     break;
-
         case AST_VAR_REF:
             free(node->var_ref.name);
             break;
@@ -100,31 +93,11 @@ void free_astnode(ASTNode * node) {
             free(node->goto_stmt.label);
             break;
 
-        // case AST_ADD:
-        // case AST_SUB:
-        // case AST_MUL:
-        // case AST_DIV:
-        // case AST_MOD:
-        // case AST_EQUAL:
-        // case AST_NOT_EQUAL:
-        // case AST_LESS_THAN:
-        // case AST_LESS_EQUAL:
-        // case AST_GREATER_THAN:
-        // case AST_GREATER_EQUAL:
-        // case AST_LOGICAL_AND:
-        // case AST_LOGICAL_OR:
         case AST_BINARY_EXPR:
             free_astnode(node->binary.lhs);
             free_astnode(node->binary.rhs);
             break;
 
-        // case AST_UNARY_NEGATE:
-        // case AST_UNARY_PLUS:
-        // case AST_UNARY_NOT:
-        // case AST_UNARY_PRE_INC:
-        // case AST_UNARY_PRE_DEC:
-        // case AST_UNARY_POST_INC:
-        // case AST_UNARY_POST_DEC:
         case AST_UNARY_EXPR:
             free_astnode(node->unary.operand);            
             break;
@@ -228,18 +201,16 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
                 fprintf(stderr, "ast variable names do not match - %s, %s\n",
                     a->var_decl.name, a->var_decl.name);
                 return false;
-            } else {
-                return true;
             }
+            return true;
             break;
         case AST_VAR_REF:
             if (!strcmp(a->var_ref.name, b->var_ref.name) == 0) {
                 fprintf(stderr, "ast variable names do not match - %s, %s\n",
                     a->var_ref.name, b->var_ref.name);
                 return false;
-            } else {
-                return true;
             }
+            return true;
             break;
         case AST_INT_LITERAL:
             return a->int_value == b->int_value;

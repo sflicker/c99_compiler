@@ -43,19 +43,6 @@ void free_ctype(CType * ctype) {
     // do nothing
 }
 
-// bool ctype_equal(const CType *a, const CType *b) {
-//     if (a == b) return true; // handles NULL == NULL or pointer identity
-//     if (!a || !b) return false; // one is NULL, the other isn't
-//
-//     if (a->kind != b->kind)
-//         return false;
-//
-//     if (a->kind == CTYPE_PTR)
-//         return ctype_equal(a->ptr_to, b->ptr_to);
-//
-//     return true;
-// }
-
 CType *make_ptr_type(CType *base) {
     CType *ptr = malloc(sizeof(CType));
     ptr->kind = CTYPE_PTR;
