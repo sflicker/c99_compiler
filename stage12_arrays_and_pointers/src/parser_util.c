@@ -211,6 +211,7 @@ ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_
         node->var_decl.init_expr->ctype = ctype;
     }
     node->var_decl.is_param = false;
+    node->var_decl.is_global = false;
     return node;
 }
 
