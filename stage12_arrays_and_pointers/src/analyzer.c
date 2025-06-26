@@ -249,6 +249,11 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             analyze(ctx, node->switch_stmt.stmt);
             break;
 
+        case AST_CAST_EXPR:
+            analyze(ctx, node->cast_expr.expr);
+            node->ctype = node->cast_expr.target_type;
+            break;
+
         case AST_EXPRESSION_STMT:
         case AST_ASSERT_EXTENSION_STATEMENT:
         case AST_PRINT_EXTENSION_STATEMENT:

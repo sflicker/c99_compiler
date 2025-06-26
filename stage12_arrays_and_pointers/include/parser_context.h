@@ -26,6 +26,7 @@ const char * get_current_token_type_name(ParserContext * parserContext);
 int get_current_token_line(ParserContext * parserContext);
 int get_current_token_col(ParserContext * parserContext);
 bool is_current_token_a_ctype(ParserContext * parserContext);
+bool is_next_token_a_ctype(ParserContext * parserContext);
 Token * expect_ctype_token(ParserContext * ctx);
 
 #endif

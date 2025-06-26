@@ -98,6 +98,14 @@ bool is_current_token_a_ctype(ParserContext * parserContext) {
         is_current_token(parserContext, TOKEN_LONG);
 }
 
+bool is_next_token_a_ctype(ParserContext * parserContext) {
+
+    return is_next_token(parserContext, TOKEN_INT) ||
+        is_next_token(parserContext, TOKEN_CHAR) ||
+        is_next_token(parserContext, TOKEN_SHORT) ||
+        is_next_token(parserContext, TOKEN_LONG);
+}
+
 Token* expect_token(ParserContext * parserContext, TokenType expected) {
     Token * token = peek(parserContext);
     if (token->type == expected) {

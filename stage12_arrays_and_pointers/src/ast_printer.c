@@ -76,6 +76,10 @@ void print_ast(ASTNode * node, int indent) {
             printf("Unary: %s - type: %s\n", get_unary_op_name(node->unary.op), ctype_to_string(node->ctype));
             print_ast(node->unary.operand, indent+1);
             break;
+        case AST_CAST_EXPR:
+            printf("CastExpr: target_type: %s, type: %s\n", ctype_to_string(node->cast_expr.target_type), ctype_to_string(node->ctype));
+            print_ast(node->cast_expr.expr, indent+1);
+            break;
 
         case AST_IF_STMT:
             printf("IfStmt: \n");

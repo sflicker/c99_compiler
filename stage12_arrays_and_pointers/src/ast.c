@@ -107,6 +107,10 @@ void free_astnode(ASTNode * node) {
             free_astnode(node->do_while_stmt.body);
             break;
 
+        case AST_CAST_EXPR:
+            free_astnode(node->cast_expr.expr);
+            break;
+
         case AST_CONTINUE_STMT:
         case AST_BREAK_STMT:
         case AST_INT_LITERAL:

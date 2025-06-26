@@ -256,6 +256,16 @@ ASTNode * create_expression_statement_node(ASTNode * expr) {
     return node;
 }
 
+ASTNode * create_cast_expr_node(CType * target_type, ASTNode * expr) {
+    ASTNode * node = malloc(sizeof(ASTNode));
+    node->type = AST_CAST_EXPR;
+    node->cast_expr.target_type = target_type;
+    node->cast_expr.expr = expr;
+    node->ctype = NULL;
+    return node;
+}
+
+
 ASTNode * create_block_node(ASTNode_list * stmts) {
     ASTNode * node = malloc(sizeof(ASTNode));
     node->type = AST_BLOCK;

@@ -144,6 +144,51 @@ char * get_reservation_directive(CType * ctype) {
     return NULL;
 }
 
+void emit_cast(EmitterContext * ctx, CType * from_type, CType * to_type) {
+    int from_size = from_type->size;
+    int to_size = to_type->size;
+
+    bool from_signed = from_type->is_signed;
+    bool to_signed = to_type->is_signed;
+
+    if (from_size == to_size) {
+        return;  // NOOP
+    }
+
+    // narrowing
+    if (from_size > to_size) {
+        switch (to_size) {
+            case 1: emit_line(ctx, "movsx eax, al\n"); break;
+            case 2: emit_line(ctx, "movsx eax, ax\n)"); break;
+            case 4: emit_line(ctx, "mov eax, eax\n"); break;
+            default:
+                error("Unsupported narrowing cast to %d bytes", to_size);
+        }
+        return;
+    }
+
+    // widening cast
+    if (from_size < to_size) {
+        if (from_signed && to_signed) {
+            switch (from_size) {
+                case 1: emit_line(ctx, "movsx eax, al\n"); break;
+                case 2: emit_line(ctx, "movsx eax, ax\n"); break;
+                case 4: emit_line(ctx, "movsxd rax, eax\n"); break;
+                default:
+                    error("Unsupported sign-extension from %d bytes", from_size);
+            }
+        } else {
+            switch (from_size) {
+                case 1: emit_line(ctx, "movzx eax, al\n"); break;
+                case 2: emit_line(ctx, "movzx eax, ax\n"); break;
+                case 4: emit_line(ctx, "mov eax, eax\n"); break;
+                default:
+                    error("Unsupported zero-extension from %d bytes\n", from_size);
+            }
+        }
+    }
+}
+
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     emit_data_section_header(ctx);
     for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
@@ -881,6 +926,10 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_LABELED_STMT:
             emit_label(ctx, node->labeled_stmt.label, 0);
             emit_tree_node(ctx, node->labeled_stmt.stmt);
+            break;
+        case AST_CAST_EXPR:
+            emit_tree_node(ctx, node->cast_expr.expr);
+            emit_cast(ctx, node->cast_expr.expr->ctype, node->cast_expr.target_type);
             break;
         default:
             error("Unhandled type %s\n", node->type);

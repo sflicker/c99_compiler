@@ -27,6 +27,7 @@ ASTNode * create_function_declaration_node(const char * name, CType * returnType
 ASTNode * create_return_statement_node(ASTNode * expr);
 ASTNode * create_expression_statement_node(ASTNode * expr);
 ASTNode * create_block_node(ASTNode_list * stmts);
+ASTNode * create_cast_expr_node(CType * target_type, ASTNode * expr);
 ASTNode * create_print_extension_node(ASTNode * expr);
 ASTNode * create_assert_extension_node(ASTNode * expr);
 

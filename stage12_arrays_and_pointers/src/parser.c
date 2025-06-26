@@ -26,10 +26,10 @@
    <external-declaration>   ::= <function>
                                | <global_variable_declaration>
 
-   <function> ::= "int" <identifier> "(" <parameter_list>* ")" 
+   <function> ::= <type-specifier> <identifier> "(" <parameter_list>* ")"
                 [ <block> | ";" ]
 
-   <global_variable_declaration> ::= <var-declaration>
+   <global_variable_declaration> ::= <var_declaration>
 
    <parameter_list> ::=   <parameter_declaration>
                         | <parameter_list>, <parameter_declaration>
@@ -40,7 +40,7 @@
 
    <block> ::= "{" { <statement> } "}"
 
-   <statement> ::=  <var-declaration>
+   <statement> ::=  <var_declaration>
                     | <labeled_statement>
                     | <assignment_statement>
                     | <return_statement>
@@ -91,9 +91,12 @@
 
    <relational_expr> ::= <additive_expr> [ ( "<" | "<=" | ">" | ">=") <additive_expr> ]*
 
-   <additive_expr> ::= <term> [ ("+" | "-") <term> ]*
+   <additive_expr> ::= <term> [ ("+" | "-") <multiplicative_expr> ]*
 
-   <term>       ::= <unary_expr> [ ("*" | "/") <unary_expr> ]*
+   <multiplicative_expr>       ::= <cast_expr> [ ("*" | "/" | "%") <cast_expr> ]*
+
+   <cast_expr>        ::= <unary_expr>
+                         | "(" <type_specifier> ")" <cast_expr>
    
    <unary_expr> ::= [ "+" | "-" | "!" | "++"" | "--"" ] <unary_expr> | <primary>
 
@@ -630,17 +633,30 @@ ASTNode * parse_additive_expression(ParserContext * parserContext) {
 
 
 ASTNode * parse_multiplicative_expression(ParserContext * parserContext) {
-    ASTNode * root = parse_unary_expression(parserContext);
+    ASTNode * root = parse_cast_expression(parserContext);
 
     while(is_current_token(parserContext, TOKEN_STAR) || is_current_token(parserContext,TOKEN_DIV) || is_current_token(parserContext, TOKEN_PERCENT)) {
         ASTNode * lhs = root;
         Token * op = peek(parserContext);
         advance_parser(parserContext);
-        ASTNode * rhs = parse_unary_expression(parserContext);
+        ASTNode * rhs = parse_cast_expression(parserContext);
         root = create_binary_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
 
     return root;
+}
+
+ASTNode * parse_cast_expression(ParserContext * parserContext) {
+    if (is_current_token(parserContext, TOKEN_LPAREN) && is_next_token_a_ctype(parserContext)) {
+        expect_token(parserContext, TOKEN_LPAREN);
+        CType * target_type = parse_ctype(parserContext);
+        expect_token(parserContext, TOKEN_RPAREN);
+        ASTNode * expr = parse_cast_expression(parserContext);
+        ASTNode * node = create_cast_expr_node(target_type, expr);
+        return node;
+    }
+
+    return parse_unary_expression(parserContext);
 }
 
 ASTNode * parse_unary_expression(ParserContext * parserContext) {

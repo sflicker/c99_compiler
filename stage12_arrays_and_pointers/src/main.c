@@ -109,10 +109,17 @@ int main(int argc, char ** argv) {
     // TODO THIS NEEDS TO BE FIXED and OTHER CLEAN AS WELL.
     // cleanup_token_list(&tokenList);
 
+    printf("\n");
+    printf("--------------------------------------------\n");
+    printf("Beginning Cleanup\n");
+    printf("--------------------------------------------\n\n\n");
+
     free_astnode(astNode);
     if (output_file_owned) {
         free((void*)output_file);
     }
     free(program_text);
+
+    printf("Finished\n");
     exit(0);
 }                             

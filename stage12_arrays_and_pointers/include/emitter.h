@@ -5,6 +5,9 @@
 #include "emitter_context.h"
 
 char * make_label_text(const char * prefix, int num);
+const char * get_break_label(EmitterContext * ctx);
+const char * get_continue_label(EmitterContext * ctx);
+
 
 void emit(EmitterContext * ctx, ASTNode * program);
 void emit_tree_node(EmitterContext * ctx, ASTNode * node);
@@ -53,9 +56,8 @@ void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node);
 void emit_switch_bodies(EmitterContext * ctx, ASTNode * node);
 void emit_switch_statement(EmitterContext * ctx, ASTNode * node);
 void emit_case_statement(EmitterContext * ctx, ASTNode * node);
-const char * get_break_label(EmitterContext * ctx);
-const char * get_continue_label(EmitterContext * ctx);
 void emit_break_statement(EmitterContext * ctx, ASTNode * node);
 void emit_continue_statement(EmitterContext * ctx, ASTNode * node);
+void emit_csst(EmitterContext * ctx, CType * from_type, CType * to_type);
 
 #endif
