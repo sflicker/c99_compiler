@@ -24,7 +24,7 @@
 
 char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
     Symbol * symbol = node->symbol;
-    if (node->var_decl.is_global) {
+    if (symbol->node->var_decl.is_global) {
         const char * name = symbol->name;
         int size = snprintf(NULL, 0, "[rel %s]", name) + 1;
         char * label = malloc(size);
@@ -120,12 +120,38 @@ void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * lab
     emit_line(ctx, "%s L%s\n", op, label);
 }
 
+char * get_data_directive(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "db";
+        case CTYPE_SHORT: return "dw";
+        case CTYPE_INT: return "dd";
+        case CTYPE_LONG: return "dw";
+        default:
+            error("Unsupported data type");
+    }
+    return NULL;
+}
+
+char * get_reservation_directive(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "resb 1";
+        case CTYPE_SHORT: return "resw 1";
+        case CTYPE_INT: return "resd 1";
+        case CTYPE_LONG: return "resq 1";
+        default:
+            error("Unsupported data type");
+    }
+    return NULL;
+}
+
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     emit_data_section_header(ctx);
     for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
         ASTNode * global_var = n->value;
         if (global_var->var_decl.init_expr) {
             // TODO write out correct emit_tree_node(ctx, n->value);
+            char * data_directive = get_data_directive(global_var->ctype);
+            emit_line(ctx, "%s: %s %d\n", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->int_value);
         }
     }
 
@@ -134,6 +160,8 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
         ASTNode * global_var = n->value;
         if (!global_var->var_decl.init_expr) {
             // TODO write out correct emit_tree_node(ctx, n->value);
+            char * reservation_directive = get_reservation_directive(global_var->ctype);
+            emit_line(ctx, "%s: %s\n", global_var->var_decl.name, reservation_directive);
         }
     }
 
@@ -834,10 +862,15 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_INT_LITERAL:
             emit_line(ctx, "mov eax, %d\n", node->int_value);
             break;
-        case AST_VAR_REF:
-            int offset = node->symbol->info.var.offset;
-            emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
+        case AST_VAR_REF: {
+            if (node->symbol->node->var_decl.is_global) {
+            emit_line(ctx, "mov eax, [%s]\n ", node->symbol->name);
+            } else {
+                int offset = node->symbol->info.var.offset;
+                emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
+            }
             break;
+        }
         case AST_FOR_STMT:
             emit_for_statement(ctx, node);
             break;

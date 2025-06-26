@@ -26,6 +26,12 @@ void print_ast(ASTNode * node, int indent) {
         case AST_TRANSLATION_UNIT:
         {
             printf("TranslationUnit:\n");
+
+            ASTNode_list * globals = node->translation_unit.globals;
+            for (ASTNode_list_node * n = globals->head ; n ; n = n->next) {
+                print_ast(n->value, indent+1);
+            }
+
             ASTNode_list * functions = node->translation_unit.functions;
             for (ASTNode_list_node * n = functions->head ; n ; n = n->next) {
                 print_ast(n->value, indent+1);                
