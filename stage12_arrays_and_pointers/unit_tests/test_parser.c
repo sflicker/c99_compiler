@@ -728,9 +728,31 @@ void test_for_statement() {
     free_astnode(expected);
     free_astnode(actual);
 
-
 }
 
+void test_for_statement__empty() {
+
+    ASTNode_list * stmts = create_node_list();
+    ASTNode * rtn = create_return_statement_node(create_int_literal_node(42));
+
+    ASTNode_list_append(stmts, rtn);
+
+    ASTNode * block = create_block_node(stmts);
+
+    ASTNode * expected = create_for_statement_node(
+    NULL,
+    NULL,
+    NULL,
+    block);
+    printf("Expected\n");
+    print_ast(expected, 0);
+
+    tokenlist * tokens = tokenize("for (;;) { return 42; }");
+    ParserContext * ctx = create_parser_context(tokens);
+    ASTNode * actual = parse_statement(ctx);
+    printf("Actual\n");
+    print_ast(actual, 0);
+}
 int main() {
     RUN_TEST(test_parse_primary__int_literal);
     RUN_TEST(test_parse_primary__parens);
@@ -768,4 +790,5 @@ int main() {
     RUN_TEST(test_return_statement);
     RUN_TEST(test_expression_statement);
     RUN_TEST(test_for_statement);
+    RUN_TEST(test_for_statement__empty);
 }
