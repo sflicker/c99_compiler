@@ -237,6 +237,25 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
         case AST_RETURN_STMT:
             return ast_equal(a->return_stmt.expr, b->return_stmt.expr);
             break;
+        case AST_CAST_EXPR:
+            return ctype_equals(a->cast_expr.target_type, b->cast_expr.target_type) &&
+                ast_equal(a->cast_expr.expr, b->cast_expr.expr);
+            break;
+        case AST_FOR_STMT:
+            return ast_equal(a->for_stmt.init_expr, b->for_stmt.init_expr) &&
+                ast_equal(a->for_stmt.update_expr, b->for_stmt.update_expr) &&
+                    ast_equal(a->for_stmt.cond_expr, b->for_stmt.cond_expr) &&
+                    ast_equal(a->for_stmt.body, b->for_stmt.body);
+        case AST_BLOCK: {
+
+            for (int i=0;i<a->block.statements->count;i++) {
+                ASTNode * a_stmt = ASTNode_list_get(a->block.statements, i);
+                ASTNode * b_stmt = ASTNode_list_get(b->block.statements, i);
+                if (!ast_equal(a_stmt, b_stmt)) return false;
+            }
+            return true;
+            break;
+        }
         default:
             error("Invalid AST Node Type: %d\n", a->type);
     }

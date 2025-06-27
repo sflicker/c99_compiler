@@ -67,13 +67,13 @@ void print_ast(ASTNode * node, int indent) {
             printf("IntLiteral: %d - type: %s\n", node->int_value, ctype_to_string(node->ctype));
             break;
         case AST_BINARY_EXPR:
-            printf("Binary: %s - type: %s\n", get_binary_op_name(node->binary.op), ctype_to_string(node->ctype));
+            printf("BinaryExpr: %s - type: %s\n", get_binary_op_name(node->binary.op), ctype_to_string(node->ctype));
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
 
         case AST_UNARY_EXPR:
-            printf("Unary: %s - type: %s\n", get_unary_op_name(node->unary.op), ctype_to_string(node->ctype));
+            printf("UnaryExpr: %s - type: %s\n", get_unary_op_name(node->unary.op), ctype_to_string(node->ctype));
             print_ast(node->unary.operand, indent+1);
             break;
         case AST_CAST_EXPR:
@@ -95,15 +95,19 @@ void print_ast(ASTNode * node, int indent) {
         case AST_FOR_STMT:
             printf("ForStmt:\n");
             if (node->for_stmt.init_expr) {
-                print_ast(node->for_stmt.init_expr, indent+1);
+                print_indent(indent+1); printf("Init:\n");
+                print_ast(node->for_stmt.init_expr, indent+2);
             }
             if (node->for_stmt.cond_expr) {
-                print_ast(node->for_stmt.cond_expr, indent+1);
+                print_indent(indent+1); printf("Condition:\n");
+                print_ast(node->for_stmt.cond_expr, indent+2);
             }
             if (node->for_stmt.update_expr) {
-                print_ast(node->for_stmt.update_expr, indent+1);
+                print_indent(indent+1); printf("Update:\n");
+                print_ast(node->for_stmt.update_expr, indent+2);
             }
-            print_ast(node->for_stmt.body, indent+1);
+            print_indent(indent+1); printf("Body:\n");
+            print_ast(node->for_stmt.body, indent+2);
             break;
         case AST_DO_WHILE_STMT:
             printf("DoWhileStmt:\n");
@@ -111,12 +115,12 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->do_while_stmt.expr, indent+1);
             break;
         case AST_SWITCH_STMT:
-            printf("SwitchStatement\n");
+            printf("SwitchStmt\n");
             print_ast(node->switch_stmt.expr, indent+1);
             print_ast(node->switch_stmt.stmt, indent+1);
             break;
         case AST_BLOCK:
-            printf("Block\n");
+            printf("BlockStmt\n");
             for (ASTNode_list_node * n = node->block.statements->head; n; n = n->next) {
                 print_ast(n->value, indent+1);
             }

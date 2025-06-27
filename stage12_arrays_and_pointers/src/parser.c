@@ -499,7 +499,9 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
     }
 
     if (!is_current_token(parserContext, TOKEN_SEMICOLON)) {
-        cond_expr = parse_expression_statement(parserContext);
+//        cond_expr = parse_expression_statement(parserContext);
+        cond_expr = parse_expression(parserContext);
+        expect_token(parserContext, TOKEN_SEMICOLON);
     }
     else {
         expect_token(parserContext, TOKEN_SEMICOLON);

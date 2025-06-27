@@ -7,6 +7,7 @@
 #include "ast.h"
 #include "parser_context.h"
 #include "parser.h"
+#include "parser_util.h"
 #include "test_assert.h"
 #include "ast_printer.h"
 #include "error.h"
@@ -234,6 +235,22 @@ void test_parse_unary_expression__decrement() {
 
     free_astnode(expected);
     free_astnode(actual);
+}
+
+void test_parse_cast_expression() {
+    ASTNode * expected = create_cast_expr_node(
+        &CTYPE_INT_T,
+        create_int_literal_node(10));
+
+    tokenlist * tokens = tokenize("(int)10");
+    ParserContext * ctx = create_parser_context(tokens);
+    ASTNode * actual = parse_cast_expression(ctx);
+
+    print_ast(actual, 0);
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
 }
 
 void test_parse_multiplicative__multi() {
@@ -666,9 +683,51 @@ void test_expression_statement() {
     ASTNode * actual = parse_statement(ctx);
     printf("Actual\n");
     print_ast(actual, 0);
+
     TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
     free_astnode(expected);
     free_astnode(actual);
+
+}
+
+void test_for_statement() {
+    ASTNode * init_expr = create_var_decl_node(
+            "i",
+            &CTYPE_INT_T,
+            create_int_literal_node(0));
+    ASTNode * cond_expr = create_binary_node(
+        create_var_ref_node("i"),
+        BINOP_LT,
+        create_int_literal_node(10));
+    ASTNode * update_expr = create_unary_node(UNARY_POST_INC,
+        create_var_ref_node("i"));
+    ASTNode_list * stmts = create_node_list();
+    ASTNode * inc = create_expression_statement_node(
+        create_unary_node(
+            UNARY_POST_INC,
+            create_var_ref_node("sum")
+        )
+    );
+    ASTNode_list_append(stmts, inc);
+
+    ASTNode * block = create_block_node(stmts);
+    ASTNode * expected = create_for_statement_node(
+        init_expr,
+        cond_expr,
+        update_expr,
+        block);
+    printf("Expected\n");
+    print_ast(expected, 0);
+
+    tokenlist * tokens = tokenize("for (int i=0;i<10;i++) { sum++; }");
+    ParserContext * ctx = create_parser_context(tokens);
+    ASTNode * actual = parse_statement(ctx);
+    printf("Actual\n");
+    print_ast(actual, 0);
+    TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
+    free_astnode(expected);
+    free_astnode(actual);
+
 
 }
 
@@ -687,6 +746,7 @@ int main() {
     RUN_TEST(test_parse_unary_expression__not);
     RUN_TEST(test_parse_unary_expression__increment);
     RUN_TEST(test_parse_unary_expression__decrement);
+    RUN_TEST(test_parse_cast_expression);
     RUN_TEST(test_parse_multiplicative__multi);
     RUN_TEST(test_parse_multiplicative__div);
     RUN_TEST(test_parse_multiplicative__mod);
@@ -707,4 +767,5 @@ int main() {
     RUN_TEST(test_parse_expression__2);
     RUN_TEST(test_return_statement);
     RUN_TEST(test_expression_statement);
+    RUN_TEST(test_for_statement);
 }
