@@ -1,20 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 
 #include <string.h>
 #include <stdbool.h>
 
-#include "util.h"
 #include "list_util.h"
 #include "token.h"
-#include "ast_list.h"
 #include "ast.h"
 #include "error.h"
 #include "parser.h"
 #include "parser_util.h"
 #include "parser_context.h"
-#include "ctype.h"
+#include "ctypes.h"
 
 /* 
    Simple C compiler example 
@@ -184,12 +181,13 @@ ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
 }
 
 CType * parse_ctype(ParserContext * ctx) {
-    switch (peek(ctx)->type) {
+    TokenType type = peek(ctx)->type;
+    switch (type) {
         case TOKEN_INT: advance_parser(ctx); return &CTYPE_INT_T;
         case TOKEN_CHAR: advance_parser(ctx); return &CTYPE_CHAR_T;
         case TOKEN_SHORT: advance_parser(ctx); return &CTYPE_SHORT_T;
         case TOKEN_LONG: advance_parser(ctx); return &CTYPE_LONG_T;
-        default: error("Invalid Type"); return NULL;
+        default: error("Invalid Type - %s", token_type_name(type)); return NULL;
     }
 }
 

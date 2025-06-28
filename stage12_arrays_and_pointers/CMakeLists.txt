@@ -49,6 +49,6 @@ add_custom_target(run_unit_tests
         COMMENT "Running unit tests via script")
 
 add_custom_target(run_all_tests
-        COMMAND ./run_all_tests.sh build/mimic99
+        COMMAND ./run_all_tests.sh mimic99
         DEPENDS mimic99
         COMMENT "Running all tests via script")
