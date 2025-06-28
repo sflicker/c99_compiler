@@ -6,6 +6,76 @@
 #include "ast.h"
 #include "ctypes.h"
 
+CType CTYPE_CHAR_T = {
+    .kind = CTYPE_CHAR,
+    .base = NULL,
+    .size = 1,
+    .is_signed = 1,
+    .rank = RANK_CHAR,
+    .array_len = 0
+};
+
+CType CTYPE_SHORT_T = {
+    .kind = CTYPE_SHORT,
+    .base = NULL,
+    .size = 2,
+    .is_signed = 1,
+    .rank = RANK_SHORT,
+    .array_len = 0
+};
+
+CType CTYPE_INT_T = {
+    .kind = CTYPE_INT,
+    .base = NULL,
+    .size = 4,
+    .is_signed = 1,
+    .rank = RANK_INT,
+    .array_len = 0
+};
+
+CType CTYPE_LONG_T = {
+    .kind = CTYPE_LONG,
+    .base = NULL,
+    .size = 8,
+    .is_signed = 1,
+    .rank = RANK_LONG,
+    .array_len = 0
+};
+
+CType * make_type() {
+    return calloc(1, sizeof(CType));
+}
+
+CType *make_pointer_type(CType *base) {
+    CType *ptr = make_type();
+    ptr->kind = CTYPE_PTR;
+    ptr->base = base;
+    ptr->size = 8;
+    return ptr;
+}
+
+CType * make_array_type(CType * base, int length) {
+    CType * ptr = make_type();
+    ptr->kind = CTYPE_ARRAY;
+    ptr->array_len = length;
+    ptr->base = base;
+    ptr->size = base->size * length;
+    return ptr;
+}
+
+CType * make_function_type(CType * return_type, CType_list * param_types) {
+    CType * fn = make_type();
+    fn->kind = CTYPE_FUNCTION;
+    fn->base = return_type;
+    fn->param_types = param_types;
+    return fn;
+}
+
+CType * copy_type(const CType * src) {
+    CType * copy = make_type();
+    *copy = *src;
+    return copy;
+}
 
 int sizeof_ctype(CType * ctype) {
     return ctype->size;
@@ -21,7 +91,7 @@ char * ctype_to_string(CType * ctype) {
         case CTYPE_INT: return "int";
         case CTYPE_LONG: return "long";
         case CTYPE_PTR: {
-            char * inner = ctype_to_string(ctype->ptr_to);
+            char * inner = ctype_to_string(ctype->base);
             size_t len = strlen(inner) + 2;
             char * out = malloc(len + 1);
             snprintf(out, len + 1, "%s*", inner);
@@ -33,22 +103,11 @@ char * ctype_to_string(CType * ctype) {
     }
 }
 
-CType CTYPE_CHAR_T = {CTYPE_CHAR, 1, 1, RANK_CHAR};
-CType CTYPE_SHORT_T = {CTYPE_SHORT, 2, 1, RANK_SHORT};
-CType CTYPE_INT_T = {CTYPE_INT, 4, 1, RANK_INT};
-CType CTYPE_LONG_T = {CTYPE_LONG, 8, 1, RANK_LONG};
-CType CTYPE_PTR_INT_T = {CTYPE_PTR, 8, 1};
 
 void free_ctype(CType * ctype) {
     // do nothing
 }
 
-CType *make_ptr_type(CType *base) {
-    CType *ptr = malloc(sizeof(CType));
-    ptr->kind = CTYPE_PTR;
-    ptr->ptr_to = base;
-    return ptr;
-}
 
 bool ctype_equals(CType * a, CType * b) {
     if (a == b) return true;
@@ -61,7 +120,7 @@ bool ctype_equals(CType * a, CType * b) {
     }
 
     if (a->kind == CTYPE_PTR)
-        return ctype_equals(a->ptr_to, b->ptr_to);
+        return ctype_equals(a->base, b->base);
 
     return false;
 }

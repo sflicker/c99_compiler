@@ -140,7 +140,7 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
 
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
 
-    CType * type = parse_ctype(parserContext);
+    CType * type = parse_type_specifier(parserContext);
 
     if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
 //        Token * ident = peek(parserContext);
@@ -160,7 +160,7 @@ ASTNode_list * parse_param_list(ParserContext * parserContext) {
     ASTNode_list * param_list = create_node_list();
 
     do {
-        CType * ctype = parse_ctype(parserContext);
+        CType * ctype = parse_type_specifier(parserContext);
         Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
         ASTNode * param = create_var_decl_node(param_name->text, ctype, NULL);
         param->var_decl.is_param = true;
@@ -180,7 +180,7 @@ ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
     return arg_list;
 }
 
-CType * parse_ctype(ParserContext * ctx) {
+CType * parse_type_specifier(ParserContext * ctx) {
     TokenType type = peek(ctx)->type;
     switch (type) {
         case TOKEN_INT: advance_parser(ctx); return &CTYPE_INT_T;
@@ -432,7 +432,7 @@ ASTNode * parse_statement(ParserContext* parserContext) {
 }
 
 ASTNode*  parse_var_declaration(ParserContext * parserContext) {
-    CType * ctype = parse_ctype(parserContext);
+    CType * ctype = parse_type_specifier(parserContext);
     Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     ASTNode * expr = NULL;
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
@@ -649,7 +649,7 @@ ASTNode * parse_multiplicative_expression(ParserContext * parserContext) {
 ASTNode * parse_cast_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_LPAREN) && is_next_token_a_ctype(parserContext)) {
         expect_token(parserContext, TOKEN_LPAREN);
-        CType * target_type = parse_ctype(parserContext);
+        CType * target_type = parse_type_specifier(parserContext);
         expect_token(parserContext, TOKEN_RPAREN);
         ASTNode * expr = parse_cast_expression(parserContext);
         ASTNode * node = create_cast_expr_node(target_type, expr);

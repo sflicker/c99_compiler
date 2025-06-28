@@ -17,16 +17,25 @@ typedef enum {
     CTYPE_SHORT,
     CTYPE_INT,
     CTYPE_LONG,
-    CTYPE_PTR
+    CTYPE_PTR,
+    CTYPE_ARRAY,
+    CTYPE_FUNCTION
 } CTypeKind;
+
+typedef struct CType CType;
+
+DEFINE_LINKED_LIST(CType*, CType_list);
 
 typedef struct CType {
     CTypeKind kind;
+    CType * base;
     int size;
     int is_signed;
     int rank;
-    CType * ptr_to;
+    int array_len;
+    CType_list * param_types;
 } CType;
+
 
 extern CType CTYPE_CHAR_T;
 extern CType CTYPE_SHORT_T;
@@ -34,7 +43,11 @@ extern CType CTYPE_INT_T;
 extern CType CTYPE_LONG_T;
 extern CType CTYPE_PTR_INT_T;
 
-
+CType * make_type();
+CType * make_pointer_type(CType * base);
+CType * make_array_type(CType * base, int length);
+CType * make_function_type(CType * return_type, CType_list * param_types);
+CType * copy_type(const CType * src);
 
 int sizeof_ctype(CType * ctype);
 char * ctype_to_string(CType * ctype);
@@ -44,7 +57,7 @@ DEFINE_LINKED_LIST(CType*, CTypePtr_list);
 void free_ctype(CType * ctype);
 
 //bool ctype_equal(const CType *a, const CType *b);
-CType *make_ptr_type(CType *base);
+//CType *make_ptr_type(CType *base);
 
 bool ctype_equals(CType * a, CType * b);
 bool ctype_equal_or_compatible(CType * a, CType * b);
