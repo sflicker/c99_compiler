@@ -38,7 +38,7 @@ void test_create_translation_unit_node() {
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
     TEST_ASSERT("Verify node has one global", node->translation_unit.globals->count == 1);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_unary_node() {
@@ -49,7 +49,7 @@ void test_create_unary_node() {
     TEST_ASSERT("Verify node ast type is AST_UNARY_EXPR", node->type == AST_UNARY_EXPR);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_binary_node() {
@@ -62,7 +62,7 @@ void test_create_binary_node() {
     TEST_ASSERT("Verify correct op", node->binary.op == BINOP_ADD);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_if_else_statement_node() {
@@ -79,7 +79,7 @@ void test_create_if_else_statement_node() {
     TEST_ASSERT("Verify node is type AST_IF_STMT", node->type == AST_IF_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_while_statement_node() {
@@ -93,7 +93,7 @@ void test_create_while_statement_node() {
     TEST_ASSERT("Verify node is type AST_WHILE_STMT", node->type == AST_WHILE_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_do_while_statement() {
@@ -107,7 +107,7 @@ void test_create_do_while_statement() {
     TEST_ASSERT("Verify node is type AST_DO_WHILE_STMT", node->type == AST_DO_WHILE_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_ast_labeled_statement_node() {
@@ -121,7 +121,7 @@ void test_create_ast_labeled_statement_node() {
     TEST_ASSERT("Verify label is correct", strcmp(node->labeled_stmt.label, label) == 0);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_ast_case_statement_node() {
@@ -132,7 +132,7 @@ void test_create_ast_case_statement_node() {
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is type AST_CASE_STMT", node->type == AST_CASE_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_ast_default_statement_node() {
@@ -142,7 +142,7 @@ void test_create_ast_default_statement_node() {
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is type AST_DEFAULT_STMT", node->type == AST_DEFAULT_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_goto_statement() {
@@ -154,7 +154,7 @@ void test_create_goto_statement() {
     TEST_ASSERT("Verify label is correct", strcmp(node->goto_stmt.label, label) == 0);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_switch_statement_node() {
@@ -179,7 +179,7 @@ void test_create_switch_statement_node() {
     TEST_ASSERT("Verify node is type AST_SWITCH_STMT", node->type == AST_SWITCH_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_break_statement_node() {
@@ -189,7 +189,7 @@ void test_create_break_statement_node() {
     TEST_ASSERT("Verify node is type AST_BREAK_STMT", node->type == AST_BREAK_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_continue_statement_node() {
@@ -199,7 +199,7 @@ void test_create_continue_statement_node() {
     TEST_ASSERT("Verify node is type AST_CONTINUE_STMT", node->type == AST_CONTINUE_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 
 }
 
@@ -211,7 +211,7 @@ void test_create_int_literal_node() {
     TEST_ASSERT("Verify ast type is AST_INT_LITERAL", node->type == AST_INT_LITERAL);
     TEST_ASSERT("Verify ctype is CTYPE_INT_T", node->ctype == &CTYPE_INT_T);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_function_call_node_no_args() {
@@ -225,7 +225,7 @@ void test_create_function_call_node_no_args() {
     TEST_ASSERT("Verify arg list is NULL", node->function_call.arg_list == NULL);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_function_call_node_with_args() {
@@ -241,7 +241,7 @@ void test_create_function_call_node_with_args() {
     TEST_ASSERT("Verify arg list contains 1 arg", node->function_call.arg_list->count == 1);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_var_ref_node() {
@@ -254,7 +254,7 @@ void test_create_var_ref_node() {
     TEST_ASSERT("Verify var name is correct", strcmp(node->var_ref.name, var_name) == 0);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_var_decl_node() {
@@ -266,7 +266,7 @@ void test_create_var_decl_node() {
     TEST_ASSERT("Verity node has NULL initializer", node->var_decl.init_expr == NULL);
     TEST_ASSERT("Verify node has correct ctype", ctype_equals(node->ctype, &CTYPE_INT_T));
 
-    free_astnode(node);
+    free_ast(node);
 
 }
 
@@ -297,7 +297,7 @@ void test_create_for_statement_node() {
     TEST_ASSERT("Verify node ast type is AST_FOR_STMT", node->type == AST_FOR_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(init_expr);
+    free_ast(init_expr);
 }
 
 void test_create_function_declaration_node__declaration_only() {
@@ -315,7 +315,7 @@ void test_create_function_declaration_node__declaration_only() {
     TEST_ASSERT("Verify declaration only", node->function_decl.declaration_only);
     TEST_ASSERT("Verify node ctype is CType_int", ctype_equals(node->ctype, &CTYPE_INT_T));
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_function_declaration_node__with_body() {
@@ -335,7 +335,7 @@ void test_create_function_declaration_node__with_body() {
     TEST_ASSERT("Verify function body contains 1 statement", node->function_decl.body->block.count == 1);
     TEST_ASSERT("Verify node ctype is CTYPE_INT", ctype_equals(node->ctype, &CTYPE_INT_T));
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_function_declaration_node__with_body_and_param_list() {
@@ -347,7 +347,7 @@ void test_create_function_declaration_node__with_body_and_param_list() {
 
     ASTNode * param_a = create_var_decl_node(param_label, &CTYPE_INT_T, NULL);
     ASTNode_list * param_list = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(param_list, free_astnode);
+    ASTNode_list_init(param_list, free_ast);
     ASTNode_list_append(param_list, param_a);
     
     ASTNode * body = create_block_node(statements);
@@ -362,7 +362,7 @@ void test_create_function_declaration_node__with_body_and_param_list() {
     TEST_ASSERT("Verify function contains 1 param", node->function_decl.param_list->count == 1);
     TEST_ASSERT("Verify node ctype is CTYPE_INT", ctype_equals(node->ctype, &CTYPE_INT_T));
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_return_statement_node() {
@@ -372,7 +372,7 @@ void test_create_return_statement_node() {
     TEST_ASSERT("Verify node is AST_RETURN_STMT", node->type == AST_RETURN_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_expression_statement_node() {
@@ -388,7 +388,7 @@ void test_create_expression_statement_node() {
     TEST_ASSERT("Verify node is AST_EXPRESSION_STMT", node->type == AST_EXPRESSION_STMT);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 }
 
 void test_create_block_node() {
@@ -402,7 +402,7 @@ void test_create_block_node() {
     TEST_ASSERT("Verify block has 1 statement", node->block.count == 1);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
-    free_astnode(node);
+    free_ast(node);
 
 }
 

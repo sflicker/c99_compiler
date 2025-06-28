@@ -189,11 +189,13 @@ typedef struct ASTNode {
     };
 } ASTNode;
 
-void free_astnode(ASTNode * node);
+ASTNode * create_ast();
+void free_ast(ASTNode * node);
 
 BinaryOperator get_binary_operator_from_tok(Token * tok);
 const char * get_binary_op_name(BinaryOperator op);
 const char * get_unary_op_name(UnaryOperator op);
 bool ast_equal(ASTNode * a, ASTNode * b);
+const char * get_ast_node_name(ASTNode * node);
 
 #endif

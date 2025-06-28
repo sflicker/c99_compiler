@@ -5,7 +5,13 @@
 #include "error.h"
 #include "ast.h"
 
-void free_astnode(ASTNode * node) {
+ASTNode * create_ast() {
+    ASTNode * ast_node = calloc(1, sizeof(ASTNode));
+    return ast_node;
+}
+
+
+void free_ast(ASTNode * node) {
     if (!node) return;
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
@@ -15,7 +21,7 @@ void free_astnode(ASTNode * node) {
 
         case AST_VAR_DECL:
             free(node->var_decl.name);
-            free_astnode(node->var_decl.init_expr);
+            free_ast(node->var_decl.init_expr);
         break;
 
 
@@ -25,7 +31,7 @@ void free_astnode(ASTNode * node) {
                 ASTNode_list_free(node->function_decl.param_list);
                 free(node->function_decl.param_list);
             }
-            free_astnode(node->function_decl.body);
+            free_ast(node->function_decl.body);
             break;
 
         case AST_FUNCTION_CALL:
@@ -34,7 +40,7 @@ void free_astnode(ASTNode * node) {
             break;
 
         case AST_RETURN_STMT:
-            free_astnode(node->return_stmt.expr);
+            free_ast(node->return_stmt.expr);
             break;
 
         case AST_BLOCK:
@@ -43,27 +49,27 @@ void free_astnode(ASTNode * node) {
             break;
 
         case AST_IF_STMT:
-            free_astnode(node->if_stmt.cond);
-            free_astnode(node->if_stmt.then_stmt);
-            free_astnode(node->if_stmt.else_stmt);
+            free_ast(node->if_stmt.cond);
+            free_ast(node->if_stmt.then_stmt);
+            free_ast(node->if_stmt.else_stmt);
             break;
 
         case AST_WHILE_STMT:
-            free_astnode(node->while_stmt.cond);
-            free_astnode(node->while_stmt.body);
+            free_ast(node->while_stmt.cond);
+            free_ast(node->while_stmt.body);
             break;
 
         case AST_FOR_STMT:
-            free_astnode(node->for_stmt.init_expr);
-            free_astnode(node->for_stmt.cond_expr);
-            free_astnode(node->for_stmt.update_expr);
-            free_astnode(node->for_stmt.body);
+            free_ast(node->for_stmt.init_expr);
+            free_ast(node->for_stmt.cond_expr);
+            free_ast(node->for_stmt.update_expr);
+            free_ast(node->for_stmt.body);
             break;
 
         case AST_ASSERT_EXTENSION_STATEMENT:
         case AST_PRINT_EXTENSION_STATEMENT:
         case AST_EXPRESSION_STMT:
-            free_astnode(node->expr_stmt.expr);
+            free_ast(node->expr_stmt.expr);
             break;
 
         case AST_VAR_REF:
@@ -72,21 +78,21 @@ void free_astnode(ASTNode * node) {
 
         case AST_LABELED_STMT:
             free(node->labeled_stmt.label);
-            free_astnode(node->labeled_stmt.stmt);
+            free_ast(node->labeled_stmt.stmt);
             break;
 
         case AST_SWITCH_STMT:
-            free_astnode(node->switch_stmt.expr);
-            free_astnode(node->switch_stmt.stmt);
+            free_ast(node->switch_stmt.expr);
+            free_ast(node->switch_stmt.stmt);
             break;
 
         case AST_CASE_STMT:
-            free_astnode(node->case_stmt.constExpression);
-            free_astnode(node->case_stmt.stmt);
+            free_ast(node->case_stmt.constExpression);
+            free_ast(node->case_stmt.stmt);
             break;
 
         case AST_DEFAULT_STMT:
-            free_astnode(node->default_stmt.stmt);
+            free_ast(node->default_stmt.stmt);
             break;
 
         case AST_GOTO_STMT:
@@ -94,21 +100,21 @@ void free_astnode(ASTNode * node) {
             break;
 
         case AST_BINARY_EXPR:
-            free_astnode(node->binary.lhs);
-            free_astnode(node->binary.rhs);
+            free_ast(node->binary.lhs);
+            free_ast(node->binary.rhs);
             break;
 
         case AST_UNARY_EXPR:
-            free_astnode(node->unary.operand);            
+            free_ast(node->unary.operand);
             break;
 
         case AST_DO_WHILE_STMT:
-            free_astnode(node->do_while_stmt.expr);
-            free_astnode(node->do_while_stmt.body);
+            free_ast(node->do_while_stmt.expr);
+            free_ast(node->do_while_stmt.body);
             break;
 
         case AST_CAST_EXPR:
-            free_astnode(node->cast_expr.expr);
+            free_ast(node->cast_expr.expr);
             break;
 
         case AST_CONTINUE_STMT:
@@ -118,7 +124,7 @@ void free_astnode(ASTNode * node) {
             break;
 
         default: 
-            error("Invalid AST Node Type: %d\n", node->type);
+            error("Invalid AST Node Type: %s\n", get_ast_node_name(node));
             break;
     }
     free(node);
@@ -178,6 +184,39 @@ const char * get_unary_op_name(UnaryOperator op) {
     return NULL;
 }
 
+const char * get_ast_node_name(ASTNode * node) {
+    switch (node->type) {
+        case AST_RETURN_STMT: return "ReturnStmt";
+        case AST_IF_STMT: return "IfStmt";
+        case AST_WHILE_STMT: return "WhileStmt";
+        case AST_FOR_STMT: return "ForStmt";
+        case AST_BREAK_STMT: return "BreakStmt";
+        case AST_CONTINUE_STMT: return "ContinueStmt";
+        case AST_GOTO_STMT: return "GotoStmt";
+        case AST_SWITCH_STMT: return "SwitchStmt";
+        case AST_CASE_STMT: return "CaseStmt";
+        case AST_DEFAULT_STMT: return "DefaultStmt";
+        case AST_FUNCTION_DECL: return "FunctionDecl";
+        case AST_FUNCTION_CALL: return "FunctionCall";
+        case AST_VAR_DECL: return "VarDecl";
+        case AST_VAR_REF: return "VarRef";
+        case AST_TRANSLATION_UNIT: return "TranslationUnit";
+        case AST_BLOCK: return "Block";
+        case AST_EXPRESSION_STMT: return "ExpressionStmt";
+        case AST_BINARY_EXPR: return "BinaryExpr";
+        case AST_UNARY_EXPR: return "UnaryExpr";
+        case AST_CAST_EXPR: return "CastExpr";
+        case AST_DO_WHILE_STMT: return "DoWhileStmt";
+        case AST_LABELED_STMT: return "LabelledStmt";
+        case AST_INT_LITERAL: return "IntLiteral";
+        case AST_ASSERT_EXTENSION_STATEMENT: return "AssertExtensionStatement";
+        case AST_PRINT_EXTENSION_STATEMENT: return "PrintExtensionStatement";
+        default:
+            error("Invalid AST Node Type: %d", node->type);
+    }
+    return NULL;
+}
+
 bool binop_equal(BinaryOperator a, BinaryOperator b) {
     if (a != b) {
         fprintf(stderr, "binop do not match %s, %s",
@@ -191,11 +230,11 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
     if (!a || !b) return a == b;
 
     if (a->type != b->type) {
-        fprintf(stderr, "ast node types do not match %d, %d", a->type, b->type);
+        fprintf(stderr, "ast node types do not match %s, %s\n", get_ast_node_name(a), get_ast_node_name(b));
         return false;
     }
     if (!ctype_equals(a->ctype, b->ctype)) {
-        fprintf(stderr, "ast node ctypes do not match %s, %s",
+        fprintf(stderr, "ast node ctypes do not match %s, %s\n",
             ctype_to_string(a->ctype), ctype_to_string(b->ctype));
         return false;
     }
@@ -257,7 +296,7 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
             break;
         }
         default:
-            error("Invalid AST Node Type: %d\n", a->type);
+            error("Invalid AST Node Type: %d and %d\n", get_ast_node_name(a), get_ast_node_name(b));
     }
     fprintf(stderr, "ASTNodes are not equal\n");
     return false;

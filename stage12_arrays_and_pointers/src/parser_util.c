@@ -16,7 +16,7 @@
 #include "parser_util.h"
 
 ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_TRANSLATION_UNIT;
     node->translation_unit.globals = globals;
     node->translation_unit.functions = functions;
@@ -26,7 +26,7 @@ ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * 
 }
 
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_UNARY_EXPR;
     node->unary.operand = operand;
     node->unary.op = op;
@@ -36,7 +36,7 @@ ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand) {
 }
 
 ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_BINARY_EXPR;
     node->binary.op = op;
     node->binary.lhs = lhs;
@@ -72,7 +72,7 @@ bool is_next_token_assignment(ParserContext * parserContext) {
 }
 
 ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * thenStatement, ASTNode * elseStatement) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_IF_STMT;
     node->if_stmt.cond = condExpression;
     node->if_stmt.then_stmt = thenStatement;
@@ -82,7 +82,7 @@ ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * then
 }
 
 ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodyStatement) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_WHILE_STMT;
     node->while_stmt.cond = condExpression;
     node->while_stmt.body = bodyStatement;
@@ -92,7 +92,7 @@ ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodySt
 }
 
 ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_LABELED_STMT;
     node->labeled_stmt.label = strdup(label);
     node->labeled_stmt.stmt = stmt;
@@ -102,7 +102,7 @@ ASTNode * create_ast_labeled_statement_node(const char * label, ASTNode * stmt) 
 }
 
 ASTNode * create_ast_case_statement_node(ASTNode * constantExpression, ASTNode * stmt) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_CASE_STMT;
     node->case_stmt.constExpression = constantExpression;
     node->case_stmt.stmt = stmt;
@@ -112,7 +112,7 @@ ASTNode * create_ast_case_statement_node(ASTNode * constantExpression, ASTNode *
 }
 
 ASTNode * create_ast_default_statement_node(ASTNode * stmt) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_DEFAULT_STMT;
     node->default_stmt.stmt = stmt;
     node->symbol = NULL;
@@ -121,7 +121,7 @@ ASTNode * create_ast_default_statement_node(ASTNode * stmt) {
 }
 
 ASTNode * create_goto_statement(const char * label) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_GOTO_STMT;
     node->goto_stmt.label = strdup(label);
     node->symbol = NULL;
@@ -131,7 +131,7 @@ ASTNode * create_goto_statement(const char * label) {
 }
 
 ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_DO_WHILE_STMT;
     node->do_while_stmt.body = stmt;
     node->do_while_stmt.expr = expr;
@@ -142,7 +142,7 @@ ASTNode * create_do_while_statement(ASTNode * stmt, ASTNode * expr) {
 }
 
 ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_SWITCH_STMT;
     node->switch_stmt.expr = expr;
     node->switch_stmt.stmt = stmt;
@@ -152,7 +152,7 @@ ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt) {
 }
 
 ASTNode * create_break_statement_node() {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_BREAK_STMT;
     node->symbol = NULL;
     node->ctype = NULL;
@@ -160,7 +160,7 @@ ASTNode * create_break_statement_node() {
 }
 
 ASTNode * create_continue_statement_node() {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_CONTINUE_STMT;
     node->symbol = NULL;
     node->ctype = NULL;
@@ -168,7 +168,7 @@ ASTNode * create_continue_statement_node() {
 }
 
 ASTNode * create_int_literal_node(int value) {
-    ASTNode * node = calloc(1, sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_INT_LITERAL;
     node->int_value = value;
     node->ctype = &CTYPE_INT_T;
@@ -178,7 +178,7 @@ ASTNode * create_int_literal_node(int value) {
 
 ASTNode * create_function_declaration_node(const char * name, CType * returnType,
         ASTNode_list * param_list, ASTNode * body, bool declaration_only) {
-    ASTNode * func = malloc(sizeof(ASTNode));
+    ASTNode * func = create_ast();
     func->symbol = NULL;
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = strdup(name);
@@ -193,7 +193,7 @@ ASTNode * create_function_declaration_node(const char * name, CType * returnType
 }
 
 ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_FUNCTION_CALL;
     node->function_call.name = strdup(name);
     node->function_call.arg_list = args;
@@ -203,7 +203,7 @@ ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
 }
 
 ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_expr) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_VAR_DECL;
     node->var_decl.name = strdup(name);
     node->ctype = ctype;
@@ -218,7 +218,7 @@ ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_
 
 
 ASTNode * create_var_ref_node(const char * name) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_VAR_REF;
     node->var_ref.name = strdup(name);
     node->ctype = NULL;
@@ -227,7 +227,7 @@ ASTNode * create_var_ref_node(const char * name) {
 
 ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
             ASTNode * update_expr, ASTNode * body) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_FOR_STMT;
     node->for_stmt.init_expr = init_expr;
     node->for_stmt.cond_expr = cond_expr;
@@ -240,7 +240,7 @@ ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
 }
 
 ASTNode * create_return_statement_node(ASTNode * expr) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_RETURN_STMT;
     node->return_stmt.expr = expr;
     node->ctype = NULL;
@@ -249,7 +249,7 @@ ASTNode * create_return_statement_node(ASTNode * expr) {
 }
 
 ASTNode * create_expression_statement_node(ASTNode * expr) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_EXPRESSION_STMT;
     node->expr_stmt.expr = expr;
     node->ctype = NULL;
@@ -257,7 +257,7 @@ ASTNode * create_expression_statement_node(ASTNode * expr) {
 }
 
 ASTNode * create_cast_expr_node(CType * target_type, ASTNode * expr) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_CAST_EXPR;
     node->cast_expr.target_type = target_type;
     node->cast_expr.expr = expr;
@@ -267,32 +267,35 @@ ASTNode * create_cast_expr_node(CType * target_type, ASTNode * expr) {
 
 
 ASTNode * create_block_node(ASTNode_list * stmts) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_BLOCK;
     node->block.statements = stmts;
     node->block.count = stmts->count;
     node->block.introduce_scope = true;
+    node->ctype = NULL;
 
     return node;
 }
 
 ASTNode * create_print_extension_node(ASTNode * expr) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_PRINT_EXTENSION_STATEMENT;
     node->expr_stmt.expr = expr;
+    node->ctype = NULL;
     return node;
 }
 
 ASTNode * create_assert_extension_node(ASTNode * expr) {
-    ASTNode * node = malloc(sizeof(ASTNode));
+    ASTNode * node = create_ast();
     node->type = AST_ASSERT_EXTENSION_STATEMENT;
     node->expr_stmt.expr = expr;
+    node->ctype = NULL;
     return node;
 }
 
 ASTNode_list * create_node_list() {
     ASTNode_list * list = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(list, free_astnode);
+    ASTNode_list_init(list, free_ast);
 
     return list;
 }

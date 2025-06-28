@@ -64,7 +64,7 @@
 
 #define TEST_ASSERT_NOT_NULL(msg, ptr) \
     do { \
-        printf("%s... ", msg); \
+        printf("%s... ", msg "\n"); \
         fflush(stdout); \
         if ((ptr) == NULL) { \
             printf(COLOR_RED "FAILED\n" COLOR_RESET); \
