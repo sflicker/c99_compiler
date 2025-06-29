@@ -281,33 +281,16 @@ ASTNode * parse_function_with_type(ParserContext * parserContext, CType * base_t
     CType * func_type = NULL;
     CType * return_type = parse_declarator(parserContext, base_type, &name, &params, &func_type);
 
-    // if (decl->type != AST_FUNCTION_DECL) {
-    //     error("Function declarator expected");
-    // }
-
-    ASTNode * body = parse_block(parserContext);
-
-    // Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
-    // expect_token(parserContext, TOKEN_LPAREN);
-    // ASTNode_list *param_list = NULL;
-    //
-    // if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-    //     param_list = parse_param_list(parserContext);
-    // }
-    //
-    // expect_token(parserContext, TOKEN_RPAREN);
-    // bool declaration_only;
-    // ASTNode * function_block = NULL;
-    // if (is_current_token(parserContext, TOKEN_LBRACE)) {
-    //     function_block = parse_block(parserContext);
-    //     declaration_only = false;
-    // }
-    // else {
-    //     expect_token(parserContext, TOKEN_SEMICOLON);
-    //     declaration_only = true;
-    // }
-
+    ASTNode * body = NULL;
     bool declaration_only = false;
+
+    if (is_current_token(parserContext, TOKEN_LBRACE)) {
+        body = parse_block(parserContext);
+    } else {
+        expect_token(parserContext, TOKEN_SEMICOLON);
+        declaration_only = true;
+    }
+
     ASTNode * func = create_function_declaration_node(name, return_type, params, func_type
         ,body, declaration_only);
 
