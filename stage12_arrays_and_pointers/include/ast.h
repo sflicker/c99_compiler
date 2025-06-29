@@ -97,6 +97,7 @@ typedef struct ASTNode {
         struct {
             char* name;
             ASTNode_list * param_list;
+            CType * func_type;
             int param_count;
             ASTNode* body;
             bool declaration_only;

@@ -23,7 +23,7 @@ ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_
 ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
             ASTNode * update_expr, ASTNode * body);
 ASTNode * create_function_declaration_node(const char * name, CType * returnType,
-        ASTNode_list * param_list, ASTNode * body, bool declaration_only);
+        ASTNode_list * param_list, CType * func_type, ASTNode * body, bool declaration_only);
 ASTNode * create_return_statement_node(ASTNode * expr);
 ASTNode * create_expression_statement_node(ASTNode * expr);
 ASTNode * create_block_node(ASTNode_list * stmts);

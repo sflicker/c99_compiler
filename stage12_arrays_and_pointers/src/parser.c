@@ -156,7 +156,8 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
     return NULL;
 }
 
-CType * parse_declarator(ParserContext * ctx, CType * base_type, char ** out_name, ASTNode_list ** out_params) {
+CType * parse_declarator(ParserContext * ctx, CType * base_type,
+    char ** out_name, ASTNode_list ** out_params, CType ** func_type) {
     // parse pointer layer
     while (match_token(ctx, TOKEN_STAR)) {
         base_type = make_pointer_type(base_type);
@@ -164,7 +165,9 @@ CType * parse_declarator(ParserContext * ctx, CType * base_type, char ** out_nam
 
     // parse identifier
     Token* name_id = expect_token(ctx, TOKEN_IDENTIFIER);
-    *out_name = strdup(name_id->text);
+    if (out_name) {
+        *out_name = strdup(name_id->text);
+    }
 
     while (true) {
         if (match_token(ctx, TOKEN_LBRACKET)) {
@@ -178,13 +181,17 @@ CType * parse_declarator(ParserContext * ctx, CType * base_type, char ** out_nam
             if (is_next_token(ctx, TOKEN_RPAREN)) {
                 advance_parser(ctx);
                 advance_parser(ctx);
-                base_type = make_function_type(base_type, NULL);
+                if (func_type) {
+                    *func_type = make_function_type(base_type, NULL);
+                }
             }
             else {
                 advance_parser(ctx);
                 CType_list * param_types = parse_parameter_type_list(ctx, out_params);
                 expect_token(ctx, TOKEN_RPAREN); //maybe this should be a comma or semicolon ...
-                base_type = make_function_type(base_type, param_types);
+                if (func_type) {
+                    *func_type = make_function_type(base_type, param_types);
+                }
             }
         }
         else {
@@ -204,7 +211,7 @@ CType_list * parse_parameter_type_list(ParserContext * ctx, ASTNode_list ** out_
 
 //        Token * ident = expect_token(ctx, TOKEN_IDENTIFIER);
         char * out_name;
-        CType * full_type = parse_declarator(ctx, type, &out_name, NULL);
+        CType * full_type = parse_declarator(ctx, type, &out_name, NULL, NULL);
 
         ASTNode * param = create_var_decl_node(out_name, full_type, NULL);
         param->ctype = full_type;
@@ -271,7 +278,8 @@ ASTNode * parse_function_with_type(ParserContext * parserContext, CType * base_t
 
     char * name = NULL;
     ASTNode_list * params = NULL;
-    CType * func_type = parse_declarator(parserContext, base_type, &name, &params);
+    CType * func_type = NULL;
+    CType * return_type = parse_declarator(parserContext, base_type, &name, &params, &func_type);
 
     // if (decl->type != AST_FUNCTION_DECL) {
     //     error("Function declarator expected");
@@ -300,8 +308,8 @@ ASTNode * parse_function_with_type(ParserContext * parserContext, CType * base_t
     // }
 
     bool declaration_only = false;
-    ASTNode * func = create_function_declaration_node(name, func_type,
-        params, body, declaration_only);
+    ASTNode * func = create_function_declaration_node(name, return_type, params, func_type
+        ,body, declaration_only);
 
     return func;
 
@@ -322,34 +330,35 @@ ASTNode*  parse_global_var_decl(ParserContext * parserContext, CType * ctype) {
 
     return node;
 }
-ASTNode * parse_function(ParserContext* parserContext) {
- //   expect_token(parserContext, TOKEN_INT);
-    Token* returnCType = expect_ctype_token(parserContext);
-    Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
-    expect_token(parserContext, TOKEN_LPAREN);
-    ASTNode_list *param_list = NULL;
 
-    if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-        param_list = parse_param_list(parserContext);
-    }
-
-    expect_token(parserContext, TOKEN_RPAREN);
-    bool declaration_only;
-    ASTNode * function_block = NULL;
-    if (is_current_token(parserContext, TOKEN_LBRACE)) {
-        function_block = parse_block(parserContext);
-        declaration_only = false;
-    }
-    else {
-        expect_token(parserContext, TOKEN_SEMICOLON);
-        declaration_only = true;
-    }
-    
-    ASTNode * func = create_function_declaration_node(name->text, get_ctype_from_token(returnCType),
-        param_list, function_block, declaration_only);
-
-    return func;
-}
+// ASTNode * parse_function(ParserContext* parserContext) {
+//  //   expect_token(parserContext, TOKEN_INT);
+//     Token* returnCType = expect_ctype_token(parserContext);
+//     Token* name = expect_token(parserContext, TOKEN_IDENTIFIER);
+//     expect_token(parserContext, TOKEN_LPAREN);
+//     ASTNode_list *param_list = NULL;
+//
+//     if (!is_current_token(parserContext, TOKEN_RPAREN)) {
+//         param_list = parse_param_list(parserContext);
+//     }
+//
+//     expect_token(parserContext, TOKEN_RPAREN);
+//     bool declaration_only;
+//     ASTNode * function_block = NULL;
+//     if (is_current_token(parserContext, TOKEN_LBRACE)) {
+//         function_block = parse_block(parserContext);
+//         declaration_only = false;
+//     }
+//     else {
+//         expect_token(parserContext, TOKEN_SEMICOLON);
+//         declaration_only = true;
+//     }
+//
+//     ASTNode * func = create_function_declaration_node(name->text, get_ctype_from_token(returnCType),
+//         param_list, function_block, declaration_only);
+//
+//     return func;
+// }
 
 /////////////////////////////////////////////////////////
 //// STATEMENTS

@@ -14,7 +14,7 @@
 ASTNode * parse(tokenlist * tokenList);
 ASTNode * parse_translation_unit(ParserContext * parserContext);
 ASTNode * parse_external_declaration(ParserContext * parserContext);
-ASTNode * parse_function(ParserContext * parserContext);
+//ASTNode * parse_function(ParserContext * parserContext);
 ASTNode * parse_function_with_type(ParserContext * parserContext, CType * ctype);
 ASTNode*  parse_global_var_decl(ParserContext * parserContext, CType * ctype);
 ASTNode * parse_statement(ParserContext* parserContext);
@@ -48,6 +48,7 @@ ASTNode * parse_constant_expression(ParserContext * parserContext);
 CType_list * parse_parameter_type_list(ParserContext * ctx, ASTNode_list ** out_params);
 
 CType * parse_type_specifier(ParserContext * ctx);
-CType * parse_declarator(ParserContext * ctx, CType * base_type, char **out_name, ASTNode_list ** out_params);
+CType * parse_declarator(ParserContext * ctx, CType * base_type, char **out_name,
+    ASTNode_list ** out_params, CType ** func_type);
 
 #endif

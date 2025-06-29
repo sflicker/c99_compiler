@@ -790,8 +790,8 @@ void test_for_statement__only_cond() {
     print_ast(actual, 0);
     TEST_ASSERT("Verifying node is correct", ast_equal(expected, actual));
     free_ast(expected);
-    free_ast(actual);
 
+    free_ast(actual);
 }
 
 void test_for_statement__only_update() {
@@ -840,7 +840,7 @@ void test_declarator__scalar_var() {
 
     char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
-    CType * full_type = parse_declarator(ctx, base_type, &name, NULL);
+    CType * full_type = parse_declarator(ctx, base_type, &name, NULL, NULL);
 
     TEST_ASSERT("Verify base_type and full_type are the same", ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
@@ -853,7 +853,7 @@ void test_declarator__array_var() {
 
     char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
-    CType * full_type = parse_declarator(ctx, base_type, &name, NULL);
+    CType * full_type = parse_declarator(ctx, base_type, &name, NULL, NULL);
 
     TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
@@ -867,10 +867,12 @@ void test_declarator__function_no_args() {
 
     char * name = NULL;
     ASTNode_list * params = NULL;
+    CType * func_type = NULL;
     CType * base_type = parse_type_specifier(ctx);
-    CType * full_type = parse_declarator(ctx, base_type, &name, &params);
+    CType * return_type = parse_declarator(ctx, base_type, &name, &params, &func_type);
 
-    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify base_type and return_type are the same", ctype_equals(base_type, return_type));
+    TEST_ASSERT("Verify func_type has the correct kind", func_type->kind == CTYPE_FUNCTION);
     TEST_ASSERT("Verify Correct name", strcmp("main", name) == 0);
 
 }
@@ -882,11 +884,13 @@ void test_declarator__function_with_body_but_no_args() {
 
     char * name = NULL;
     ASTNode_list * params = NULL;
+    CType * func_type = NULL;
     CType * base_type = parse_type_specifier(ctx);
-    CType * full_type = parse_declarator(ctx, base_type, &name, &params);
+    CType * full_type = parse_declarator(ctx, base_type, &name, &params, &func_type);
 
-    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify base_type and full_type are the same", ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify Correct name", strcmp("main", name) == 0);
+    TEST_ASSERT("Verify func_type has the correct kind", func_type->kind == CTYPE_FUNCTION);
     TEST_ASSERT("Verify current char is {", is_current_token(ctx, TOKEN_LBRACE));
 }
 
