@@ -72,6 +72,7 @@ TokenMapEntry single_char_operator_map[] = {
     { ">", TOKEN_GT },
     { "%", TOKEN_PERCENT },
     { ":", TOKEN_COLON },
+    { "&", TOKEN_AMPERSAND },
     { NULL, 0 }
 };
 

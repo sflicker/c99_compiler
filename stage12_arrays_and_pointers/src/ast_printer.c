@@ -164,6 +164,13 @@ void print_ast(ASTNode * node, int indent) {
         case AST_VAR_REF:
             printf("VariableExpression: %s, ctype: %s\n", node->var_ref.name, ctype_to_string(node->ctype));
             break;
+        case AST_ARRAY_ACCESS:
+            printf("ArrayAccess:\n");
+            print_indent(indent+1); printf("ArrayExpression:\n");
+            print_ast(node->array_access.array_expr, indent+2);
+            print_indent(indent+1); printf("IndexExpression:\n");
+            print_ast(node->array_access.index_expr, indent+2);
+            break;
         default:        
             error("Unknown AST Node Type: %d\n", node->type);
             break;

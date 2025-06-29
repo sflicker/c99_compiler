@@ -44,11 +44,11 @@ void test_parse_primary__parens() {
     tokenlist_free(tokens);
 }
 
-void test_parse_primary__function_call() {
+void test_parse_postfix__function_call() {
     tokenlist * tokens = tokenize("myfunc()");
     ParserContext * ctx = create_parser_context(tokens);
 
-    ASTNode * node = parse_primary(ctx);
+    ASTNode * node = parse_postfix_expression(ctx);
     print_ast(node, 0);
 
     TEST_ASSERT("Verifying node is of type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
@@ -60,11 +60,39 @@ void test_parse_primary__function_call() {
     tokenlist_free(tokens);
 }
 
-void test_parse_primary__function_call__with_args() {
+void test_parse_postfix__array_access() {
+    tokenlist * tokens = tokenize("a[i]");
+    ParserContext * ctx = create_parser_context(tokens);
+    ASTNode * node = parse_postfix_expression(ctx);
+    print_ast(node, 0);
+    TEST_ASSERT("Verifying node is of type AST_ARRAY_ACCESS", node->type == AST_ARRAY_ACCESS);
+    TEST_ASSERT("Verifying array_expr is not null", node->array_access.array_expr != NULL);
+    TEST_ASSERT("Verifying array_expr is a", strcmp(node->array_access.array_expr->var_ref.name, "a") == 0);
+    TEST_ASSERT("Verifying index_expr is not null", node->array_access.index_expr != NULL);
+    TEST_ASSERT("Verifying index_expr is i", strcmp(node->array_access.index_expr->var_ref.name, "i") == 0);
+
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
+void test_parse_postfix__multi_array_access() {
+    tokenlist * tokens = tokenize("a[i][j][k]");
+    ParserContext * ctx = create_parser_context(tokens);
+    ASTNode * node = parse_postfix_expression(ctx);
+    print_ast(node, 0);
+    TEST_ASSERT("Verifying node is of type AST_ARRAY_ACCESS", node->type == AST_ARRAY_ACCESS);
+
+    free_parser_context(ctx);
+    tokenlist_free(tokens);
+
+}
+
+void test_parse_postfix__function_call__with_args() {
     tokenlist * tokens = tokenize("myfunc(1,2,3,4)");
     ParserContext * ctx = create_parser_context(tokens);
 
-    ASTNode * node = parse_primary(ctx);
+    ASTNode * node = parse_postfix_expression(ctx);
     print_ast(node, 0);
 
     TEST_ASSERT("Verifying node is of type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
@@ -1000,13 +1028,15 @@ void test_declarator__function_with_pointer_return() {
 int main() {
     RUN_TEST(test_parse_primary__int_literal);
     RUN_TEST(test_parse_primary__parens);
-    RUN_TEST(test_parse_primary__function_call);
-    RUN_TEST(test_parse_primary__function_call__with_args);
     RUN_TEST(test_parse_primary__variable_ref);
     RUN_TEST(test_parse_constant_expression__pass);
     RUN_TEST(test_parse_constant_expression__fail);
     RUN_TEST(test_parse_postfix_expression__inc);
     RUN_TEST(test_parse_postfix_expression__dec);
+    RUN_TEST(test_parse_postfix__function_call);
+    RUN_TEST(test_parse_postfix__function_call__with_args);
+    RUN_TEST(test_parse_postfix__array_access);
+    RUN_TEST(test_parse_postfix__multi_array_access);
     RUN_TEST(test_parse_unary_expression__plus);
     RUN_TEST(test_parse_unary_expression__negate);
     RUN_TEST(test_parse_unary_expression__not);

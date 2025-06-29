@@ -209,6 +209,7 @@ const char * get_ast_node_name(ASTNode * node) {
         case AST_DO_WHILE_STMT: return "DoWhileStmt";
         case AST_LABELED_STMT: return "LabelledStmt";
         case AST_INT_LITERAL: return "IntLiteral";
+        case AST_ARRAY_ACCESS: return "ArrayAccess";
         case AST_ASSERT_EXTENSION_STATEMENT: return "AssertExtensionStatement";
         case AST_PRINT_EXTENSION_STATEMENT: return "PrintExtensionStatement";
     }

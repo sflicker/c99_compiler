@@ -742,18 +742,28 @@ ASTNode * parse_cast_expression(ParserContext * parserContext) {
 ASTNode * parse_unary_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_PLUS)) {
         expect_token(parserContext, TOKEN_PLUS);
-        ASTNode * operand = parse_unary_expression(parserContext);
+        ASTNode * operand = parse_cast_expression(parserContext);
         return create_unary_node(UNARY_PLUS, operand);
     }
     if (is_current_token(parserContext, TOKEN_MINUS)) {
         expect_token(parserContext, TOKEN_MINUS);
-        ASTNode * operand = parse_unary_expression(parserContext);
+        ASTNode * operand = parse_cast_expression(parserContext);
         return create_unary_node(UNARY_NEGATE, operand);
     }
     if (is_current_token(parserContext, TOKEN_BANG)) {
         expect_token(parserContext, TOKEN_BANG);
-        ASTNode * operand = parse_unary_expression(parserContext);
+        ASTNode * operand = parse_cast_expression(parserContext);
         return create_unary_node(UNARY_NOT, operand);
+    }
+    if (is_current_token(parserContext, TOKEN_STAR)) {
+        expect_token(parserContext, TOKEN_STAR);
+        ASTNode * operand = parse_cast_expression(parserContext);
+        return create_unary_node(UNARY_DEREF, operand);
+    }
+    if (is_current_token(parserContext, TOKEN_AMPERSAND)) {
+        expect_token(parserContext, TOKEN_AMPERSAND);
+        ASTNode * operand = parse_cast_expression(parserContext);
+        return create_unary_node(UNARY_ADDRESS, operand);
     }
     if (is_current_token(parserContext, TOKEN_INCREMENT)) {
         expect_token(parserContext, TOKEN_INCREMENT);
@@ -782,6 +792,32 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext) {
         expect_token(parserContext, TOKEN_DECREMENT);
 
         return create_unary_node(UNARY_POST_DEC, primary);
+    }
+    if (is_current_token(parserContext, TOKEN_LPAREN)) {
+        advance_parser(parserContext);
+        ASTNode_list * argument_expression_list = NULL;
+        if (!is_current_token(parserContext, TOKEN_RPAREN)) {
+            argument_expression_list = parse_argument_expression_list(parserContext);
+            expect_token(parserContext, TOKEN_RPAREN);
+        }
+        else {
+            expect_token(parserContext, TOKEN_RPAREN);
+        }
+        ASTNode * node = create_function_call_node(primary->var_ref.name, argument_expression_list);
+        return node;
+    }
+    if (is_current_token(parserContext, TOKEN_LBRACKET)) {
+        while (true) {
+            if (match_token(parserContext, TOKEN_LBRACKET)) {
+                ASTNode* index = parse_expression(parserContext);
+                expect_token(parserContext, TOKEN_RBRACKET);
+
+                ASTNode * array_node = create_array_access_node(primary, index);
+                primary = array_node;
+            } else {
+                break;
+            }
+        }
     }
 
     return primary;
@@ -816,21 +852,6 @@ ASTNode * parse_primary(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
         Token * tok = peek(parserContext);
         advance_parser(parserContext);
-        // handle function calls
-        if (is_current_token(parserContext, TOKEN_LPAREN)) {
-            advance_parser(parserContext);
-            ASTNode_list * argument_expression_list = NULL; 
-            if (!is_current_token(parserContext, TOKEN_RPAREN)) {
-                argument_expression_list = parse_argument_expression_list(parserContext);
-                expect_token(parserContext, TOKEN_RPAREN);
-            }
-            else {
-                expect_token(parserContext, TOKEN_RPAREN);                
-            }
-            ASTNode * node = create_function_call_node(tok->text, argument_expression_list);
-            return node;
-        }
-        // handle variable references
         return create_var_ref_node(tok->text);
     }
     error("Unhandled token error");

@@ -226,6 +226,14 @@ ASTNode * create_var_ref_node(const char * name) {
     return node;
 }
 
+ASTNode * create_array_access_node(ASTNode * arrayExpr, ASTNode * indexExpr) {
+    ASTNode * node = create_ast();
+    node->type = AST_ARRAY_ACCESS;
+    node->array_access.array_expr = arrayExpr;
+    node->array_access.index_expr = indexExpr;
+    return node;
+}
+
 ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
             ASTNode * update_expr, ASTNode * body) {
     ASTNode * node = create_ast();
