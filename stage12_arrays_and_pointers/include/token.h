@@ -52,8 +52,8 @@ typedef enum {
     TOKEN_PLUS_EQUAL,
     TOKEN_MINUS_EQUAL,
     TOKEN_BANG,
-    TOKEN_EOF,
-    TOKEN_UNKNOWN
+    TOKEN_AMPERSAND,
+    TOKEN_EOF
 } TokenType;
 
 typedef struct {

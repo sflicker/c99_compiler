@@ -10,7 +10,6 @@ ASTNode * create_ast() {
     return ast_node;
 }
 
-
 void free_ast(ASTNode * node) {
     if (!node) return;
     switch(node->type) {
@@ -23,7 +22,6 @@ void free_ast(ASTNode * node) {
             free(node->var_decl.name);
             free_ast(node->var_decl.init_expr);
         break;
-
 
         case AST_FUNCTION_DECL:
             free(node->function_decl.name);
@@ -141,9 +139,10 @@ BinaryOperator get_binary_operator_from_tok(Token * tok) {
         case TOKEN_GE: return BINOP_GE; break;
         case TOKEN_LT: return BINOP_LT; break;
         case TOKEN_LE: return BINOP_LE; break;
-        default: return BINOP_UNASSIGNED_OP; break;
+        default:
+            error("Unknown binary operator '%s'\n", tok->text);
+            return BINOP_UNASSIGNED_OP;\
     }
-
 }
 
 const char * get_binary_op_name(BinaryOperator op) {
@@ -164,10 +163,9 @@ const char * get_binary_op_name(BinaryOperator op) {
         case BINOP_ASSIGNMENT: return "ASN"; break;
         case BINOP_COMPOUND_ADD_ASSIGN: return "ADDASN"; break;
         case BINOP_COMPOUND_SUB_ASSIGN: return "SUBASN"; break;
-        default:
-            return "UNASSIGNED"; break;
+        case BINOP_UNASSIGNED_OP: return "UNASSIGNED"; break;
     }
-    return NULL;
+    return "UNASSIGNED";
 }
 
 const char * get_unary_op_name(UnaryOperator op) {
@@ -179,9 +177,11 @@ const char * get_unary_op_name(UnaryOperator op) {
         case UNARY_PRE_DEC: return "PRE_DEC"; break;
         case UNARY_POST_INC: return "POST_INC"; break;
         case UNARY_POST_DEC: return "POST_DEC"; break;
+        case UNARY_ADDRESS: return "ADDRESS"; break;
+        case UNARY_DEREF: return "DEREF"; break;
         case UNARY_UNASSIGNED_OP: return "UNASSIGNED"; break;
     }
-    return NULL;
+    return "UNKNOWN";
 }
 
 const char * get_ast_node_name(ASTNode * node) {
@@ -211,9 +211,9 @@ const char * get_ast_node_name(ASTNode * node) {
         case AST_INT_LITERAL: return "IntLiteral";
         case AST_ASSERT_EXTENSION_STATEMENT: return "AssertExtensionStatement";
         case AST_PRINT_EXTENSION_STATEMENT: return "PrintExtensionStatement";
-        default:
-            error("Invalid AST Node Type: %d", node->type);
     }
+    error("Invalid AST Node Type: %d", node->type);
+
     return NULL;
 }
 

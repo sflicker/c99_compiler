@@ -978,6 +978,25 @@ void test_declarator__array_of_int_pointers() {
 
 }
 
+void test_declarator__function_with_pointer_return() {
+    tokenlist * tokens = tokenize("int * myfunc()");
+
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    ASTNode_list * params = NULL;
+    CType * func_type = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    CType * return_type = parse_declarator(ctx, base_type, &name, &params, &func_type);
+
+    TEST_ASSERT("Verify base_type and return_type not are the same", !ctype_equals(base_type, return_type));
+    TEST_ASSERT("Verify func_type has the correct kind", func_type->kind == CTYPE_FUNCTION);
+    TEST_ASSERT("Verify return_type has pointer kind", return_type->kind == CTYPE_PTR);
+    TEST_ASSERT("Verify return_type.base has int kind", return_type->base->kind == CTYPE_INT);
+    TEST_ASSERT("Verify Correct name", strcmp("myfunc", name) == 0);
+
+}
+
 int main() {
     RUN_TEST(test_parse_primary__int_literal);
     RUN_TEST(test_parse_primary__parens);
@@ -1026,5 +1045,6 @@ int main() {
     RUN_TEST(test_declarator__scalar_var_pointer);
     RUN_TEST(test_declarator__scalar_var_pointer_to_pointer);
     RUN_TEST(test_declarator__array_of_int_pointers);
+    RUN_TEST(test_declarator__function_with_pointer_return);
 
 }

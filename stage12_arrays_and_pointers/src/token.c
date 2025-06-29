@@ -124,9 +124,10 @@ const char * token_type_name(TokenType type) {
         case TOKEN_BREAK: return "BREAK";
         case TOKEN_CONTINUE: return "CONTINUE";
         case TOKEN_PERCENT: return "MOD";
+        case TOKEN_AMPERSAND: return "AMPERSAND";
         case TOKEN_ASSERT_EXTENSION: return "_ASSERT";
         case TOKEN_PRINT_EXTENSION: return "_PRINT";
-
-        default: return "UNKNOWN";
     }
+
+    return "UNKNOWN";
 }

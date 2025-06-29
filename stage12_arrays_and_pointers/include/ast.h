@@ -44,6 +44,8 @@ typedef enum {
     UNARY_PRE_DEC,        // --a
     UNARY_POST_INC,       // a++
     UNARY_POST_DEC,       // a--
+    UNARY_DEREF,          // *a
+    UNARY_ADDRESS,        // &a
     UNARY_UNASSIGNED_OP   // op is not assigned. 
 } UnaryOperator;
 
