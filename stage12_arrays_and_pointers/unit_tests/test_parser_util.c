@@ -10,7 +10,7 @@
 #include "test_assert.h"
 #include "ast_printer.h"
 #include "parser_util.h"
-#include "ctypes.h"
+#include "c_type.h"
 
 const char * current_test = NULL;
 

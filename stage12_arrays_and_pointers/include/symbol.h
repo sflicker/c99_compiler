@@ -4,7 +4,7 @@
 
 #ifndef SYMBOL_H
 #define SYMBOL_H
-#include "ctypes.h"
+#include "c_type.h"
 
 typedef enum {
     SYMBOL_VAR,

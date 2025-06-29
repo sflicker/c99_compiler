@@ -11,7 +11,7 @@
 #include "parser.h"
 #include "parser_util.h"
 #include "parser_context.h"
-#include "ctypes.h"
+#include "c_type.h"
 
 /* 
    Simple C compiler example 

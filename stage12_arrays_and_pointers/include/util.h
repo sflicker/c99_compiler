@@ -6,5 +6,6 @@ char* change_extension(const char* source_file, const char* new_ext);
 char * read_text_file(const char* filename);
 char *write_temp_file(const char *content);
 const char * get_file_extension(const char * filename);
+void print_indent(int indent);
 
 #endif

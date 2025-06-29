@@ -89,7 +89,9 @@ const char * get_file_extension(const char * filename) {
     return dot + 1;
 }
 
-
+void print_indent(int indent) {
+    for (int i=0;i<indent;i++) printf("  ");
+}
 
 
 

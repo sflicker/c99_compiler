@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "ast.h"
-#include "ctypes.h"
+#include "c_type.h"
 
 CType CTYPE_CHAR_T = {
     .kind = CTYPE_CHAR,
@@ -194,3 +194,15 @@ CTypePtr_list * astNodeListToTypeList(const ASTNode_list * param_list) {
     return typeList;
 }
 
+char * c_type_kind_to_string(CTypeKind kind) {
+    switch (kind) {
+        case CTYPE_CHAR: return "CHAR_T";
+        case CTYPE_SHORT: return "SHORT_T";
+        case CTYPE_INT: return "INT_T";
+        case CTYPE_LONG: return "LONG_T";
+        case CTYPE_PTR: return "PTR_T";
+        case CTYPE_ARRAY: return "ARRAY_T";
+        case CTYPE_FUNCTION: return "FUNCTION_T";
+            default: return "<unknown>";
+    }
+}

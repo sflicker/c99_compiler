@@ -12,6 +12,7 @@
 #include "ast_printer.h"
 #include "error.h"
 #include "parser_util.h"
+#include "c_type_printer.h"
 
 const char * current_test = NULL;
 
@@ -840,7 +841,11 @@ void test_declarator__scalar_var() {
 
     char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
+    printf("BaseType\n");
+    print_c_type(base_type, 0);
     CType * full_type = parse_declarator(ctx, base_type, &name, NULL, NULL);
+    printf("FullType\n");
+    print_c_type(full_type, 0);
 
     TEST_ASSERT("Verify base_type and full_type are the same", ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
@@ -857,6 +862,29 @@ void test_declarator__array_var() {
 
     TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify full_type has Array kind", full_type->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verify full_type has Array len of 10", full_type->array_len == 10);
+    TEST_ASSERT("Verify full_type has Array size of 40", full_type->size == 40);
+    TEST_ASSERT("Verify full_type has int base_type", full_type->base->kind == CTYPE_INT);
+
+}
+
+void test_declarator__array_multi_var() {
+    tokenlist * tokens = tokenize("int a[10][10]");
+
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    print_c_type(base_type, 0);
+    CType * full_type = parse_declarator(ctx, base_type, &name, NULL, NULL);
+    print_c_type(full_type, 0);
+
+    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify full_type has Array kind", full_type->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verify full_type has Array base_type", full_type->base->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verify full_type.base.base has int_type", full_type->base->base->kind == CTYPE_INT);
 
 }
 
@@ -892,6 +920,62 @@ void test_declarator__function_with_body_but_no_args() {
     TEST_ASSERT("Verify Correct name", strcmp("main", name) == 0);
     TEST_ASSERT("Verify func_type has the correct kind", func_type->kind == CTYPE_FUNCTION);
     TEST_ASSERT("Verify current char is {", is_current_token(ctx, TOKEN_LBRACE));
+}
+
+void test_declarator__scalar_var_pointer() {
+    tokenlist * tokens = tokenize("int * a");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    CType * full_type = parse_declarator(ctx, base_type, &name, NULL, NULL);
+
+    TEST_ASSERT("Verify base_type and full_type not are the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify full_type has pointer kind", full_type->kind == CTYPE_PTR);
+    TEST_ASSERT("Verify full_type.base_type is base_type", ctype_equals(full_type->base, base_type));
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+
+}
+
+void test_declarator__scalar_var_pointer_to_pointer() {
+    tokenlist * tokens = tokenize("int ** a");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    printf("BaseType:\n");
+    print_c_type(base_type, 0);
+    CType * full_type = parse_declarator(ctx, base_type, &name, NULL, NULL);
+    printf("FullType:\n");
+    print_c_type(full_type, 0);
+
+    TEST_ASSERT("Verify base_type and full_type not are the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify full_type has pointer kind", full_type->kind == CTYPE_PTR);
+    TEST_ASSERT("Verity full_type base has pointer kind", full_type->base->kind == CTYPE_PTR);
+    TEST_ASSERT("Verify full_type.base_type.base_type is base_type", ctype_equals(full_type->base->base, base_type));
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+
+}
+
+void test_declarator__array_of_int_pointers() {
+    tokenlist * tokens = tokenize("int * a[10]");
+
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    printf("BaseType:\n");
+    print_c_type(base_type, 0);
+    CType * full_type = parse_declarator(ctx, base_type, &name, NULL, NULL);
+    printf("FullType:\n");
+    print_c_type(full_type, 0);
+
+    TEST_ASSERT("Verify base_type and full_type not are the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify full_type has array kind", full_type->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verity full_type.base has pointer kind", full_type->base->kind == CTYPE_PTR);
+    TEST_ASSERT("Verify full_type.base_type.base_type is int", full_type->base->base->kind == CTYPE_INT);
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+
 }
 
 int main() {
@@ -936,7 +1020,11 @@ int main() {
     RUN_TEST(test_for_statement__only_update);
     RUN_TEST(test_declarator__scalar_var);
     RUN_TEST(test_declarator__array_var);
+    RUN_TEST(test_declarator__array_multi_var);
     RUN_TEST(test_declarator__function_no_args);
     RUN_TEST(test_declarator__function_with_body_but_no_args);
+    RUN_TEST(test_declarator__scalar_var_pointer);
+    RUN_TEST(test_declarator__scalar_var_pointer_to_pointer);
+    RUN_TEST(test_declarator__array_of_int_pointers);
 
 }

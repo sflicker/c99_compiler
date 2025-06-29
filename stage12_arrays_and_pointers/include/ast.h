@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "token.h"
-#include "ctypes.h"
+#include "c_type.h"
 #include "util.h"
 #include "list_util.h"
 #include "ast_lists.h"

@@ -11,7 +11,7 @@
 #include "ast_list.h"
 #include "token.h"
 #include "ast.h"
-#include "ctypes.h"
+#include "c_type.h"
 #include "parser_context.h"
 #include "parser_util.h"
 

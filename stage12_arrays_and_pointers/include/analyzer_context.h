@@ -5,7 +5,7 @@
 #ifndef ANALYZER_CONTEXT_H
 #define ANALYZER_CONTEXT_H
 
-#include "ctypes.h"
+#include "c_type.h"
 typedef struct AnalyzerContext {
     CType * current_function_return_type;
 } AnalyzerContext;

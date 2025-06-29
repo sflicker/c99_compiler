@@ -6,7 +6,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "ctypes.h"
+#include "c_type.h"
 #include "ast.h"
 #include "emitter.h"
 #include "token.h"

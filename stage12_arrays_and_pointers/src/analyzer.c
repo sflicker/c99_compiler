@@ -5,7 +5,7 @@
 #include "ast.h"
 #include "analyzer.h"
 #include "error.h"
-#include "ctypes.h"
+#include "c_type.h"
 #include "parser_util.h"
 #include "symbol.h"
 #include "symbol_table.h"
