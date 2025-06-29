@@ -44,6 +44,7 @@ extern CType CTYPE_LONG_T;
 extern CType CTYPE_PTR_INT_T;
 
 CType * make_type();
+CType * make_int_type(int is_signed);
 CType * make_pointer_type(CType * base);
 CType * make_array_type(CType * base, int length);
 CType * make_function_type(CType * return_type, CType_list * param_types);

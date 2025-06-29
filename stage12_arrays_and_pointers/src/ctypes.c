@@ -46,6 +46,13 @@ CType * make_type() {
     return calloc(1, sizeof(CType));
 }
 
+CType * make_int_type(int is_signed) {
+    CType * t = make_type();
+    t->is_signed = is_signed;
+    t->kind = CTYPE_INT;
+    t->size = 4;
+    return t;
+}
 CType *make_pointer_type(CType *base) {
     CType *ptr = make_type();
     ptr->kind = CTYPE_PTR;
@@ -186,3 +193,4 @@ CTypePtr_list * astNodeListToTypeList(const ASTNode_list * param_list) {
     }
     return typeList;
 }
+

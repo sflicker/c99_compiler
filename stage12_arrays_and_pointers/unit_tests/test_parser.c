@@ -834,6 +834,62 @@ void test_for_statement__only_update() {
 
 }
 
+void test_declarator__scalar_var() {
+    tokenlist * tokens = tokenize("int a");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    CType * full_type = parse_declarator(ctx, base_type, &name, NULL);
+
+    TEST_ASSERT("Verify base_type and full_type are the same", ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+}
+
+void test_declarator__array_var() {
+    tokenlist * tokens = tokenize("int a[10]");
+
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    CType * full_type = parse_declarator(ctx, base_type, &name, NULL);
+
+    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+
+}
+
+void test_declarator__function_no_args() {
+    tokenlist * tokens = tokenize("int main()");
+
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    ASTNode_list * params = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    CType * full_type = parse_declarator(ctx, base_type, &name, &params);
+
+    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify Correct name", strcmp("main", name) == 0);
+
+}
+
+void test_declarator__function_with_body_but_no_args() {
+    tokenlist * tokens = tokenize("int main() { return 42; ");
+
+    ParserContext * ctx = create_parser_context(tokens);
+
+    char * name = NULL;
+    ASTNode_list * params = NULL;
+    CType * base_type = parse_type_specifier(ctx);
+    CType * full_type = parse_declarator(ctx, base_type, &name, &params);
+
+    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify Correct name", strcmp("main", name) == 0);
+    TEST_ASSERT("Verify current char is {", is_current_token(ctx, TOKEN_LBRACE));
+}
+
 int main() {
     RUN_TEST(test_parse_primary__int_literal);
     RUN_TEST(test_parse_primary__parens);
@@ -874,4 +930,9 @@ int main() {
     RUN_TEST(test_for_statement__empty);
     RUN_TEST(test_for_statement__only_cond);
     RUN_TEST(test_for_statement__only_update);
+    RUN_TEST(test_declarator__scalar_var);
+    RUN_TEST(test_declarator__array_var);
+    RUN_TEST(test_declarator__function_no_args);
+    RUN_TEST(test_declarator__function_with_body_but_no_args);
+
 }
