@@ -28,7 +28,7 @@ DEFINE_LINKED_LIST(CType*, CType_list);
 
 typedef struct CType {
     CTypeKind kind;
-    CType * base;
+    CType * base_type;
     int size;
     int is_signed;
     int rank;
@@ -67,5 +67,12 @@ bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b);
 CType * common_type(CType *a, CType *b);
 CTypePtr_list * astNodeListToTypeList(const ASTNode_list * param_list);
 char * c_type_kind_to_string(CTypeKind kind);
+bool is_integer_type(CType * ctype);
+bool is_array_type(CType * ctype);
+bool is_function_type(CType * ctype);
+bool is_pointer_type(CType * ctype);
+bool is_signed_type(CType * ctype);
+CType * decay_if_array(CType * ctype);
+
 #endif
 

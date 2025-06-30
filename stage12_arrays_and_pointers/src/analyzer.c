@@ -31,8 +31,19 @@ bool is_lvalue(ASTNode * node) {
     if (node == NULL) {
         error("node must not be null");
     }
-    return node->type == AST_VAR_REF;
-    // TODO more logic
+    switch (node->type) {
+        case AST_VAR_REF:
+        case AST_ARRAY_ACCESS:
+            return true;
+
+        case AST_UNARY_EXPR:
+            if (node->unary.op == UNARY_DEREF) {
+                return true;
+            }
+
+        default:
+            return false;
+    }
 }
 
 
@@ -150,8 +161,11 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             }
             else {
                 symbol->info.var.offset = local_offset;
-                local_offset -= 8;
-                function_local_storage += 8;
+                // local_offset -= 8;
+                // function_local_storage += 8;
+                local_offset -= node->ctype->size;
+                function_local_storage += node->ctype->size;
+
             }
             add_symbol(symbol);
             node->symbol = symbol;
@@ -173,8 +187,10 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             CType * lhsCType = node->binary.lhs->ctype;
             CType * rhsCType = node->binary.rhs->ctype;
 
-            CType * promoted_left = apply_integer_promotions(lhsCType);
-            CType * promoted_right = apply_integer_promotions(rhsCType);
+            CType * promoted_left = is_integer_type(lhsCType)
+                ? apply_integer_promotions(lhsCType) : lhsCType;
+            CType * promoted_right = is_integer_type(rhsCType)
+                ? apply_integer_promotions(rhsCType) : rhsCType;
 
             CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
 
@@ -254,6 +270,24 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->ctype = node->cast_expr.target_type;
             break;
 
+        case AST_ARRAY_ACCESS:
+            analyze(ctx, node->array_access.base);
+            analyze(ctx, node->array_access.index);
+
+            CType * base_type = decay_if_array(node->array_access.base->ctype);
+            CType * index_type = node->array_access.index->ctype;
+
+            if (!is_pointer_type(base_type)) {
+                error("Array base must be a pointer or array");
+            }
+
+            if (!is_integer_type(index_type)) {
+                error("Array index must be an integer");
+            }
+
+            node->ctype = base_type->base_type;
+            break;
+
         case AST_EXPRESSION_STMT:
         case AST_ASSERT_EXTENSION_STATEMENT:
         case AST_PRINT_EXTENSION_STATEMENT:
@@ -268,6 +302,6 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         default:
-            error("Unrecognized node type");
+            error("Unrecognized node type - %s", get_ast_node_name(node));
     }
 }

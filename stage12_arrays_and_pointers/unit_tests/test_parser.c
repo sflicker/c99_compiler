@@ -66,10 +66,10 @@ void test_parse_postfix__array_access() {
     ASTNode * node = parse_postfix_expression(ctx);
     print_ast(node, 0);
     TEST_ASSERT("Verifying node is of type AST_ARRAY_ACCESS", node->type == AST_ARRAY_ACCESS);
-    TEST_ASSERT("Verifying array_expr is not null", node->array_access.array_expr != NULL);
-    TEST_ASSERT("Verifying array_expr is a", strcmp(node->array_access.array_expr->var_ref.name, "a") == 0);
-    TEST_ASSERT("Verifying index_expr is not null", node->array_access.index_expr != NULL);
-    TEST_ASSERT("Verifying index_expr is i", strcmp(node->array_access.index_expr->var_ref.name, "i") == 0);
+    TEST_ASSERT("Verifying array_expr is not null", node->array_access.base != NULL);
+    TEST_ASSERT("Verifying array_expr is a", strcmp(node->array_access.base->var_ref.name, "a") == 0);
+    TEST_ASSERT("Verifying index_expr is not null", node->array_access.index != NULL);
+    TEST_ASSERT("Verifying index_expr is i", strcmp(node->array_access.index->var_ref.name, "i") == 0);
 
     free_parser_context(ctx);
     tokenlist_free(tokens);
@@ -893,7 +893,7 @@ void test_declarator__array_var() {
     TEST_ASSERT("Verify full_type has Array kind", full_type->kind == CTYPE_ARRAY);
     TEST_ASSERT("Verify full_type has Array len of 10", full_type->array_len == 10);
     TEST_ASSERT("Verify full_type has Array size of 40", full_type->size == 40);
-    TEST_ASSERT("Verify full_type has int base_type", full_type->base->kind == CTYPE_INT);
+    TEST_ASSERT("Verify full_type has int base_type", full_type->base_type->kind == CTYPE_INT);
 
 }
 
@@ -911,8 +911,8 @@ void test_declarator__array_multi_var() {
     TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
     TEST_ASSERT("Verify full_type has Array kind", full_type->kind == CTYPE_ARRAY);
-    TEST_ASSERT("Verify full_type has Array base_type", full_type->base->kind == CTYPE_ARRAY);
-    TEST_ASSERT("Verify full_type.base.base has int_type", full_type->base->base->kind == CTYPE_INT);
+    TEST_ASSERT("Verify full_type has Array base_type", full_type->base_type->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verify full_type.base.base has int_type", full_type->base_type->base_type->kind == CTYPE_INT);
 
 }
 
@@ -960,7 +960,7 @@ void test_declarator__scalar_var_pointer() {
 
     TEST_ASSERT("Verify base_type and full_type not are the same", !ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify full_type has pointer kind", full_type->kind == CTYPE_PTR);
-    TEST_ASSERT("Verify full_type.base_type is base_type", ctype_equals(full_type->base, base_type));
+    TEST_ASSERT("Verify full_type.base_type is base_type", ctype_equals(full_type->base_type, base_type));
     TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
 
 }
@@ -979,8 +979,8 @@ void test_declarator__scalar_var_pointer_to_pointer() {
 
     TEST_ASSERT("Verify base_type and full_type not are the same", !ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify full_type has pointer kind", full_type->kind == CTYPE_PTR);
-    TEST_ASSERT("Verity full_type base has pointer kind", full_type->base->kind == CTYPE_PTR);
-    TEST_ASSERT("Verify full_type.base_type.base_type is base_type", ctype_equals(full_type->base->base, base_type));
+    TEST_ASSERT("Verity full_type base has pointer kind", full_type->base_type->kind == CTYPE_PTR);
+    TEST_ASSERT("Verify full_type.base_type.base_type is base_type", ctype_equals(full_type->base_type->base_type, base_type));
     TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
 
 }
@@ -1000,8 +1000,8 @@ void test_declarator__array_of_int_pointers() {
 
     TEST_ASSERT("Verify base_type and full_type not are the same", !ctype_equals(base_type, full_type));
     TEST_ASSERT("Verify full_type has array kind", full_type->kind == CTYPE_ARRAY);
-    TEST_ASSERT("Verity full_type.base has pointer kind", full_type->base->kind == CTYPE_PTR);
-    TEST_ASSERT("Verify full_type.base_type.base_type is int", full_type->base->base->kind == CTYPE_INT);
+    TEST_ASSERT("Verity full_type.base has pointer kind", full_type->base_type->kind == CTYPE_PTR);
+    TEST_ASSERT("Verify full_type.base_type.base_type is int", full_type->base_type->base_type->kind == CTYPE_INT);
     TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
 
 }
@@ -1020,7 +1020,7 @@ void test_declarator__function_with_pointer_return() {
     TEST_ASSERT("Verify base_type and return_type not are the same", !ctype_equals(base_type, return_type));
     TEST_ASSERT("Verify func_type has the correct kind", func_type->kind == CTYPE_FUNCTION);
     TEST_ASSERT("Verify return_type has pointer kind", return_type->kind == CTYPE_PTR);
-    TEST_ASSERT("Verify return_type.base has int kind", return_type->base->kind == CTYPE_INT);
+    TEST_ASSERT("Verify return_type.base has int kind", return_type->base_type->kind == CTYPE_INT);
     TEST_ASSERT("Verify Correct name", strcmp("myfunc", name) == 0);
 
 }

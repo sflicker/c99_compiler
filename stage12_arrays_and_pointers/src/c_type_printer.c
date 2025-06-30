@@ -12,7 +12,7 @@ void print_c_type(CType * ctype, int indent) {
 
     printf("CType: %s, size: %d, signed: %s, rank: %d\n", c_type_kind_to_string(ctype->kind), ctype->size,
         ((ctype->is_signed) ? "TRUE" : "FALSE"), ctype->rank);
-    if (ctype->base) {
-        print_c_type(ctype->base, indent+1);
+    if (ctype->base_type) {
+        print_c_type(ctype->base_type, indent+1);
     }
 }

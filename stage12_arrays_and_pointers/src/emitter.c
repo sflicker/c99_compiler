@@ -23,7 +23,8 @@
 //bool emit_print_int_extension = false;
 
 char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
-    Symbol * symbol = node->symbol;
+    Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
+        node->array_access.base->symbol : node->symbol;
     if (symbol->node->var_decl.is_global) {
         const char * name = symbol->name;
         int size = snprintf(NULL, 0, "[rel %s]", name) + 1;

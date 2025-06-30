@@ -77,6 +77,11 @@ int main(int argc, char ** argv) {
         token_formatted_output("TOKEN:", token->text, token->type, ++i, token->line, token->col);
     }
 
+    printf("\n");
+    printf("--------------------------------------------\n");
+    printf("Beginning Parsing\n");
+    printf("--------------------------------------------\n\n\n");
+
     ASTNode * astNode = parse(tokens);
     
     tokenlist_free(tokens);
@@ -84,6 +89,11 @@ int main(int argc, char ** argv) {
 
     printf("\nAST After Parsing\n");
     print_ast(astNode, 0);
+
+    printf("\n");
+    printf("--------------------------------------------\n");
+    printf("Beginning Semantic Analysis\n");
+    printf("--------------------------------------------\n\n\n");
 
     init_global_table();
     AnalyzerContext * ctx = analyzer_context_new();

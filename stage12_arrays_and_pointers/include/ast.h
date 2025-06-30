@@ -125,8 +125,8 @@ typedef struct ASTNode {
         } var_ref;
 
         struct {
-            ASTNode * array_expr;
-            ASTNode * index_expr;
+            ASTNode * base;
+            ASTNode * index;
         } array_access;
 
         struct {

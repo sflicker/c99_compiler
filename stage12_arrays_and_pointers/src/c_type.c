@@ -8,7 +8,7 @@
 
 CType CTYPE_CHAR_T = {
     .kind = CTYPE_CHAR,
-    .base = NULL,
+    .base_type = NULL,
     .size = 1,
     .is_signed = 1,
     .rank = RANK_CHAR,
@@ -17,7 +17,7 @@ CType CTYPE_CHAR_T = {
 
 CType CTYPE_SHORT_T = {
     .kind = CTYPE_SHORT,
-    .base = NULL,
+    .base_type = NULL,
     .size = 2,
     .is_signed = 1,
     .rank = RANK_SHORT,
@@ -26,7 +26,7 @@ CType CTYPE_SHORT_T = {
 
 CType CTYPE_INT_T = {
     .kind = CTYPE_INT,
-    .base = NULL,
+    .base_type = NULL,
     .size = 4,
     .is_signed = 1,
     .rank = RANK_INT,
@@ -35,7 +35,7 @@ CType CTYPE_INT_T = {
 
 CType CTYPE_LONG_T = {
     .kind = CTYPE_LONG,
-    .base = NULL,
+    .base_type = NULL,
     .size = 8,
     .is_signed = 1,
     .rank = RANK_LONG,
@@ -56,7 +56,7 @@ CType * make_int_type(int is_signed) {
 CType *make_pointer_type(CType *base) {
     CType *ptr = make_type();
     ptr->kind = CTYPE_PTR;
-    ptr->base = base;
+    ptr->base_type = base;
     ptr->size = 8;
     return ptr;
 }
@@ -65,7 +65,7 @@ CType * make_array_type(CType * base, int length) {
     CType * ptr = make_type();
     ptr->kind = CTYPE_ARRAY;
     ptr->array_len = length;
-    ptr->base = base;
+    ptr->base_type = base;
     ptr->size = base->size * length;
     return ptr;
 }
@@ -73,7 +73,7 @@ CType * make_array_type(CType * base, int length) {
 CType * make_function_type(CType * return_type, CType_list * param_types) {
     CType * fn = make_type();
     fn->kind = CTYPE_FUNCTION;
-    fn->base = return_type;
+    fn->base_type = return_type;
     fn->param_types = param_types;
     return fn;
 }
@@ -98,7 +98,7 @@ char * ctype_to_string(CType * ctype) {
         case CTYPE_INT: return "int";
         case CTYPE_LONG: return "long";
         case CTYPE_PTR: {
-            char * inner = ctype_to_string(ctype->base);
+            char * inner = ctype_to_string(ctype->base_type);
             size_t len = strlen(inner) + 2;
             char * out = malloc(len + 1);
             snprintf(out, len + 1, "%s*", inner);
@@ -127,7 +127,7 @@ bool ctype_equals(CType * a, CType * b) {
     }
 
     if (a->kind == CTYPE_PTR)
-        return ctype_equals(a->base, b->base);
+        return ctype_equals(a->base_type, b->base_type);
 
     return false;
 }
@@ -137,6 +137,29 @@ bool is_integer_type(CType * ctype) {
             ctype->kind == CTYPE_LONG ||
             ctype->kind == CTYPE_SHORT ||
             ctype->kind == CTYPE_CHAR;
+}
+
+bool is_array_type(CType * ctype) {
+    return ctype->kind == CTYPE_ARRAY;
+}
+
+bool is_function_type(CType * ctype) {
+    return ctype->kind == CTYPE_FUNCTION;
+}
+
+bool is_pointer_type(CType * ctype) {
+    return ctype->kind == CTYPE_PTR;
+}
+
+bool is_signed_type(CType * ctype) {
+    return ctype->is_signed;
+}
+
+CType * decay_if_array(CType * ctype) {
+    if (ctype->kind == CTYPE_ARRAY) {
+        return make_pointer_type(ctype->base_type);
+    }
+    return ctype;
 }
 
 bool type_is_compatible(CType * expected, CType * actual) {
