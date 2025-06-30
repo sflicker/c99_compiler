@@ -100,5 +100,21 @@ int get_offset(EmitterContext * ctx, ASTNode * node) {
     if (node->type == AST_VAR_DECL || node->type == AST_VAR_REF) {
         return node->symbol->info.var.offset;
     }
+    if (node->type == AST_ARRAY_ACCESS) {
+        return node->array_access.base->symbol->info.var.offset +
+            node->array_access.index->ctype->size * node->array_access.index->int_value;
+    }
     return 0;
+}
+
+bool is_global_var(EmitterContext * ctx, ASTNode * node) {
+    Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
+        node->array_access.base->symbol : node->symbol;
+    return symbol->node->var_decl.is_global;
+}
+
+char * get_var_name(EmitterContext * ctx, ASTNode * node) {
+    Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
+        node->array_access.base->symbol : node->symbol;
+    return symbol->name;
 }

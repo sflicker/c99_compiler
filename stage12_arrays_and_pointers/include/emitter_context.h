@@ -51,5 +51,6 @@ void push_loop_context(EmitterContext * ctx, const char * start_label, const cha
 void pop_loop_context(EmitterContext * ctx);
 
 int get_offset(EmitterContext * ctx, ASTNode * node);
-
+bool is_global_var(EmitterContext * ctx, ASTNode * node);
+char * get_var_name(EmitterContext * ctx, ASTNode * node);
 #endif //EMITTER_CONTEXT_H

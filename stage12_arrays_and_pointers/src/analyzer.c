@@ -54,7 +54,7 @@ int astNodeListLength(ASTNode_list * ast_nodes) {
 void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
 
     enter_scope();
-    local_offset = -8;
+    local_offset = 0;
     param_offset = 16;
     function_local_storage = 0;
     Symbol_list * symbol_list = NULL;
@@ -160,7 +160,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 // probably shouldn't be here
             }
             else {
-                symbol->info.var.offset = local_offset;
+                symbol->info.var.offset = local_offset - node->ctype->size;
                 // local_offset -= 8;
                 // function_local_storage += 8;
                 local_offset -= node->ctype->size;

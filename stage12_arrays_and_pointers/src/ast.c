@@ -73,7 +73,10 @@ void free_ast(ASTNode * node) {
         case AST_VAR_REF:
             free(node->var_ref.name);
             break;
-
+        case AST_ARRAY_ACCESS:
+            free_ast(node->array_access.base);
+            free_ast(node->array_access.index);
+            break;
         case AST_LABELED_STMT:
             free(node->labeled_stmt.label);
             free_ast(node->labeled_stmt.stmt);

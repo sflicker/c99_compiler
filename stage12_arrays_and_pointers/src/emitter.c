@@ -23,10 +23,8 @@
 //bool emit_print_int_extension = false;
 
 char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
-    Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
-        node->array_access.base->symbol : node->symbol;
-    if (symbol->node->var_decl.is_global) {
-        const char * name = symbol->name;
+    if (is_global_var(ctx, node)) {
+        const char * name = get_var_name(ctx, node);
         int size = snprintf(NULL, 0, "[rel %s]", name) + 1;
         char * label = malloc(size);
         snprintf(label, size, "[rel %s]", name);
@@ -910,11 +908,16 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_VAR_REF: {
             if (node->symbol->node->var_decl.is_global) {
-            emit_line(ctx, "mov eax, [%s]\n ", node->symbol->name);
+                emit_line(ctx, "mov eax, [%s]\n ", node->symbol->name);
             } else {
                 int offset = node->symbol->info.var.offset;
                 emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
             }
+            break;
+        }
+        case AST_ARRAY_ACCESS: {
+            int offset = get_offset(ctx, node);
+            emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
             break;
         }
         case AST_FOR_STMT:
