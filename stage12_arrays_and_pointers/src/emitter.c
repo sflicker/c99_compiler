@@ -250,6 +250,40 @@ void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node) {
     ctx->emit_print_int_extension = true;
 }
 
+// emit_expr.
+// generate code to eval the expression storing the final result in eax or rax
+void emit_expr(EmitterContext * ctx, ASTNode * node) {
+    switch (node->type) {
+        case AST_INT_LITERAL:
+            emit_line(ctx, "mov eax, %d\n", node->int_value);
+            break;
+        case AST_VAR_REF: {
+            if (node->symbol->node->var_decl.is_global) {
+                emit_line(ctx, "mov eax, [rel %s]\n ", node->symbol->name);
+            } else {
+                int offset = node->symbol->info.var.offset;
+                emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
+            }
+            break;
+        }
+        case AST_UNARY_EXPR:
+            emit_unary(ctx, node);
+            break;
+        case AST_BINARY_EXPR:
+            emit_binary_expr(ctx, node);
+            break;
+        case AST_FUNCTION_CALL:
+            emit_function_call(ctx, node);
+            break;
+
+
+        default:
+            error("Unexpected node type %d\n", get_ast_node_name(node));
+    }
+}
+
+
+
 void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
     switch (node->binary.op) {
         case BINOP_EQ:
@@ -263,9 +297,9 @@ void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
         case BINOP_ADD:
         case BINOP_SUB:
         case BINOP_MUL:
-            emit_tree_node(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
+            emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
             emit_line(ctx, "push rax\n");                     // push lhs result
-            emit_tree_node(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
+            emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
             emit_line(ctx, "pop rcx\n");                      // pop lhs to ECX
             emit_binary_op(ctx, node->binary.op);        // emit proper for op
             break;
@@ -433,7 +467,7 @@ void emit_binary_op(EmitterContext * ctx, BinaryOperator op) {
 void emit_unary(EmitterContext * ctx, ASTNode * node) {
     switch (node->unary.op) {
         case UNARY_NEGATE:
-            emit_tree_node(ctx, node->unary.operand);
+            emit_expr(ctx, node->unary.operand);
             emit_line(ctx, "neg eax\n");
             break;
         case UNARY_PLUS:
@@ -441,7 +475,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             break;
         case UNARY_NOT:
             // !x becomes (x == 0) -> 1 else 0
-            emit_tree_node(ctx, node->unary.operand);
+            emit_expr(ctx, node->unary.operand);
             emit_line(ctx, "cmp eax, 0\n");
             emit_line(ctx, "sete al\n");
             emit_line(ctx, "movzx eax, al\n");
@@ -707,7 +741,7 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
         // loop through in reverse order pushing arguments to the stack
         for (int i = node->function_call.arg_list->count - 1; i >= 0; i--) {
             ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
-            emit_tree_node(ctx, argNode);
+            emit_expr(ctx, argNode);
             emit_line(ctx, "push rax\n");
             arg_count++;
         }
@@ -859,7 +893,8 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             }
             break;
         case AST_FUNCTION_CALL:
-            emit_function_call(ctx, node);
+            emit_expr(ctx, node);
+//            emit_function_call(ctx, node);
             break;
         case AST_EXPRESSION_STMT:
             emit_tree_node(ctx, node->expr_stmt.expr);
@@ -896,23 +931,27 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             break;
 
         case AST_BINARY_EXPR:
-            emit_binary_expr(ctx, node);
+            emit_expr(ctx, node);
+//            emit_binary_expr(ctx, node);
             break;
 
         case AST_UNARY_EXPR:
-            emit_unary(ctx, node);
+            emit_expr(ctx, node);
+//            emit_unary(ctx, node);
             break;
 
         case AST_INT_LITERAL:
-            emit_line(ctx, "mov eax, %d\n", node->int_value);
+            emit_expr(ctx, node);
+//            emit_line(ctx, "mov eax, %d\n", node->int_value);
             break;
         case AST_VAR_REF: {
-            if (node->symbol->node->var_decl.is_global) {
-                emit_line(ctx, "mov eax, [%s]\n ", node->symbol->name);
-            } else {
-                int offset = node->symbol->info.var.offset;
-                emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
-            }
+            emit_expr(ctx, node);
+            // if (node->symbol->node->var_decl.is_global) {
+            //     emit_line(ctx, "mov eax, [%s]\n ", node->symbol->name);
+            // } else {
+            //     int offset = node->symbol->info.var.offset;
+            //     emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
+            // }
             break;
         }
         case AST_ARRAY_ACCESS: {
