@@ -275,8 +275,10 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
         case AST_FUNCTION_CALL:
             emit_function_call(ctx, node);
             break;
-
-
+        case AST_ARRAY_ACCESS:
+            emit_addr(ctx, node);
+            emit_line(ctx, "mov eax, [rcx]\n");
+            break;
         default:
             error("Unexpected node type %d\n", get_ast_node_name(node));
     }
@@ -289,20 +291,24 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             char * label = create_variable_reference(ctx, node);
             emit_line(ctx, "lea rcx, %s\n", label);
 
-            //
-            // Symbol * sym = node->symbol;
-            //
-            //
-            // if (sym->storage == STORAGE_LOCAL) {
-            //     char * label = create_variable_reference(ctx, node);
-            //     emit_line(ctx, "lea rcx, %s\n", label);
-            // }
-            // else if (sym->storage == STORAGE_ARGUMENT) {
-            //     emit_line(ctx, "lea rcx, [rbp + %d]\n", sym->info.var.offset);
-            // }
-            // else if (sym->storage == STORAGE_GLOBAL) {
-            //     emit_line(ctx, "lea rcx, [rel %s]\n", sym->name);
-            // }
+            break;
+        }
+        case AST_ARRAY_ACCESS: {
+            ASTNode * base = node->array_access.base;
+            Symbol * symbol = base->symbol;
+            if (is_global_var(ctx, node)) {
+                emit_line(ctx, "lea rcx [rel %s]\n", symbol->name);
+            }
+            else {
+                int offset = get_offset(ctx, base);
+                emit_line(ctx, "lea rcx , [rbp%+d]\n", offset);
+            }
+
+            emit_expr(ctx, node->array_access.index);
+
+            int elem_size = 4;
+            emit_line(ctx, "imul rax, rax, %d\n", elem_size);
+            emit_line(ctx, "add rcx, rax\n");
             break;
         }
         default:
@@ -919,7 +925,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_var_declaration(ctx, node);
             break;
         case AST_RETURN_STMT:
-            emit_tree_node(ctx, node->return_stmt.expr);
+            emit_expr(ctx, node->return_stmt.expr);
             if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
                 emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
             }
