@@ -282,7 +282,34 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
     }
 }
 
+void emit_addr(EmitterContext * ctx, ASTNode * node) {
+    switch (node->type) {
+        case AST_VAR_REF: {
 
+            char * label = create_variable_reference(ctx, node);
+            emit_line(ctx, "lea rcx, %s\n", label);
+
+            //
+            // Symbol * sym = node->symbol;
+            //
+            //
+            // if (sym->storage == STORAGE_LOCAL) {
+            //     char * label = create_variable_reference(ctx, node);
+            //     emit_line(ctx, "lea rcx, %s\n", label);
+            // }
+            // else if (sym->storage == STORAGE_ARGUMENT) {
+            //     emit_line(ctx, "lea rcx, [rbp + %d]\n", sym->info.var.offset);
+            // }
+            // else if (sym->storage == STORAGE_GLOBAL) {
+            //     emit_line(ctx, "lea rcx, [rel %s]\n", sym->name);
+            // }
+            break;
+        }
+        default:
+            error("Unexpected node type %s\n", get_ast_node_name(node));
+
+    }
+}
 
 void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
     switch (node->binary.op) {
@@ -633,9 +660,14 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_assignment(EmitterContext * ctx, ASTNode* node) {
-    emit_tree_node(ctx, node->binary.rhs);
-    char * reference_label = create_variable_reference(ctx, node->binary.lhs);
-    emit_line(ctx, "mov %s, eax\n", reference_label);
+    // emit_tree_node(ctx, node->binary.rhs);
+    // char * reference_label = create_variable_reference(ctx, node->binary.lhs);
+    // emit_line(ctx, "mov %s, eax\n", reference_label);
+    emit_expr(ctx, node->binary.rhs);
+    emit_line(ctx, "push rax\n");
+    emit_addr(ctx, node->binary.lhs);
+    emit_line(ctx, "pop rax\n");
+    emit_line(ctx, "mov [rcx], eax\n");
 }
 
 void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {

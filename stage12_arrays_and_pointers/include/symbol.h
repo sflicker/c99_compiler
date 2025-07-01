@@ -11,9 +11,16 @@ typedef enum {
     SYMBOL_FUNC
 } SymbolKind;
 
+typedef enum {
+    STORAGE_LOCAL,
+    STORAGE_GLOBAL,
+    STORAGE_ARGUMENT
+} StorageKind;
+
 typedef struct Symbol {
     char * name;
     SymbolKind kind;
+    StorageKind storage;
     CType * ctype;
     ASTNode * node;
 
