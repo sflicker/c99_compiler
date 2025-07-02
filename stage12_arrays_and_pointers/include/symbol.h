@@ -5,10 +5,12 @@
 #ifndef SYMBOL_H
 #define SYMBOL_H
 #include "c_type.h"
+#define MAX_DIMENSIONS 8
 
 typedef enum {
     SYMBOL_VAR,
-    SYMBOL_FUNC
+    SYMBOL_FUNC,
+    SYMBOL_ARRAY
 } SymbolKind;
 
 typedef enum {
@@ -16,6 +18,8 @@ typedef enum {
     STORAGE_GLOBAL,
     STORAGE_ARGUMENT
 } StorageKind;
+
+
 
 typedef struct Symbol {
     char * name;
@@ -34,6 +38,12 @@ typedef struct Symbol {
             int num_params;
             Symbol_list * params_symbol_list;
         } func;
+
+        struct {
+            int offset;
+            int dimensions[MAX_DIMENSIONS];
+            int num_dimensions;
+        } array;
     } info;
 } Symbol;
 

@@ -284,6 +284,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
     }
 }
 
+
 void emit_addr(EmitterContext * ctx, ASTNode * node) {
     switch (node->type) {
         case AST_VAR_REF: {
@@ -294,21 +295,55 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             break;
         }
         case AST_ARRAY_ACCESS: {
-            ASTNode * base = node->array_access.base;
-            Symbol * symbol = base->symbol;
+            ASTNode * indices[MAX_DIMENSIONS];
+            int index_count = 0;
+            Symbol *base_symbol = NULL;
+            ASTNode * current = node;
+
+            while (current->type == AST_ARRAY_ACCESS) {
+                if (index_count >= MAX_DIMENSIONS) {
+                    error("Too many array accesses\n");
+                }
+
+                indices[index_count++] = current->array_access.index;
+                current = current->array_access.base;
+            }
+
+            base_symbol = current->symbol;
+
+            for (int i=0;i<index_count;i++) {
+                emit_expr(ctx, indices[i]);
+                if (i == 0) {
+                    emit_line(ctx, "mov rbx, rax\n");
+                }
+                else {
+                    int multiplier = 1;
+                    for (int j=i;j<index_count;j++) {
+                        multiplier *= base_symbol->info.array.dimensions[j];
+                    }
+                    emit_line(ctx, "imul rax, rax, %d\n", multiplier);
+                    emit_line(ctx, "add rbx, rax\n");
+                }
+            }
+
+            int elem_size = 4;  // int
+            emit_line(ctx, "imul rbx, rbx, %d\n", elem_size);
+            // ASTNode * base = node->array_access.base;
+            // Symbol * symbol = base->symbol;
             if (is_global_var(ctx, node)) {
-                emit_line(ctx, "lea rcx [rel %s]\n", symbol->name);
+                emit_line(ctx, "lea rcx [rel %s]\n", base_symbol->name);
             }
             else {
-                int offset = get_offset(ctx, base);
+                int offset = get_offset(ctx, node->array_access.base);
                 emit_line(ctx, "lea rcx , [rbp%+d]\n", offset);
             }
 
-            emit_expr(ctx, node->array_access.index);
-
-            int elem_size = 4;
-            emit_line(ctx, "imul rax, rax, %d\n", elem_size);
-            emit_line(ctx, "add rcx, rax\n");
+            emit_line(ctx, "add rcx, rbx\n");
+            // emit_expr(ctx, node->array_access.index);
+            //
+            // int elem_size = 4;
+            // emit_line(ctx, "imul rax, rax, %d\n", elem_size);
+            // emit_line(ctx, "add rcx, rax\n");
             break;
         }
         default:
@@ -969,27 +1004,10 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             break;
 
         case AST_BINARY_EXPR:
-            emit_expr(ctx, node);
-//            emit_binary_expr(ctx, node);
-            break;
-
         case AST_UNARY_EXPR:
-            emit_expr(ctx, node);
-//            emit_unary(ctx, node);
-            break;
-
         case AST_INT_LITERAL:
-            emit_expr(ctx, node);
-//            emit_line(ctx, "mov eax, %d\n", node->int_value);
-            break;
         case AST_VAR_REF: {
             emit_expr(ctx, node);
-            // if (node->symbol->node->var_decl.is_global) {
-            //     emit_line(ctx, "mov eax, [%s]\n ", node->symbol->name);
-            // } else {
-            //     int offset = node->symbol->info.var.offset;
-            //     emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
-            // }
             break;
         }
         case AST_ARRAY_ACCESS: {
