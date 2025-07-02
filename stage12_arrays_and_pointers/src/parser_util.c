@@ -46,6 +46,20 @@ ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
     return node;
 }
 
+ASTNode * create_initializer_list(ASTNode_list * list) {
+    ASTNode * node = create_ast();
+    node->type = AST_INITIALIZER_LIST;
+    node->initializer_list.items = list;
+    node->symbol = NULL;
+    if (list->count > 0) {
+        node->ctype = make_array_type(list->head->value->ctype, list->count);
+    }
+    else {
+        node->ctype = NULL;
+    }
+    return node;
+}
+
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok) {
     switch (tok) {
         case TOKEN_PLUS: return BINOP_ADD;

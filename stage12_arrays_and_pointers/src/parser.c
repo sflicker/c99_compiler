@@ -518,16 +518,44 @@ ASTNode*  parse_var_declaration(ParserContext * parserContext) {
     CType * full_type = parse_declarator(parserContext, ctype, &name, NULL, NULL);
 
 //    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
-    ASTNode * expr = NULL;
+    ASTNode * init_expr = NULL;
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
         advance_parser(parserContext);
-        expr = parse_expression(parserContext);
+
+        if (is_current_token(parserContext, TOKEN_LBRACE)) {
+            init_expr = parse_initializer_list(parserContext);
+        }
+        else {
+            init_expr = parse_expression(parserContext);
+        }
     }
     expect_token(parserContext, TOKEN_SEMICOLON);
 
-    ASTNode * node = create_var_decl_node(name, full_type, expr);
+    ASTNode * node = create_var_decl_node(name, full_type, init_expr);
 
     return node;
+}
+
+ASTNode * parse_initializer_list(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_LBRACE);
+
+    ASTNode_list * items = create_node_list();
+
+    while (!is_current_token(parserContext, TOKEN_RBRACE)) {
+        ASTNode * item = parse_expression(parserContext);
+        ASTNode_list_append(items, item);
+
+        if (is_current_token(parserContext, TOKEN_COMMA)) {
+            advance_parser(parserContext);
+        }
+        else {
+            break;
+        }
+    }
+
+    expect_token(parserContext, TOKEN_RBRACE);
+
+    return create_initializer_list(items);
 }
 
 ASTNode * parse_if_statement(ParserContext * parserContext) {

@@ -29,6 +29,7 @@ ASTNode * create_expression_statement_node(ASTNode * expr);
 ASTNode * create_block_node(ASTNode_list * stmts);
 ASTNode * create_cast_expr_node(CType * target_type, ASTNode * expr);
 ASTNode * create_array_access_node(ASTNode * arrayNode, ASTNode * index);
+ASTNode * create_initializer_list(ASTNode_list * list);
 ASTNode * create_print_extension_node(ASTNode * expr);
 ASTNode * create_assert_extension_node(ASTNode * expr);
 

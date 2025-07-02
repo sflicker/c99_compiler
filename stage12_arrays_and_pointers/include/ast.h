@@ -79,6 +79,7 @@ typedef enum {
     AST_UNARY_EXPR,
     AST_CAST_EXPR,
     AST_ARRAY_ACCESS,
+    AST_INITIALIZER_LIST,
     AST_ASSERT_EXTENSION_STATEMENT,
     AST_PRINT_EXTENSION_STATEMENT
 } ASTNodeType;
@@ -195,6 +196,10 @@ typedef struct ASTNode {
             CType * target_type;
             ASTNode * expr;
         } cast_expr;
+
+        struct {
+            ASTNode_list * items;
+        } initializer_list;
     };
 } ASTNode;
 

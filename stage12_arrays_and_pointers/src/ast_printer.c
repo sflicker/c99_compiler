@@ -171,6 +171,10 @@ void print_ast(ASTNode * node, int indent) {
             print_indent(indent+1); printf("IndexExpression:\n");
             print_ast(node->array_access.index, indent+2);
             break;
+        case AST_INITIALIZER_LIST:
+           printf("InitializerList:\n");
+            // TODO
+            break;
         default:        
             error("Unknown AST Node Type: %d\n", node->type);
             break;

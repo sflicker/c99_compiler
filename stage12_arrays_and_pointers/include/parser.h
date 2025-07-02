@@ -44,6 +44,7 @@ ASTNode * parse_constant_expression(ParserContext * parserContext);
 ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
 ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 ASTNode * parse_constant_expression(ParserContext * parserContext);
+ASTNode * parse_initializer_list(ParserContext * parserContext);
 
 CType_list * parse_parameter_type_list(ParserContext * ctx, ASTNode_list ** out_params);
 

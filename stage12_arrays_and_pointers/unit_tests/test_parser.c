@@ -1023,6 +1023,17 @@ void test_declarator__function_with_pointer_return() {
     TEST_ASSERT("Verify return_type.base has int kind", return_type->base_type->kind == CTYPE_INT);
     TEST_ASSERT("Verify Correct name", strcmp("myfunc", name) == 0);
 
+
+}
+
+void test_array_with_initializer() {
+    tokenlist * tokens = tokenize("{ int a[3] = {2, 4, 6}; }");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * astNode = parse_block(ctx);
+
+    print_ast(astNode, 0);
+
 }
 
 int main() {
@@ -1076,5 +1087,6 @@ int main() {
     RUN_TEST(test_declarator__scalar_var_pointer_to_pointer);
     RUN_TEST(test_declarator__array_of_int_pointers);
     RUN_TEST(test_declarator__function_with_pointer_return);
+    RUN_TEST(test_array_with_initializer);
 
 }
