@@ -109,4 +109,8 @@ DEFINE_LINKED_LIST(Symbol*, Symbol_list);
 
 void reverse_ASTNode_list(ASTNode_list * list);
 
+typedef struct ParamInfo ParamInfo;
+
+DEFINE_LINKED_LIST(ParamInfo*, ParamInfo_list);
+
 #endif // LIST_UTIL_H

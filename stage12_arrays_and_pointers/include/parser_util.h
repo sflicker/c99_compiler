@@ -3,6 +3,8 @@
 #include "ast.h"
 #include "parser_context.h"
 
+
+
 ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals);
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand);
 ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator  op, ASTNode *rhs);
@@ -23,7 +25,7 @@ ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_
 ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
             ASTNode * update_expr, ASTNode * body);
 ASTNode * create_function_declaration_node(const char * name, CType * returnType,
-        ASTNode_list * param_list, CType * func_type, ASTNode * body, bool declaration_only);
+        ASTNode_list * param_list, ASTNode * body, bool declaration_only);
 ASTNode * create_return_statement_node(ASTNode * expr);
 ASTNode * create_expression_statement_node(ASTNode * expr);
 ASTNode * create_block_node(ASTNode_list * stmts);
@@ -38,5 +40,6 @@ ASTNode_list * create_node_list();
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
 CType * get_ctype_from_token(Token* token);
+
 
 #endif

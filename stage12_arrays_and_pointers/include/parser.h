@@ -11,12 +11,28 @@
 //void initialize_parser(ParserContext * parserContext, TokenList * tokenList);
 //ASTNode* parse(ParserContext * parserContext);
 
+typedef struct ParamInfo {
+    char * name;
+    CType * type;
+    ASTNode * astNode;
+} ParamInfo;
+
+typedef struct Declarator {
+    char * name;
+    CType * type;
+    ASTNode_list * param_list;
+} Declarator;
+
+
+void free_param_info(ParamInfo * param_info);
+
+CType_list * get_ctype_list(ParamInfo_list * param_list);
 ASTNode * parse(tokenlist * tokenList);
 ASTNode * parse_translation_unit(ParserContext * parserContext);
 ASTNode * parse_external_declaration(ParserContext * parserContext);
 //ASTNode * parse_function(ParserContext * parserContext);
-ASTNode * parse_function_with_type(ParserContext * parserContext, CType * ctype);
-ASTNode*  parse_global_var_decl(ParserContext * parserContext, CType * ctype);
+ASTNode * parse_function_definition(ParserContext * parserContext, CType * ctype, ASTNode_list * param_list);
+ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, char * name);
 ASTNode * parse_statement(ParserContext* parserContext);
 ASTNode * parse_return_statement(ParserContext * parserContext);
 ASTNode * parse_block(ParserContext* parserContext);
@@ -33,7 +49,7 @@ ASTNode * parse_postfix_expression(ParserContext * parserContext);
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_constant_expression(ParserContext * parserContext);
 ASTNode * parse_primary(ParserContext * parserContext);
-ASTNode * parse_var_declaration(ParserContext * parserContext);
+ASTNode * parse_local_declaration(ParserContext * parserContext);
 ASTNode * parse_assignment_statement(ParserContext * parserContext);
 ASTNode * parse_while_statement(ParserContext * parserContext);
 ASTNode * parse_for_statement(ParserContext * parserContext);
@@ -46,10 +62,10 @@ ASTNode * parse_print_extension_statement(ParserContext * parserContext);
 ASTNode * parse_constant_expression(ParserContext * parserContext);
 ASTNode * parse_initializer_list(ParserContext * parserContext);
 
-CType_list * parse_parameter_type_list(ParserContext * ctx, ASTNode_list ** out_params);
+ParamInfo_list * parse_parameter_type_list(ParserContext * ctx/*, ASTNode_list ** out_params*/);
 
 CType * parse_type_specifier(ParserContext * ctx);
-CType * parse_declarator(ParserContext * ctx, CType * base_type, char **out_name,
-    ASTNode_list ** out_params, CType ** func_type);
+Declarator * parse_declarator(ParserContext * ctx, CType * base_type /*, char **out_name ,
+    ASTNode_list ** out_params, CType ** func_type*/ );
 
 #endif

@@ -191,7 +191,7 @@ ASTNode * create_int_literal_node(int value) {
 }
 
 ASTNode * create_function_declaration_node(const char * name, CType * returnType,
-        ASTNode_list * param_list, CType * func_type, ASTNode * body, bool declaration_only) {
+        ASTNode_list * param_list, ASTNode * body, bool declaration_only) {
     ASTNode * func = create_ast();
     func->symbol = NULL;
     func->type = AST_FUNCTION_DECL;
@@ -199,7 +199,7 @@ ASTNode * create_function_declaration_node(const char * name, CType * returnType
     func->ctype = returnType;
     func->function_decl.body = body;
     func->function_decl.param_list = param_list;
-    func->function_decl.func_type = func_type;
+//    func->function_decl.func_type = func_type;
     func->function_decl.declaration_only = declaration_only;
     if (func->function_decl.body != NULL) {
         func->function_decl.body->block.introduce_scope = false;
@@ -343,4 +343,5 @@ CType * get_ctype_from_token(Token* token) {
     }
     return NULL;
 }
+
 

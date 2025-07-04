@@ -22,7 +22,7 @@ void test_create_translation_unit_node() {
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * func = create_function_declaration_node("main", &CTYPE_INT_T, NULL, NULL, body, false);
+    ASTNode * func = create_function_declaration_node("main", &CTYPE_INT_T, NULL, body, false);
 
     ASTNode_list * functions = create_node_list();
     ASTNode_list_append(functions, func);
@@ -308,7 +308,7 @@ void test_create_function_declaration_node__declaration_only() {
     ASTNode * body = NULL;
     bool declaration_only = true;
 
-    ASTNode * node = create_function_declaration_node(label, &ctype, param_list, func_type, body, declaration_only);
+    ASTNode * node = create_function_declaration_node(label, &ctype, param_list, body, declaration_only);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
@@ -327,7 +327,7 @@ void test_create_function_declaration_node__with_body() {
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, NULL, NULL, body, false);
+    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, NULL, body, false);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
@@ -353,7 +353,7 @@ void test_create_function_declaration_node__with_body_and_param_list() {
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, param_list, NULL, body, false);
+    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, param_list, NULL, false);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
