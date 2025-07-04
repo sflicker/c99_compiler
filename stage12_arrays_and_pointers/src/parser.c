@@ -18,12 +18,13 @@
 
    Simplified grammar
 
-   <translation-unit>       ::= <external-declaration>
+   <translation-unit>  ::= <external-declaration>
+                         | <translation-unit> <external-declaration>
 
-   <external-declaration>   ::= <function>
+   <external-declaration>   ::= <function-definition>
                                | <global_variable_declaration>
 
-   <function> ::= <type-specifier> <identifier> "(" <parameter_list>* ")"
+   <function-definition> ::= <type-specifier> <identifier> "(" <parameter_list>* ")"
                 [ <block> | ";" ]
 
    <global_variable_declaration> ::= <var_declaration>

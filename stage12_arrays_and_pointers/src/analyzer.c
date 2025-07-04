@@ -288,6 +288,11 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->ctype = base_type->base_type;
             break;
 
+        case AST_INITIALIZER_LIST:
+            // TODO
+            break;
+
+
         case AST_EXPRESSION_STMT:
         case AST_ASSERT_EXTENSION_STATEMENT:
         case AST_PRINT_EXTENSION_STATEMENT:

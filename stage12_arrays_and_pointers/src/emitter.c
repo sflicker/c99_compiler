@@ -673,7 +673,8 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx,  "mov rbp, rsp\n");
 
     if (local_space > 0) {
-        emit_line(ctx, "sub rsp, %d\n", local_space);
+        int aligned_space = (local_space + 15) & ~15;
+        emit_line(ctx, "sub rsp, %d\n", aligned_space);
     }
 
     if (node->function_decl.param_list) {
@@ -694,9 +695,30 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
 
 void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
     if (node->var_decl.init_expr) {
-        char * reference_label = create_variable_reference(ctx, node);
-        emit_tree_node(ctx, node->var_decl.init_expr);
-        emit_line(ctx, "mov %s, eax\n", reference_label);
+        if (node->var_decl.init_expr->type == AST_INITIALIZER_LIST) {
+            Symbol * symbol = node->symbol;
+            ASTNode_list * init_items = node->var_decl.init_expr->initializer_list.items;
+            for (int i=0;i<init_items->count;i++) {
+                ASTNode * init_value = ASTNode_list_get(init_items, i);
+                emit_expr(ctx, init_value);
+                emit_line(ctx, "push rax\n");
+                emit_addr(ctx, node->array_access.base);
+//                int offset = symbol->info.array.offset - i*4;
+//                emit_line(ctx, "lea rcx, [rbp%+d]\n", offset);
+                emit_line(ctx, "pop rax\n");
+                emit_line(ctx, "mov [rcx], eax\n");
+            }
+        }
+        else {
+            emit_expr(ctx, node->var_decl.init_expr);
+            emit_line(ctx, "push rax\n");
+            emit_addr(ctx, node);
+            emit_line(ctx, "pop rax\n");
+            emit_line(ctx, "mov [rcp], eax\n");
+        }
+        // char * reference_label = create_variable_reference(ctx, node);
+        // emit_tree_node(ctx, node->var_decl.init_expr);
+        // emit_line(ctx, "mov %s, eax\n", reference_label);
     }
 }
 
@@ -1013,6 +1035,12 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_ARRAY_ACCESS: {
             int offset = get_offset(ctx, node);
             emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
+            break;
+        }
+        case AST_INITIALIZER_LIST: {
+            for (int i=0; i<node->initializer_list.items->count;i++) {
+
+            }
             break;
         }
         case AST_FOR_STMT:
