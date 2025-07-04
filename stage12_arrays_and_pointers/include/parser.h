@@ -31,7 +31,7 @@ ASTNode * parse(tokenlist * tokenList);
 ASTNode * parse_translation_unit(ParserContext * parserContext);
 ASTNode * parse_external_declaration(ParserContext * parserContext);
 //ASTNode * parse_function(ParserContext * parserContext);
-ASTNode * parse_function_definition(ParserContext * parserContext, CType * ctype, ASTNode_list * param_list);
+ASTNode * parse_function_definition(ParserContext * parserContext, char * name, CType * ctype, ASTNode_list * param_list);
 ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, char * name);
 ASTNode * parse_statement(ParserContext* parserContext);
 ASTNode * parse_return_statement(ParserContext * parserContext);

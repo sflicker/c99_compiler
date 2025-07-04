@@ -165,7 +165,7 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
 //        Token * after = peek_next(parserContext);
 
         if (is_current_token(parserContext, TOKEN_LBRACE)) {
-            return parse_function_definition(parserContext, declarator->type, declarator->param_list);
+            return parse_function_definition(parserContext, declarator->name, declarator->type, declarator->param_list);
         }
         ASTNode * declaration = parse_declaration_tail(parserContext, declarator->type, declarator->name);
         declaration->var_decl.is_global = true;
@@ -321,9 +321,9 @@ CType * parse_type_specifier(ParserContext * ctx) {
 }
 
 
-ASTNode * parse_function_definition(ParserContext * parserContext, CType * full_type, ASTNode_list * params) {
+ASTNode * parse_function_definition(ParserContext * parserContext, char * name, CType * full_type, ASTNode_list * params) {
 
-    char * name = NULL;
+//    char * name = NULL;
 //    ASTNode_list * params = NULL;
 //    CType * func_type = NULL;
 //    CType * full_type = parse_declarator(parserContext, base_type, &name/*, &params, &func_type*/);

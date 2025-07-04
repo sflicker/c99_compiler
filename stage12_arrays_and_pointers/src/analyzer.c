@@ -77,7 +77,7 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
     node->symbol = symbol;
 
     CType * saved = ctx->current_function_return_type;
-    ctx->current_function_return_type = node->ctype;
+    ctx->current_function_return_type = node->ctype->base_type;
     analyze(ctx, node->function_decl.body);
     ctx->current_function_return_type = saved;
     node->function_decl.size = function_local_storage;
