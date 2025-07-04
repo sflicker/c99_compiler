@@ -304,7 +304,7 @@ void test_create_function_declaration_node__declaration_only() {
     const char * label = "myfunc";
     CType ctype = CTYPE_INT_T;
     ASTNode_list * param_list = NULL;
-    CType * func_type = NULL;
+//    CType * func_type = NULL;
     ASTNode * body = NULL;
     bool declaration_only = true;
 
@@ -353,7 +353,7 @@ void test_create_function_declaration_node__with_body_and_param_list() {
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, param_list, NULL, false);
+    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, param_list, body, false);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);

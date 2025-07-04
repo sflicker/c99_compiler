@@ -245,10 +245,10 @@ ParamInfo_list * parse_parameter_type_list(ParserContext * ctx/*, ASTNode_list *
         CType * base_type = parse_type_specifier(ctx);
 
 //        Token * ident = expect_token(ctx, TOKEN_IDENTIFIER);
-        char * out_name;
+//        char * out_name;
         Declarator * declarator = parse_declarator(ctx, base_type /*, &out_name, NULL, NULL*/);
 
-        ASTNode * param = create_var_decl_node(out_name, declarator->type, NULL);
+        ASTNode * param = create_var_decl_node(declarator->name, declarator->type, NULL);
 //        param->ctype = full_type;
 //        param->var_decl.ctype = full_type;
 
@@ -560,10 +560,10 @@ ASTNode * parse_statement(ParserContext* parserContext) {
 ASTNode*  parse_local_declaration(ParserContext * parserContext) {
     CType * base_type = parse_type_specifier(parserContext);
 
-    char * name = NULL;
+//    char * name = NULL;
     Declarator * declarator = parse_declarator(parserContext, base_type/* , &name, NULL, NULL*/);
 
-    return parse_declaration_tail(parserContext, declarator->type, name);
+    return parse_declaration_tail(parserContext, declarator->type, declarator->name);
 //    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     // ASTNode * init_expr = NULL;
     // if (is_current_token(parserContext, TOKEN_ASSIGN)) {

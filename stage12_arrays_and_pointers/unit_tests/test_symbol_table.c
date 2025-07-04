@@ -26,7 +26,7 @@ void test_add_function_symbol__no_args() {
     ASTNode_list * param_nodes = NULL;
 
     ASTNode * funcNode = create_function_declaration_node(func_name, return_type,
-        param_nodes, NULL, NULL, true);
+        param_nodes, NULL, true);
 
     Symbol * function_symbol = create_symbol(func_name, SYMBOL_FUNC, return_type, funcNode);
 
@@ -61,7 +61,7 @@ void test_add_function_symbol__with_args() {
     Symbol * var_b = create_symbol("b", SYMBOL_VAR, &CTYPE_INT_T, param1_node);
 
 
-    ASTNode * node = create_function_declaration_node(func_name, &CTYPE_INT_T, param_list, NULL, body, false);
+    ASTNode * node = create_function_declaration_node(func_name, &CTYPE_INT_T, param_list, body, false);
 
     CTypePtr_list * param_types = malloc(sizeof(CTypePtr_list));
     CTypePtr_list_init(param_types, free_ctype);

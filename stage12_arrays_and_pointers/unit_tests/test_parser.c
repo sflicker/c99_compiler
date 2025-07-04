@@ -824,14 +824,6 @@ void test_for_statement__only_cond() {
 }
 
 void test_for_statement__only_update() {
-    // ASTNode * init_expr = create_var_decl_node(
-    //     "i",
-    //     &CTYPE_INT_T,
-    //     create_int_literal_node(0));
-    // ASTNode * cond_expr = create_binary_node(
-    //     create_var_ref_node("i"),
-    //     BINOP_LT,
-    //     create_int_literal_node(10));
     ASTNode * update_expr = create_unary_node(UNARY_POST_INC,
         create_var_ref_node("i"));
     ASTNode_list * stmts = create_node_list();
@@ -867,16 +859,16 @@ void test_declarator__scalar_var() {
     tokenlist * tokens = tokenize("int a");
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
+//    char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
     printf("BaseType\n");
     print_c_type(base_type, 0);
-    Declarator * declarator = parse_declarator(ctx, base_type/* , &name/*, NULL, NULL*/);
+    Declarator * declarator = parse_declarator(ctx, base_type/* , &name, NULL, NULL*/);
     printf("FullType\n");
     print_c_type(declarator->type, 0);
 
     TEST_ASSERT("Verify base_type and full_type are the same", ctype_equals(base_type, declarator->type));
-    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
 }
 
 void test_declarator__array_var() {
@@ -884,12 +876,11 @@ void test_declarator__array_var() {
 
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
-    Declarator * declarator = parse_declarator(ctx, base_type /*, &name/*, NULL, NULL*/);
+    Declarator * declarator = parse_declarator(ctx, base_type /*, &name, NULL, NULL*/);
 
     TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, declarator->type));
-    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
     TEST_ASSERT("Verify full_type has Array kind", declarator->type->kind == CTYPE_ARRAY);
     TEST_ASSERT("Verify full_type has Array len of 10", declarator->type->array_len == 10);
     TEST_ASSERT("Verify full_type has Array size of 40", declarator->type->size == 40);
@@ -902,14 +893,13 @@ void test_declarator__array_multi_var() {
 
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
     print_c_type(base_type, 0);
-    Declarator * declarator = parse_declarator(ctx, base_type /*, &name/*, NULL, NULL*/);
+    Declarator * declarator = parse_declarator(ctx, base_type /*, &name, NULL, NULL*/);
     print_c_type(declarator->type, 0);
 
     TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, declarator->type));
-    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
     TEST_ASSERT("Verify full_type has Array kind", declarator->type->kind == CTYPE_ARRAY);
     TEST_ASSERT("Verify full_type has Array base_type", declarator->type->base_type->kind == CTYPE_ARRAY);
     TEST_ASSERT("Verify full_type.base.base has int_type", declarator->type->base_type->base_type->kind == CTYPE_INT);
@@ -921,15 +911,12 @@ void test_declarator__function_no_args() {
 
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
-    // ASTNode_list * params = NULL;
-    // CType * func_type = NULL;
     CType * base_type = parse_type_specifier(ctx);
-    Declarator * declarator = parse_declarator(ctx, base_type /*, &name/*, &params, &func_type*/);
+    Declarator * declarator = parse_declarator(ctx, base_type /*, &name, &params, &func_type*/);
 
     TEST_ASSERT("Verify base_type and return_type.base_type are the same", ctype_equals(base_type, declarator->type->base_type));
     TEST_ASSERT("Verify full_type has the correct kind", declarator->type->kind == CTYPE_FUNCTION);
-    TEST_ASSERT("Verify Correct name", strcmp("main", name) == 0);
+    TEST_ASSERT("Verify Correct name", strcmp("main", declarator->name) == 0);
 
 }
 
@@ -938,14 +925,11 @@ void test_declarator__function_with_body_but_no_args() {
 
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
-    // ASTNode_list * params = NULL;
-    // CType * func_type = NULL;
     CType * base_type = parse_type_specifier(ctx);
-    Declarator * declarator = parse_declarator(ctx, base_type/*, &name/*, &params, &func_type*/);
+    Declarator * declarator = parse_declarator(ctx, base_type/*, &name, &params, &func_type*/);
 
     TEST_ASSERT("Verify base_type and full_type.base_type are the same", ctype_equals(base_type, declarator->type->base_type));
-    TEST_ASSERT("Verify Correct name", strcmp("main", name) == 0);
+    TEST_ASSERT("Verify Correct name", strcmp("main", declarator->name) == 0);
     TEST_ASSERT("Verify full_type has the correct kind", declarator->type->kind == CTYPE_FUNCTION);
     TEST_ASSERT("Verify current char is {", is_current_token(ctx, TOKEN_LBRACE));
 }
@@ -954,14 +938,13 @@ void test_declarator__scalar_var_pointer() {
     tokenlist * tokens = tokenize("int * a");
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
-    Declarator * declarator = parse_declarator(ctx, base_type/*, &name/*, NULL, NULL*/);
+    Declarator * declarator = parse_declarator(ctx, base_type/*, &name, NULL, NULL*/);
 
     TEST_ASSERT("Verify base_type and full_type not are the same", !ctype_equals(base_type, declarator->type));
     TEST_ASSERT("Verify full_type has pointer kind", declarator->type->kind == CTYPE_PTR);
     TEST_ASSERT("Verify full_type.base_type is base_type", ctype_equals(declarator->type->base_type, base_type));
-    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
 
 }
 
@@ -969,11 +952,10 @@ void test_declarator__scalar_var_pointer_to_pointer() {
     tokenlist * tokens = tokenize("int ** a");
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
     printf("BaseType:\n");
     print_c_type(base_type, 0);
-    Declarator * declarator = parse_declarator(ctx, base_type/*, &name/*, NULL, NULL*/);
+    Declarator * declarator = parse_declarator(ctx, base_type/*, &name, NULL, NULL*/);
     printf("FullType:\n");
     print_c_type(declarator->type, 0);
 
@@ -981,7 +963,7 @@ void test_declarator__scalar_var_pointer_to_pointer() {
     TEST_ASSERT("Verify full_type has pointer kind", declarator->type->kind == CTYPE_PTR);
     TEST_ASSERT("Verity full_type base has pointer kind", declarator->type->base_type->kind == CTYPE_PTR);
     TEST_ASSERT("Verify full_type.base_type.base_type is base_type", ctype_equals(declarator->type->base_type->base_type, base_type));
-    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
 
 }
 
@@ -990,7 +972,6 @@ void test_declarator__array_of_int_pointers() {
 
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
     CType * base_type = parse_type_specifier(ctx);
     printf("BaseType:\n");
     print_c_type(base_type, 0);
@@ -1002,7 +983,7 @@ void test_declarator__array_of_int_pointers() {
     TEST_ASSERT("Verify full_type has array kind", declarator->type->kind == CTYPE_ARRAY);
     TEST_ASSERT("Verity full_type.base has pointer kind", declarator->type->base_type->kind == CTYPE_PTR);
     TEST_ASSERT("Verify full_type.base_type.base_type is int", declarator->type->base_type->base_type->kind == CTYPE_INT);
-    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
 
 }
 
@@ -1011,9 +992,6 @@ void test_declarator__function_with_pointer_return() {
 
     ParserContext * ctx = create_parser_context(tokens);
 
-    char * name = NULL;
-    // ASTNode_list * params = NULL;
-    // CType * func_type = NULL;
     CType * base_type = parse_type_specifier(ctx);
     Declarator * declarator = parse_declarator(ctx, base_type /*, &name, &params, &func_type*/);
 
@@ -1022,8 +1000,7 @@ void test_declarator__function_with_pointer_return() {
     TEST_ASSERT("Verify return_type has function kind", declarator->type->kind == CTYPE_FUNCTION);
     TEST_ASSERT("Verify return_type.base_type has pointer kind", declarator->type->base_type->kind == CTYPE_PTR);
     TEST_ASSERT("Verify return_type.base.base has int kind", declarator->type->base_type->base_type->kind == CTYPE_INT);
-    TEST_ASSERT("Verify Correct name", strcmp("myfunc", name) == 0);
-
+    TEST_ASSERT("Verify Correct name", strcmp("myfunc", declarator->name) == 0);
 
 }
 
