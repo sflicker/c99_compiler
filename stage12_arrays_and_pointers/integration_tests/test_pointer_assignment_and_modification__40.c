@@ -9,5 +9,6 @@ int main() {
     *p = *p + 5;      // x = 15
     p = &y;
     *p = *p + 5;      // y = 25
-    return x + y;   // 40
+    return x + y;     // 40
 }
+
