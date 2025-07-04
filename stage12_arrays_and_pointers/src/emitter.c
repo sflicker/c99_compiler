@@ -287,6 +287,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
 
 void emit_addr(EmitterContext * ctx, ASTNode * node) {
     switch (node->type) {
+        case AST_VAR_DECL:
         case AST_VAR_REF: {
 
             char * label = create_variable_reference(ctx, node);
@@ -714,7 +715,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "push rax\n");
             emit_addr(ctx, node);
             emit_line(ctx, "pop rax\n");
-            emit_line(ctx, "mov [rcp], eax\n");
+            emit_line(ctx, "mov [rcx], eax\n");
         }
         // char * reference_label = create_variable_reference(ctx, node);
         // emit_tree_node(ctx, node->var_decl.init_expr);
