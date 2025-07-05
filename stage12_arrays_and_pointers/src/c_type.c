@@ -88,25 +88,83 @@ int sizeof_ctype(CType * ctype) {
     return ctype->size;
 }
 
-char * ctype_to_string(CType * ctype) {
-
-    if (!ctype) return strdup("<null>");
+void ctype_to_description(CType * ctype, char * buf, size_t buflen) {
+    if (!ctype) {
+        snprintf(buf, buflen, "<null>");
+        return;
+    }
 
     switch(ctype->kind) {
-        case CTYPE_CHAR: return strdup("char");
-        case CTYPE_SHORT: return "short";
-        case CTYPE_INT: return "int";
-        case CTYPE_LONG: return "long";
+        case CTYPE_CHAR:
+            strncat(buf, "char", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_SHORT:
+            strncat(buf, "short", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_INT:
+            strncat(buf, "int", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_LONG:
+            strncat(buf, "long", buflen - strlen(buf) - 1);
+            break;
         case CTYPE_PTR: {
-            char * inner = ctype_to_string(ctype->base_type);
-            size_t len = strlen(inner) + 2;
-            char * out = malloc(len + 1);
-            snprintf(out, len + 1, "%s*", inner);
-            free(inner);
-            return out;
+            ctype_to_description(ctype->base_type, buf, buflen);
+            char tmp[128];
+            snprintf(tmp, sizeof(tmp), "Pointer to %s", buf);
+            strncat(buf, tmp, buflen - sizeof(buf) - 1);
+            break;
+        }
+        case CTYPE_ARRAY: {
+            ctype_to_description(ctype->base_type, buf, buflen);
+            char tmp[128];
+            snprintf(tmp, sizeof(tmp), "Array [%d] of %s", ctype->array_len, buf);
+            strncat(buf, tmp, buflen - sizeof(buf) - 1);
+            break;
+        }
+        case CTYPE_FUNCTION: {
+            strncat(buf, "function returning ", buflen - strlen(buf) - 1);
+            ctype_to_description(ctype->base_type, buf, buflen);
+            break;
         }
         default:
-            return strdup("<unknown>");
+            strncat(buf, "<unknown>", buflen - sizeof(buf) - 1);
+            break;
+    }
+}
+
+void ctype_to_cdecl(CType * ctype, char * buf, size_t buflen) {
+
+    if (!ctype) {
+        snprintf(buf, buflen, "<null>");
+        return;
+    }
+
+    switch(ctype->kind) {
+        case CTYPE_CHAR:
+            strncat(buf, "char", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_SHORT:
+            strncat(buf, "short", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_INT:
+            strncat(buf, "int", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_LONG:
+            strncat(buf, "long", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_PTR: {
+            char inner[64];
+            ctype_to_cdecl(ctype->base_type, inner, sizeof(inner));
+//            size_t len = strlen(inner) + 2;
+            snprintf(buf, buflen - strlen(buf) - 1, "%s*", inner);
+        }
+        case CTYPE_ARRAY: {
+            ctype_to_cdecl(ctype->base_type, buf, buflen);
+            char tmp[128];
+            snprintf(tmp, sizeof(tmp), "[%d]", ctype->array_len);
+        }
+        default:
+            strncat(buf, "<unknown>", buflen - strlen(buf) - 1);
     }
 }
 

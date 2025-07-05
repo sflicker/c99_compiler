@@ -212,12 +212,17 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         }
 
         case AST_RETURN_STMT: {
+
             analyze(ctx, node->return_stmt.expr);
             node->ctype = node->return_stmt.expr->ctype;
             if (!ctype_equal_or_compatible(ctx->current_function_return_type,
                 node->ctype)) {
+                char buf_expected[128];
+                ctype_to_cdecl(ctx->current_function_return_type, buf_expected, sizeof(buf_expected));
+                char buf_actual[128];
+                ctype_to_cdecl(node->ctype, buf_actual, sizeof(buf_actual));
                 error("Function return type not compatible: expected %s, got %s",
-                    ctype_to_string(ctx->current_function_return_type), ctype_to_string(node->ctype));
+                    buf_expected, buf_actual);
                 }
             break;
         }

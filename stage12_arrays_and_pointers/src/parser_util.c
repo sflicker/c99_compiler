@@ -223,6 +223,8 @@ ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_
     ASTNode * node = create_ast();
     node->type = AST_VAR_DECL;
     node->var_decl.name = strdup(name);
+    // node->var_decl.full_type = ctype;
+    // node->ctype = ((ctype->kind == CTYPE_ARRAY) ? ctype->base_type : ctype);
     node->ctype = ctype;
     node->var_decl.init_expr = init_expr;
     if (node->var_decl.init_expr) {

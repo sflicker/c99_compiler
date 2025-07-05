@@ -1012,6 +1012,19 @@ void test_array_with_initializer() {
 
     print_ast(astNode, 0);
 
+    TEST_ASSERT("Verify node is not NULL", astNode != NULL);
+    TEST_ASSERT("Verify node is a BLOOK", astNode->type == AST_BLOCK);
+    TEST_ASSERT("Verify block has one child node", astNode->block.statements->count == 1);
+
+    ASTNode * array_decl = astNode->block.statements->head->value;
+    TEST_ASSERT("Verify array decl is not NULL", array_decl != NULL);
+    TEST_ASSERT("Verify array decl has correct type", array_decl->type == AST_VAR_DECL);
+    ASTNode * initializer = array_decl->var_decl.init_expr;
+    TEST_ASSERT("Verify initializer is not NULL", initializer != NULL);
+    TEST_ASSERT("Verify initializer is of type AST_INITIALIZER_LIST", initializer->type == AST_INITIALIZER_LIST);
+    TEST_ASSERT("Verify initializer has 3 items", initializer->initializer_list.items->count == 3);
+    TEST_ASSERT("Verify value of first item is 2",initializer->initializer_list.items->head->value->int_value == 2);
+
 }
 
 int main() {

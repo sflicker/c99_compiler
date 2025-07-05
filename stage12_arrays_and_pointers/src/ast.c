@@ -239,8 +239,11 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
         return false;
     }
     if (!ctype_equals(a->ctype, b->ctype)) {
+        char buf_lhs[128], buf_rhs[128];
+        ctype_to_cdecl(a->ctype, buf_lhs, sizeof(buf_lhs));
+        ctype_to_cdecl(b->ctype, buf_rhs, sizeof(buf_rhs));
         fprintf(stderr, "ast node ctypes do not match %s, %s\n",
-            ctype_to_string(a->ctype), ctype_to_string(b->ctype));
+            buf_lhs, buf_rhs);
         return false;
     }
     switch (a->type) {

@@ -18,6 +18,8 @@ void print_ast(ASTNode * node, int indent) {
 
     print_indent(indent);
 
+    char buf[128];
+    char buf2[128];
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
         {
@@ -35,7 +37,9 @@ void print_ast(ASTNode * node, int indent) {
             break;
         }
         case AST_FUNCTION_DECL:
-            printf("FunctionDecl: %s, type: %s\n", node->function_decl.name, ctype_to_string(node->ctype));
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+
+            printf("FunctionDecl: %s, type: %s\n", node->function_decl.name, buf);
             if (node->function_decl.param_list) {
                 print_indent(indent+1); printf("ParameterList:\n");
                 for (ASTNode_list_node * n = node->function_decl.param_list->head;n;n=n->next) {
@@ -47,7 +51,8 @@ void print_ast(ASTNode * node, int indent) {
             }
             break;
         case AST_FUNCTION_CALL:
-            printf("FunctionCall: %s, type: %s\n", node->function_call.name, ctype_to_string(node->ctype));
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("FunctionCall: %s, type: %s\n", node->function_call.name, buf);
             if (node->function_call.arg_list) {
                 print_indent(indent+1); printf("ArgumentList:\n");
                 for (ASTNode_list_node *n = node->function_call.arg_list->head;n;n=n->next) {
@@ -55,25 +60,33 @@ void print_ast(ASTNode * node, int indent) {
                 }
             }
             break;
-        case AST_RETURN_STMT:
-            printf("ReturnStmt: - type: %s\n", ctype_to_string(node->ctype));
+        case AST_RETURN_STMT: {
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("ReturnStmt: - type: %s\n", buf);
             print_ast(node->return_stmt.expr, indent+1);
             break;
-        case AST_INT_LITERAL:
-            printf("IntLiteral: %d - type: %s\n", node->int_value, ctype_to_string(node->ctype));
+        }
+        case AST_INT_LITERAL: {
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("IntLiteral: %d - type: %s\n", node->int_value, buf);
             break;
+        }
         case AST_BINARY_EXPR:
-            printf("BinaryExpr: %s - type: %s\n", get_binary_op_name(node->binary.op), ctype_to_string(node->ctype));
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("BinaryExpr: %s - type: %s\n", get_binary_op_name(node->binary.op), buf);
             print_ast(node->binary.lhs, indent+1);
             print_ast(node->binary.rhs, indent+1);
             break;
 
         case AST_UNARY_EXPR:
-            printf("UnaryExpr: %s - type: %s\n", get_unary_op_name(node->unary.op), ctype_to_string(node->ctype));
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("UnaryExpr: %s - type: %s\n", get_unary_op_name(node->unary.op), buf);
             print_ast(node->unary.operand, indent+1);
             break;
         case AST_CAST_EXPR:
-            printf("CastExpr: target_type: %s, type: %s\n", ctype_to_string(node->cast_expr.target_type), ctype_to_string(node->ctype));
+            ctype_to_cdecl(node->cast_expr.target_type, buf, sizeof(buf));
+            ctype_to_cdecl(node->ctype, buf2, sizeof(buf2));
+            printf("CastExpr: target_type: %s, type: %s\n", buf, buf2);
             print_ast(node->cast_expr.expr, indent+1);
             break;
 
@@ -155,14 +168,16 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->expr_stmt.expr, indent+1);
             break;
         case AST_VAR_DECL:
-            printf("VariableDeclaration: %s, ctype: %s\n", node->var_decl.name, ctype_to_string(node->ctype));
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("VariableDeclaration: %s, ctype: %s\n", node->var_decl.name, buf);
             if (node->var_decl.init_expr) {
                 print_indent(indent+1); printf("VarInitializer:\n");
                 print_ast(node->var_decl.init_expr, indent+2);
             }
             break;
         case AST_VAR_REF:
-            printf("VariableExpression: %s, ctype: %s\n", node->var_ref.name, ctype_to_string(node->ctype));
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("VariableExpression: %s, ctype: %s\n", node->var_ref.name, buf);
             break;
         case AST_ARRAY_ACCESS:
             printf("ArrayAccess:\n");
@@ -175,8 +190,8 @@ void print_ast(ASTNode * node, int indent) {
            printf("InitializerList:\n");
             // TODO
             break;
-        default:        
-            error("Unknown AST Node Type: %d\n", node->type);
+        default:
+            error("Unknown AST Node Type: %d\n", get_ast_node_name(node));
             break;
     }
 }

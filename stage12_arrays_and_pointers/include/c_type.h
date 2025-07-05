@@ -51,7 +51,7 @@ CType * make_function_type(CType * return_type, CType_list * param_types);
 CType * copy_type(const CType * src);
 
 int sizeof_ctype(CType * ctype);
-char * ctype_to_string(CType * ctype);
+//char * ctype_to_cdecl(CType * ctype);
 
 DEFINE_LINKED_LIST(CType*, CTypePtr_list);
 
@@ -66,7 +66,11 @@ bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b);
 
 CType * common_type(CType *a, CType *b);
 CTypePtr_list * astNodeListToTypeList(const ASTNode_list * param_list);
-char * c_type_kind_to_string(CTypeKind kind);
+//char * c_type_kind_to_string(CTypeKind kind);
+
+void ctype_to_description(CType * ctype, char * buf, size_t size);
+void ctype_to_cdecl(CType * ctype, char * buf, size_t size);
+
 bool is_integer_type(CType * ctype);
 bool is_array_type(CType * ctype);
 bool is_function_type(CType * ctype);

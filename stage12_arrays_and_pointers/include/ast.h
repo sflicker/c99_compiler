@@ -117,6 +117,7 @@ typedef struct ASTNode {
         struct {
             char* name;
             struct ASTNode * init_expr; // NULL if no initializer
+//            CType * full_type;
             bool is_param;
             bool is_global;
         } var_decl;
