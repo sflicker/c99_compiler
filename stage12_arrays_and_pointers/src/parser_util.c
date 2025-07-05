@@ -52,10 +52,12 @@ ASTNode * create_initializer_list(ASTNode_list * list) {
     node->initializer_list.items = list;
     node->symbol = NULL;
     if (list->count > 0) {
-        node->ctype = make_array_type(list->head->value->ctype, list->count);
+        node->initializer_list.initializer_type = make_array_type(list->head->value->ctype, list->count);
+        node->ctype = list->head->value->ctype;
     }
     else {
         node->ctype = NULL;
+        node->initializer_list.initializer_type = NULL;
     }
     return node;
 }
@@ -190,16 +192,16 @@ ASTNode * create_int_literal_node(int value) {
     return node;
 }
 
-ASTNode * create_function_declaration_node(const char * name, CType * returnType,
+ASTNode * create_function_declaration_node(const char * name, CType * func_type,
         ASTNode_list * param_list, ASTNode * body, bool declaration_only) {
     ASTNode * func = create_ast();
     func->symbol = NULL;
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = strdup(name);
-    func->ctype = returnType;
+    func->ctype = func_type->base_type;
     func->function_decl.body = body;
     func->function_decl.param_list = param_list;
-//    func->function_decl.func_type = func_type;
+    func->function_decl.func_type = func_type;
     func->function_decl.declaration_only = declaration_only;
     if (func->function_decl.body != NULL) {
         func->function_decl.body->block.introduce_scope = false;

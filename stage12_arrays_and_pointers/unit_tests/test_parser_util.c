@@ -302,13 +302,15 @@ void test_create_for_statement_node() {
 
 void test_create_function_declaration_node__declaration_only() {
     const char * label = "myfunc";
-    CType ctype = CTYPE_INT_T;
+    CType * return_type = &CTYPE_INT_T;
+    CType_list * param_types = NULL;
     ASTNode_list * param_list = NULL;
-//    CType * func_type = NULL;
+    CType * func_type = make_function_type(return_type, param_types);
+
     ASTNode * body = NULL;
     bool declaration_only = true;
 
-    ASTNode * node = create_function_declaration_node(label, &ctype, param_list, body, declaration_only);
+    ASTNode * node = create_function_declaration_node(label, func_type, param_list, body, declaration_only);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
@@ -321,13 +323,19 @@ void test_create_function_declaration_node__declaration_only() {
 
 void test_create_function_declaration_node__with_body() {
     const char * label = "main";
+
+    CType * return_type = &CTYPE_INT_T;
+    CType_list * param_types = NULL;
+    CType * func_type = make_function_type(return_type, param_types);
+
+
     ASTNode * rtn_stmt_node = create_return_statement_node(create_int_literal_node(2));
     ASTNode_list * statements = create_node_list();
     ASTNode_list_append(statements, rtn_stmt_node);
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, NULL, body, false);
+    ASTNode * node = create_function_declaration_node(label, func_type, NULL, body, false);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
@@ -342,6 +350,11 @@ void test_create_function_declaration_node__with_body() {
 void test_create_function_declaration_node__with_body_and_param_list() {
     const char * label = "main";
     const char * param_label = "a";
+
+    CType * return_type = &CTYPE_INT_T;
+    CType_list * param_types = NULL;
+    CType * func_type = make_function_type(return_type, param_types);
+
     ASTNode * rtn_stmt_node = create_return_statement_node(create_int_literal_node(2));
     ASTNode_list * statements = create_node_list();
     ASTNode_list_append(statements, rtn_stmt_node);
@@ -353,7 +366,7 @@ void test_create_function_declaration_node__with_body_and_param_list() {
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * node = create_function_declaration_node(label, &CTYPE_INT_T, param_list, body, false);
+    ASTNode * node = create_function_declaration_node(label, func_type, param_list, body, false);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
@@ -435,6 +448,23 @@ void test_is_next_token_assignment() {
 
 }
 
+void test_create_initializer_list() {
+    ASTNode_list * expressions = create_node_list();
+    ASTNode_list_append(expressions, create_int_literal_node(4));
+    ASTNode_list_append(expressions, create_int_literal_node(6));
+    ASTNode_list_append(expressions, create_int_literal_node(8));
+
+    ASTNode * node = create_initializer_list(expressions);
+
+    TEST_ASSERT("Verify node is not null", node != NULL);
+    TEST_ASSERT("Verify node is AST_INITIALIZER_LIST", node->type == AST_INITIALIZER_LIST);
+    TEST_ASSERT("Verify node ctype is not null", node->ctype != NULL);
+    TEST_ASSERT("Verify node ctype is CTYPE_INT", ctype_equals(node->ctype, &CTYPE_INT_T));
+    TEST_ASSERT("Verify node initializer ctype is Array", node->initializer_list.initializer_type->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verify node contains 3 items", node->initializer_list.items->count == 3);
+    TEST_ASSERT("Verify first value is 4", node->initializer_list.items->head->value->int_value == 4);
+}
+
 int main() {
     RUN_TEST(test_create_translation_unit_node);
     RUN_TEST(test_create_unary_node);
@@ -461,6 +491,7 @@ int main() {
     RUN_TEST(test_create_return_statement_node);
     RUN_TEST(test_create_expression_statement_node);
     RUN_TEST(test_create_block_node);
+    RUN_TEST(test_create_initializer_list);
 
     RUN_TEST(test_is_next_token_assignment);
 }

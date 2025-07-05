@@ -199,6 +199,7 @@ typedef struct ASTNode {
 
         struct {
             ASTNode_list * items;
+            CType * initializer_type;
         } initializer_list;
     };
 } ASTNode;

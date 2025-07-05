@@ -292,6 +292,7 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
 
             char * label = create_variable_reference(ctx, node);
             emit_line(ctx, "lea rcx, %s\n", label);
+            free(label);
 
             break;
         }
@@ -554,6 +555,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "add eax, 1\n");
             emit_line(ctx, "mov %s, eax\n", reference_label);
+            free(reference_label);
             break;
         }
         case UNARY_PRE_DEC: {
@@ -561,6 +563,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "mov eax, %s\n", reference_label);
             emit_line(ctx, "sub eax, 1\n");
             emit_line(ctx, "mov %s, eax\n", reference_label);
+            free(reference_label);
         break;
         }
         case UNARY_POST_INC: {
@@ -570,6 +573,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "add eax, 1\n");
             emit_line(ctx, "mov %s, eax\n", reference_label);
             emit_line(ctx, "mov eax, ecx\n");
+            free(reference_label);
             break;
         }
         case UNARY_POST_DEC: {
@@ -579,6 +583,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "sub eax, 1\n");
             emit_line(ctx, "mov %s, eax\n", reference_label);
             emit_line(ctx, "mov eax, ecx\n");
+            free(reference_label);
             break;
         }
         default:
@@ -742,6 +747,7 @@ void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "pop rcx\n");
     emit_line(ctx, "add eax, ecx\n");
     emit_line(ctx, "mov %s, eax\n", reference_label);
+    free(reference_label);
 }
 
 void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
@@ -751,6 +757,7 @@ void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "mov eax, %s\n", reference_label);
     emit_line(ctx, "sub eax, ecx\n");
     emit_line(ctx, "mov %s, eax\n", reference_label);
+    free(reference_label);
 }
 
 void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
@@ -823,6 +830,7 @@ void emit_pass_argument(EmitterContext * ctx, CType * type, ASTNode * node) {
         default:
             error("Unsupported type size %d in emit_pass_argument\n", type->size);
     }
+    free(reference_label);
 }
 
 void emit_function_call(EmitterContext * ctx, ASTNode * node) {
