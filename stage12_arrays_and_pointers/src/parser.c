@@ -157,8 +157,15 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
 
     Declarator * declarator = parse_declarator(parserContext, base_type);
 
-    if (is_current_token(parserContext, TOKEN_LBRACE)) {
-        return parse_function_definition(parserContext, declarator->name, declarator->type, declarator->param_list);
+    if (declarator->type->kind == CTYPE_FUNCTION) {
+        if (is_current_token(parserContext, TOKEN_LBRACE)) {
+            return parse_function_definition(parserContext, declarator->name, declarator->type, declarator->param_list);
+        }
+        if (is_current_token(parserContext, TOKEN_SEMICOLON)) {
+            // handle forward function declaration
+            expect_token(parserContext, TOKEN_SEMICOLON);
+            return create_function_declaration_node(declarator->name, declarator->type, declarator->param_list, NULL, true);
+        }
     }
     ASTNode * declaration = parse_declaration_tail(parserContext, declarator->type, declarator->name);
     declaration->var_decl.is_global = true;
