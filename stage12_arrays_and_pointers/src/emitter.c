@@ -279,6 +279,20 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             emit_addr(ctx, node);
             emit_line(ctx, "mov eax, [rcx]\n");
             break;
+        case AST_CAST_EXPR:
+            emit_expr(ctx, node->cast_expr.expr);     // eval inner expression
+            if (node->ctype->kind == CTYPE_INT) {
+                emit_line(ctx, "; cast to int: value already in eax\n");
+            } else if (node->ctype->kind == CTYPE_CHAR) {
+                emit_line(ctx, "movsx eax, al        ;cast to char\n");
+            } else if (node->ctype->kind == CTYPE_LONG) {
+                emit_line(ctx, "movsx rax, eax       ;cast to long\n");
+            } else if (node->ctype->kind == CTYPE_SHORT) {
+                emit_line(ctx, "movsx eax, ax        ; cast to short\n");
+            } else {
+                error("Unsupported cast type\n");
+            }
+            break;
         default:
             error("Unexpected node type %d\n", get_ast_node_name(node));
     }
