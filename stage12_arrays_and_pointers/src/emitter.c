@@ -800,9 +800,6 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_assignment(EmitterContext * ctx, ASTNode* node) {
-    // emit_tree_node(ctx, node->binary.rhs);
-    // char * reference_label = create_variable_reference(ctx, node->binary.lhs);
-    // emit_line(ctx, "mov %s, eax\n", reference_label);
     emit_expr(ctx, node->binary.rhs);
     emit_line(ctx, "push rax\n");
     emit_addr(ctx, node->binary.lhs);
