@@ -820,8 +820,10 @@ void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
     // evaluate RHS into eax
     emit_expr(ctx, node->binary.rhs);
 
+    emit_line(ctx, "mov ecx, eax\n");
+
     // restore LHS into ecx
-    emit_line(ctx, "pop rcx\n");
+    emit_line(ctx, "pop rax\n");
 
     // sub RHS from LHS
     emit_line(ctx, "sub eax, ecx\n");
