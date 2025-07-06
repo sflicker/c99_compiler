@@ -610,6 +610,29 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
             free(reference_label);
             break;
         }
+        case UNARY_ADDRESS: {
+            char * reference_label = create_variable_reference(ctx, node->unary.operand);
+            emit_line(ctx, "lea rax, %s\n", reference_label);
+            emit_line(ctx, "push rax\n");
+            free(reference_label);
+            break;
+        }
+        case UNARY_DEREF: {
+            emit_expr(ctx, node->unary.operand);
+            emit_line(ctx, "pop rax\n");
+            if (node->ctype->kind == CTYPE_CHAR) {
+                emit_line(ctx, "movzx eax, BYTE [rax]\n");
+            } else if (node->ctype->kind == CTYPE_SHORT) {
+                emit_line(ctx, "movzx eax, WORD [rax]\n");
+            } else if (node->ctype->kind == CTYPE_INT) {
+                emit_line(ctx, "mov eax, [rax]\n");
+            }
+            else if (node->ctype->kind == CTYPE_LONG) {
+                emit_line(ctx, "mov rax, [rax]\n");
+            }
+            emit_line(ctx, "push rax\n");
+            break;
+        }
         default:
             error("Unsupported unary op in emitter");
     }
@@ -763,7 +786,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
                 emit_line(ctx, "mov WORD [rcx], ax\n");
             } else if (node->ctype->kind == CTYPE_INT) {
                 emit_line(ctx, "mov DWORD [rcx], eax\n");
-            } else if (node->ctype->kind == CTYPE_LONG) {
+            } else if (node->ctype->kind == CTYPE_LONG || node->ctype->kind == CTYPE_PTR) {
                 emit_line(ctx, "mov QWORD [rcx], rax\n");
             }
             else {
