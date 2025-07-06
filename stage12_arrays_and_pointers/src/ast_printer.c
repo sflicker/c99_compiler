@@ -20,6 +20,9 @@ void print_ast(ASTNode * node, int indent) {
 
     char buf[128];
     char buf2[128];
+    buf[0] = '\0';
+    buf2[0] = '\0';
+
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
         {

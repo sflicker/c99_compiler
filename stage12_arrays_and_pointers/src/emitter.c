@@ -708,9 +708,22 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
                 ASTNode * init_value = ASTNode_list_get(init_items, i);
                 emit_expr(ctx, init_value);
                 emit_line(ctx, "push rax\n");
-                emit_addr(ctx, node->array_access.base);
-//                int offset = symbol->info.array.offset - i*4;
-//                emit_line(ctx, "lea rcx, [rbp%+d]\n", offset);
+
+                // TODO FIX emit_addr call
+//                emit_addr(ctx, node);
+
+//                emit_addr(ctx, node->array_access.base);
+
+                int offset = symbol->info.array.offset + i*4;
+
+                emit_line(ctx, "lea rcx, [rbp%+d]\n", offset);
+                // if (symbol->info.array.offset >= 0) {
+                //     emit_line(ctx, "lea rcx, [rbp - %d]\n", offset);
+                // }
+                // else {
+                //     emit_line(ctx, "lea rcx, [rbp + %d]\n", -offset);
+                // }
+
                 emit_line(ctx, "pop rax\n");
                 emit_line(ctx, "mov [rcx], eax\n");
             }

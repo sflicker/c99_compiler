@@ -121,6 +121,7 @@ void free_ast(ASTNode * node) {
         case AST_CONTINUE_STMT:
         case AST_BREAK_STMT:
         case AST_INT_LITERAL:
+        case AST_INITIALIZER_LIST:
             // DO NOTHING
             break;
 

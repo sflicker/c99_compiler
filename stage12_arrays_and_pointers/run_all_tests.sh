@@ -47,7 +47,6 @@ WRONG_OUTPUT_TOTAL=0
 UNKNOWN_FAILURE_TOTAL=0
 
 for cfile in $(find integration_tests -name 'test*.c' | sort); do
-    echo $cfile
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
 
     filename=$(basename "$cfile")
@@ -57,6 +56,7 @@ for cfile in $(find integration_tests -name 'test*.c' | sort); do
 
     echo ""
     echo "----------------------------"
+    echo "Preparing test for file: $cfile"
     echo ""
     echo "🔍 Running test for $testname (expecting $expected)..."
     
