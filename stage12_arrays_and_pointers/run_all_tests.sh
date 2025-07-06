@@ -126,7 +126,7 @@ echo -e "    ${RED}❌ Assembler Failure Total: ${ASSEMBLER_FAILURE_TOTAL}"
 echo -e "    ${RED}❌ Linker Failure Total: ${LINKER_FAILURE_TOTAL}"
 echo -e "    ${RED}❌ Timeout Total: ${TIMEOUT_TOTAL}"
 echo -e "    ${RED}❌ Unknown Failure Total: ${UNKNOWN_FAILURE_TOTAL}"
-echo -e "${RED}❌ Failed: ${FAILED_TESTS}${NC}"
+echo -e "${RED}❌ Failed: ${FAILED_TOTAL}${NC}"
 
 if [ "$FAILED_TOTAL" -ne 0 ]; then
     echo -e "${RED}🔥 Some tests failed.${NC}"

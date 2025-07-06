@@ -28,6 +28,7 @@ void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * lab
 void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node);
 //void emit_assert_extension_call(EmitterContext * ctx, ASTNode * node);
 
+void emit_array_access(EmitterContext * ctx, ASTNode * node);
 void emit_print_extension_statement(EmitterContext * ctx, ASTNode * node);
 void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node);
 void emit_print_int_extension_function(EmitterContext * ctx);
