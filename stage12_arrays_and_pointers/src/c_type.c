@@ -154,6 +154,7 @@ void ctype_to_cdecl(CType * ctype, char * buf, size_t buflen) {
             break;
         case CTYPE_PTR: {
             char inner[64];
+            inner[0] = '\0';
             ctype_to_cdecl(ctype->base_type, inner, sizeof(inner));
 //            size_t len = strlen(inner) + 2;
             snprintf(buf, buflen - strlen(buf) - 1, "%s*", inner);

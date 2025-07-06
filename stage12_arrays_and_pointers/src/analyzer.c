@@ -200,6 +200,12 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
         case AST_UNARY_EXPR:
             analyze(ctx, node->unary.operand);
+            if (node->unary.op == UNARY_DEREF) {
+                if (node->unary.operand->ctype->kind == CTYPE_PTR) {
+                    node->ctype = node->unary.operand->ctype->base_type;
+                    break;
+                }
+            }
             node->ctype = node->unary.operand->ctype;
             break;
 
@@ -218,8 +224,10 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             if (!ctype_equal_or_compatible(ctx->current_function_return_type,
                 node->ctype)) {
                 char buf_expected[128];
+                buf_expected[0] = '\0';
                 ctype_to_cdecl(ctx->current_function_return_type, buf_expected, sizeof(buf_expected));
                 char buf_actual[128];
+                buf_actual[0] = '\0';
                 ctype_to_cdecl(node->ctype, buf_actual, sizeof(buf_actual));
                 error("Function return type not compatible: expected %s, got %s",
                     buf_expected, buf_actual);

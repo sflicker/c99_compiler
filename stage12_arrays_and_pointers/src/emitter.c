@@ -757,7 +757,18 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "push rax\n");
             emit_addr(ctx, node);
             emit_line(ctx, "pop rax\n");
-            emit_line(ctx, "mov [rcx], eax\n");
+            if (node->ctype->kind == CTYPE_CHAR) {
+                emit_line(ctx, "mov BYTE [rcx], al\n");
+            } else if (node->ctype->kind == CTYPE_SHORT) {
+                emit_line(ctx, "mov WORD [rcx], ax\n");
+            } else if (node->ctype->kind == CTYPE_INT) {
+                emit_line(ctx, "mov DWORD [rcx], eax\n");
+            } else if (node->ctype->kind == CTYPE_LONG) {
+                emit_line(ctx, "mov QWORD [rcx], rax\n");
+            }
+            else {
+                error("Unsupported type");
+            }
         }
         // char * reference_label = create_variable_reference(ctx, node);
         // emit_tree_node(ctx, node->var_decl.init_expr);
