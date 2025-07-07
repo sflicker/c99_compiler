@@ -58,6 +58,7 @@ CType *make_pointer_type(CType *base) {
     ptr->kind = CTYPE_PTR;
     ptr->base_type = base;
     ptr->size = 8;
+    ptr->array_len = 0;
     return ptr;
 }
 

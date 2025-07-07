@@ -13,6 +13,8 @@
 #include "ctype.h"
 #include "ast_printer.h"
 
+#include "parser_util.h"
+
 void print_ast(ASTNode * node, int indent) {
     if(!node) return;
 
@@ -189,10 +191,17 @@ void print_ast(ASTNode * node, int indent) {
             print_indent(indent+1); printf("IndexExpression:\n");
             print_ast(node->array_access.index, indent+2);
             break;
-        case AST_INITIALIZER_LIST:
-           printf("InitializerList:\n");
-            // TODO
+        case AST_INITIALIZER_LIST: {
+            printf("InitializerList: [");
+            for (ASTNode_list_node * n = node->initializer_list.items->head; n; n = n->next) {
+                printf("%d", n->value->int_value);
+                if (n->next != NULL) {
+                    printf(", ");
+                }
+            }
+            printf("]\n");
             break;
+        }
         default:
             error("Unknown AST Node Type: %d\n", get_ast_node_name(node));
             break;

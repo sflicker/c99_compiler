@@ -285,7 +285,10 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "mov eax, %d", node->int_value);
             break;
         case AST_VAR_REF: {
-            if (node->symbol->node->var_decl.is_global) {
+            if (node->symbol->ctype->kind == CTYPE_ARRAY) {
+                emit_line(ctx, "lea rax, [rbp-%d]", abs(node->symbol->info.var.offset));
+            }
+            else if (node->symbol->node->var_decl.is_global) {
                 emit_line(ctx, "mov eax, [rel %s] ", node->symbol->name);
             } else {
                 int offset = node->symbol->info.var.offset;
@@ -737,7 +740,9 @@ void emit_do_while_statement(EmitterContext * ctx, ASTNode * node) {
 
 void emit_block(EmitterContext * ctx, ASTNode * node, bool enterNewScope) {
 
+    int count = 0;
     for (const ASTNode_list_node * n = node->block.statements->head; n; n = n->next) {
+        emit_line(ctx,"; emitting function statement # %d of type: %s", ++count, get_ast_node_name(n->value));
         emit_tree_node(ctx, n->value);
     }
 
@@ -757,13 +762,12 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     int local_space = node->function_decl.size;
 
     emit_line(ctx, "%s:", node->function_decl.name);
-
-    emit_line(ctx, "push rbp");
+    emit_line(ctx, "push rbp           ; creating stack frame");
     emit_line(ctx,  "mov rbp, rsp");
 
     if (local_space > 0) {
         int aligned_space = (local_space + 15) & ~15;
-        emit_line(ctx, "sub rsp, %d", aligned_space);
+        emit_line(ctx, "sub rsp, %d        ; allocating space for locals", aligned_space);
     }
 
     if (node->function_decl.param_list) {
@@ -775,7 +779,7 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     emit_block(ctx, node->function_decl.body, false);
 
     emit_label_from_text(ctx, func_end_label);
-    emit_line(ctx, "leave");
+    emit_line(ctx, "leave           ; function end");
     emit_line(ctx, "ret");
 
     pop_function_exit_context(ctx);
@@ -783,11 +787,14 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
+    emit_line(ctx, "; emitting var declaration");
     if (node->var_decl.init_expr) {
         if (node->var_decl.init_expr->type == AST_INITIALIZER_LIST) {
+            emit_line(ctx,"; initializing array");
             Symbol * symbol = node->symbol;
             ASTNode_list * init_items = node->var_decl.init_expr->initializer_list.items;
             for (int i=0;i<init_items->count;i++) {
+                emit_line(ctx, "; initializing element %d", i);
                 ASTNode * init_value = ASTNode_list_get(init_items, i);
                 emit_expr(ctx, init_value);
                 emit_line(ctx, "push rax");
@@ -812,6 +819,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             }
         }
         else {
+            emit_line(ctx,"; initializing variable");
             emit_expr(ctx, node->var_decl.init_expr);
             emit_line(ctx, "push rax");
             emit_addr(ctx, node);
@@ -839,6 +847,8 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_assignment(EmitterContext * ctx, ASTNode* node) {
+    emit_line(ctx, "; emitting assignment - LHS %s = RHS %s",
+        get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
     // eval RHS -> rax then push
     emit_expr(ctx, node->binary.rhs);
     emit_line(ctx, "push rax");

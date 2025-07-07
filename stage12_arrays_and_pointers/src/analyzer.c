@@ -213,7 +213,12 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             Symbol * symbol = lookup_symbol(node->var_ref.name);
             if (!symbol) { error("Symbol not found"); return; }
             node->symbol = symbol;
-            node->ctype = symbol->ctype;
+            if (symbol->ctype->kind == CTYPE_ARRAY) {
+                 node->ctype = make_pointer_type(symbol->ctype);
+            }
+            else {
+                node->ctype = symbol->ctype;
+            }
             break;
         }
 
