@@ -117,7 +117,8 @@ int get_offset(EmitterContext * ctx, ASTNode * node) {
        return node->symbol->info.var.offset;
    }
    if (node->type == AST_ARRAY_ACCESS) {
-       return node->array_access.base->symbol->info.var.offset;
+       return get_offset(ctx, node->array_access.base);
+//       return node->array_access.base->symbol->info.var.offset;
    }
    return 0;
 }
