@@ -39,6 +39,31 @@ char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
     }
 }
 
+const char * reg_for_type(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "al";
+        case CTYPE_SHORT: return "ax";
+        case CTYPE_INT: return "eax";
+        case CTYPE_LONG: return "rax";
+        case CTYPE_PTR: return "rax";
+        default: error("Unsupported type");
+    }
+    return NULL;
+}
+
+const char * mem_size_for_type(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "BYTE";
+        case CTYPE_SHORT: return "WORD";
+        case CTYPE_INT: return "DWORD";
+        case CTYPE_LONG: return "QWORD";
+        case CTYPE_PTR:  return "QWORD";
+        default:
+            error("Unsupported type");
+    }
+    return NULL;
+}
+
 void emit_line(EmitterContext * ctx, const char* fmt, ...) {
     va_list args;
 
@@ -262,7 +287,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
                 emit_line(ctx, "mov eax, [rel %s]\n ", node->symbol->name);
             } else {
                 int offset = node->symbol->info.var.offset;
-                emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
+                emit_line(ctx, "mov %s, [rbp%+d]\n", reg_for_type(node->ctype), offset);
             }
             break;
         }
@@ -310,6 +335,15 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
 
             break;
         }
+        case AST_UNARY_EXPR:
+            if (node->unary.op == UNARY_DEREF) {
+                emit_expr(ctx, node->unary.operand);
+                emit_line(ctx, "mov rcx, rax\n");
+            }
+            else {
+                error("Unsupported unary operator in emit_addr\n");
+            }
+            break;
         case AST_ARRAY_ACCESS: {
 
             int base_offset = get_offset(ctx, node);
@@ -780,18 +814,21 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "push rax\n");
             emit_addr(ctx, node);
             emit_line(ctx, "pop rax\n");
-            if (node->ctype->kind == CTYPE_CHAR) {
-                emit_line(ctx, "mov BYTE [rcx], al\n");
-            } else if (node->ctype->kind == CTYPE_SHORT) {
-                emit_line(ctx, "mov WORD [rcx], ax\n");
-            } else if (node->ctype->kind == CTYPE_INT) {
-                emit_line(ctx, "mov DWORD [rcx], eax\n");
-            } else if (node->ctype->kind == CTYPE_LONG || node->ctype->kind == CTYPE_PTR) {
-                emit_line(ctx, "mov QWORD [rcx], rax\n");
-            }
-            else {
-                error("Unsupported type");
-            }
+            emit_line(ctx, "mov %s [rcx], %s\n",
+                mem_size_for_type(node->ctype),
+                reg_for_type(node->ctype));
+            // if (node->ctype->kind == CTYPE_CHAR) {
+            //     emit_line(ctx, "mov BYTE [rcx], al\n");
+            // } else if (node->ctype->kind == CTYPE_SHORT) {
+            //     emit_line(ctx, "mov WORD [rcx], ax\n");
+            // } else if (node->ctype->kind == CTYPE_INT) {
+            //     emit_line(ctx, "mov DWORD [rcx], eax\n");
+            // } else if (node->ctype->kind == CTYPE_LONG || node->ctype->kind == CTYPE_PTR) {
+            //     emit_line(ctx, "mov QWORD [rcx], rax\n");
+            // }
+            // else {
+            //     error("Unsupported type");
+            // }
         }
         // char * reference_label = create_variable_reference(ctx, node);
         // emit_tree_node(ctx, node->var_decl.init_expr);
@@ -800,11 +837,33 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_assignment(EmitterContext * ctx, ASTNode* node) {
+    // eval RHS -> rax then push
     emit_expr(ctx, node->binary.rhs);
     emit_line(ctx, "push rax\n");
+
+    // eval LHS addr -> rcx
     emit_addr(ctx, node->binary.lhs);
+
+    // pop RHS in rax
     emit_line(ctx, "pop rax\n");
-    emit_line(ctx, "mov [rcx], eax\n");
+
+    CType * ctype = node->binary.lhs->ctype;
+
+    emit_line(ctx, "mov %s [rcx], %s\n",
+        mem_size_for_type(ctype),
+        reg_for_type(ctype));
+
+    // if (ctype->kind == CTYPE_CHAR) {
+    //     emit_line(ctx, "mov byte [rcx], eax\n");
+    // } else if (ctype->kind == CTYPE_SHORT) {
+    //     emit_line(ctx, "mov word [rcx], eax\n");
+    // } else if (ctype->kind == CTYPE_INT) {
+    //     emit_line(ctx, "mov dword [rcx], eax\n");
+    // } else if (ctype->kind == CTYPE_LONG || ctype->kind == CTYPE_PTR) {
+    //     emit_line(ctx, "mov qword [rcx], rax\n");
+    // } else {
+    //     error("Unsupported type in assignment");
+    // }
 }
 
 void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
@@ -943,22 +1002,26 @@ void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
 void emit_pass_argument(EmitterContext * ctx, CType * type, ASTNode * node) {
     emit_tree_node(ctx, node);
     char * reference_label = create_variable_reference(ctx, node);
-    switch(type->size) {
-        case 1:
-            emit_line(ctx, "mov byte %s, al\n", reference_label);
-            break;
-        case 2:
-            emit_line(ctx, "mov word %s, ax\n", reference_label);
-            break;
-        case 4:
-            emit_line(ctx, "mov dword %s, eax\n", reference_label);
-            break;
-        case 8:
-            emit_line(ctx, "mov qword %s, rax\n", reference_label);
-            break;
-        default:
-            error("Unsupported type size %d in emit_pass_argument\n", type->size);
-    }
+    emit_line(ctx, "mov %s %s, %s\n",
+        mem_size_for_type(type),
+        reference_label,
+        reg_for_type(type));
+    // switch(type->size) {
+    //     case 1:
+    //         emit_line(ctx, "mov byte %s, al\n", reference_label);
+    //         break;
+    //     case 2:
+    //         emit_line(ctx, "mov word %s, ax\n", reference_label);
+    //         break;
+    //     case 4:
+    //         emit_line(ctx, "mov dword %s, eax\n", reference_label);
+    //         break;
+    //     case 8:
+    //         emit_line(ctx, "mov qword %s, rax\n", reference_label);
+    //         break;
+    //     default:
+    //         error("Unsupported type size %d in emit_pass_argument\n", type->size);
+    // }
     free(reference_label);
 }
 

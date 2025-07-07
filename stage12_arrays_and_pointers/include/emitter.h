@@ -7,7 +7,8 @@
 char * make_label_text(const char * prefix, int num);
 const char * get_break_label(EmitterContext * ctx);
 const char * get_continue_label(EmitterContext * ctx);
-
+const char * reg_for_type(CType * ctype);
+const char * mem_size_for_type(CType * ctype);
 
 void emit(EmitterContext * ctx, ASTNode * program);
 void emit_tree_node(EmitterContext * ctx, ASTNode * node);
