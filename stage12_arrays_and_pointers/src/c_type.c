@@ -163,7 +163,7 @@ void ctype_to_cdecl(CType * ctype, char * buf, size_t buflen) {
         case CTYPE_ARRAY: {
             ctype_to_cdecl(ctype->base_type, buf, buflen);
             char tmp[128];
-            snprintf(tmp, sizeof(tmp), "[%d]\n", ctype->array_len);
+            snprintf(tmp, sizeof(tmp), "[%d]", ctype->array_len);
             strncat(buf, tmp, buflen - sizeof(buf) - 1);
             break;
         }

@@ -71,54 +71,56 @@ void emit_line(EmitterContext * ctx, const char* fmt, ...) {
     va_start(args, fmt);
     vfprintf(ctx->out, fmt, args);
     va_end(args);
+    fputc('\n', ctx->out);
 
     // --- 2. Echo to stdout (re-initialize args)
     va_start(args, fmt);
     vfprintf(stdout, fmt, args);
     va_end(args);
+    fputc('\n', stdout);
 }
 
 void emit_header(EmitterContext * ctx) {
-    emit_line(ctx, "section .text\n");
-    emit_line(ctx, "global main\n");
-    emit_line(ctx, "\n");
+    emit_line(ctx, "section .text");
+    emit_line(ctx, "global main");
+    emit_line(ctx, "");
 }
 
 void emit_trailer(EmitterContext * ctx) {
-    emit_line(ctx, "\n");
-    emit_line(ctx, "section .rodata\n");
-    emit_line(ctx, "assert_fail_msg: db \"Assertion failed!\", 10\n");
+    emit_line(ctx, "");
+    emit_line(ctx, "section .rodata");
+    emit_line(ctx, "assert_fail_msg: db \"Assertion failed!\", 10");
 }
 
 void emit_text_section_header(EmitterContext * ctx) {
-    emit_line(ctx, "\n");
-    emit_line(ctx, ";---------------------------------------\n");
-    emit_line(ctx, ";   SECTION: Text (Code)\n");
-    emit_line(ctx, ";---------------------------------------\n");
-    emit_line(ctx, "\n");
-    emit_line(ctx, "section .text\n");
-    emit_line(ctx, "global main\n");
-    emit_line(ctx, "\n");
+    emit_line(ctx, "");
+    emit_line(ctx, ";---------------------------------------");
+    emit_line(ctx, ";   SECTION: Text (Code)");
+    emit_line(ctx, ";---------------------------------------");
+    emit_line(ctx, "");
+    emit_line(ctx, "section .text");
+    emit_line(ctx, "global main");
+    emit_line(ctx, "");
 }
 
 void emit_data_section_header(EmitterContext * ctx) {
-    emit_line(ctx, "\n");
-    emit_line(ctx, ";---------------------------------------\n");
-    emit_line(ctx, ";   SECTION: Data (Initialized globals/strings\n");
-    emit_line(ctx, ";---------------------------------------\n");
-    emit_line(ctx, "\n");
-    emit_line(ctx, "section .data\n");
-    emit_line(ctx, "\n");
+    emit_line(ctx, "");
+    emit_line(ctx, ";---------------------------------------");
+    emit_line(ctx, ";   SECTION: Data (Initialized globals/strings");
+    emit_line(ctx, ";---------------------------------------");
+    emit_line(ctx, "");
+    emit_line(ctx, "section .data");
+    emit_line(ctx, "");
 }
 
 void emit_bss_section_header(EmitterContext * ctx) {
-    emit_line(ctx, "\n");
-    emit_line(ctx, ";---------------------------------------\n");
-    emit_line(ctx, ";   SECTION: BSS (Uninitialized buffers)\n");
-    emit_line(ctx, ";---------------------------------------\n");
-    emit_line(ctx, "\n");
-    emit_line(ctx, "section .bss\n");
-    emit_line(ctx, "\n");
+    emit_line(ctx, "");
+    emit_line(ctx, ";---------------------------------------");
+    emit_line(ctx, ";   SECTION: BSS (Uninitialized buffers)");
+    emit_line(ctx, ";---------------------------------------");
+    emit_line(ctx, "");
+    emit_line(ctx, "section .bss");
+    emit_line(ctx, "");
 }
 
 char * make_label_text(const char * prefix, int num) {
@@ -129,19 +131,19 @@ char * make_label_text(const char * prefix, int num) {
 }
 
 void emit_label(EmitterContext * ctx, const char * prefix, int num) {
-    emit_line(ctx, "L%s%d:\n", prefix, num);
+    emit_line(ctx, "L%s%d:", prefix, num);
 }
 
 void emit_label_from_text(EmitterContext *ctx, const char * label) {
-    emit_line(ctx, "L%s:\n", label);
+    emit_line(ctx, "L%s:", label);
 }
 
 void emit_jump(EmitterContext * ctx, const char * op, const char * prefix, int num) {
-    emit_line(ctx, "%s L%s%d\n", op, prefix, num);
+    emit_line(ctx, "%s L%s%d", op, prefix, num);
 }
 
 void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * label) {
-    emit_line(ctx, "%s L%s\n", op, label);
+    emit_line(ctx, "%s L%s", op, label);
 }
 
 char * get_data_directive(CType * ctype) {
@@ -182,9 +184,9 @@ void emit_cast(EmitterContext * ctx, CType * from_type, CType * to_type) {
     // narrowing
     if (from_size > to_size) {
         switch (to_size) {
-            case 1: emit_line(ctx, "movsx eax, al\n"); break;
-            case 2: emit_line(ctx, "movsx eax, ax\n)"); break;
-            case 4: emit_line(ctx, "mov eax, eax\n"); break;
+            case 1: emit_line(ctx, "movsx eax, al"); break;
+            case 2: emit_line(ctx, "movsx eax, ax)"); break;
+            case 4: emit_line(ctx, "mov eax, eax"); break;
             default:
                 error("Unsupported narrowing cast to %d bytes", to_size);
         }
@@ -195,19 +197,19 @@ void emit_cast(EmitterContext * ctx, CType * from_type, CType * to_type) {
     if (from_size < to_size) {
         if (from_signed && to_signed) {
             switch (from_size) {
-                case 1: emit_line(ctx, "movsx eax, al\n"); break;
-                case 2: emit_line(ctx, "movsx eax, ax\n"); break;
-                case 4: emit_line(ctx, "movsxd rax, eax\n"); break;
+                case 1: emit_line(ctx, "movsx eax, al"); break;
+                case 2: emit_line(ctx, "movsx eax, ax"); break;
+                case 4: emit_line(ctx, "movsxd rax, eax"); break;
                 default:
                     error("Unsupported sign-extension from %d bytes", from_size);
             }
         } else {
             switch (from_size) {
-                case 1: emit_line(ctx, "movzx eax, al\n"); break;
-                case 2: emit_line(ctx, "movzx eax, ax\n"); break;
-                case 4: emit_line(ctx, "mov eax, eax\n"); break;
+                case 1: emit_line(ctx, "movzx eax, al"); break;
+                case 2: emit_line(ctx, "movzx eax, ax"); break;
+                case 4: emit_line(ctx, "mov eax, eax"); break;
                 default:
-                    error("Unsupported zero-extension from %d bytes\n", from_size);
+                    error("Unsupported zero-extension from %d bytes", from_size);
             }
         }
     }
@@ -220,7 +222,7 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
         if (global_var->var_decl.init_expr) {
             // TODO write out correct emit_tree_node(ctx, n->value);
             char * data_directive = get_data_directive(global_var->ctype);
-            emit_line(ctx, "%s: %s %d\n", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->int_value);
+            emit_line(ctx, "%s: %s %d", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->int_value);
         }
     }
 
@@ -230,7 +232,7 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
         if (!global_var->var_decl.init_expr) {
             // TODO write out correct emit_tree_node(ctx, n->value);
             char * reservation_directive = get_reservation_directive(global_var->ctype);
-            emit_line(ctx, "%s: %s\n", global_var->var_decl.name, reservation_directive);
+            emit_line(ctx, "%s: %s", global_var->var_decl.name, reservation_directive);
         }
     }
 
@@ -248,21 +250,21 @@ void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->expr_stmt.expr);
 
     // compare result in eax with 0
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "jne", "assert_pass", label_pass);
 
     // assert failed
     // print message
-    emit_line(ctx, "mov rax, 1\n");
-    emit_line(ctx, "mov rdi, 1\n");
-    emit_line(ctx, "lea rsi, [rel assert_fail_msg]\n");
-    emit_line(ctx, "mov rdx, 17\n");
-    emit_line(ctx, "syscall\n");
+    emit_line(ctx, "mov rax, 1");
+    emit_line(ctx, "mov rdi, 1");
+    emit_line(ctx, "lea rsi, [rel assert_fail_msg]");
+    emit_line(ctx, "mov rdx, 17");
+    emit_line(ctx, "syscall");
 
     // exit
-    emit_line(ctx, "mov rax, 60\n");
-    emit_line(ctx, "mov rdi, 1\n");
-    emit_line(ctx, "syscall\n");
+    emit_line(ctx, "mov rax, 60");
+    emit_line(ctx, "mov rdi, 1");
+    emit_line(ctx, "syscall");
 
     emit_label(ctx, "assert_pass", label_pass);
 
@@ -271,7 +273,7 @@ void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
 void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node) {
     // emit the expression storing it in EAX
     emit_tree_node(ctx, node->expr_stmt.expr);
-    emit_line(ctx, "call print_int\n");
+    emit_line(ctx, "call print_int");
     ctx->emit_print_int_extension = true;
 }
 
@@ -280,14 +282,14 @@ void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node) {
 void emit_expr(EmitterContext * ctx, ASTNode * node) {
     switch (node->type) {
         case AST_INT_LITERAL:
-            emit_line(ctx, "mov eax, %d\n", node->int_value);
+            emit_line(ctx, "mov eax, %d", node->int_value);
             break;
         case AST_VAR_REF: {
             if (node->symbol->node->var_decl.is_global) {
-                emit_line(ctx, "mov eax, [rel %s]\n ", node->symbol->name);
+                emit_line(ctx, "mov eax, [rel %s] ", node->symbol->name);
             } else {
                 int offset = node->symbol->info.var.offset;
-                emit_line(ctx, "mov %s, [rbp%+d]\n", reg_for_type(node->ctype), offset);
+                emit_line(ctx, "mov %s, [rbp%+d]", reg_for_type(node->ctype), offset);
             }
             break;
         }
@@ -302,24 +304,24 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_ARRAY_ACCESS:
             emit_addr(ctx, node);
-            emit_line(ctx, "mov eax, [rcx]\n");
+            emit_line(ctx, "mov eax, [rcx]");
             break;
         case AST_CAST_EXPR:
             emit_expr(ctx, node->cast_expr.expr);     // eval inner expression
             if (node->ctype->kind == CTYPE_INT) {
-                emit_line(ctx, "; cast to int: value already in eax\n");
+                emit_line(ctx, "; cast to int: value already in eax");
             } else if (node->ctype->kind == CTYPE_CHAR) {
-                emit_line(ctx, "movsx eax, al        ;cast to char\n");
+                emit_line(ctx, "movsx eax, al        ;cast to char");
             } else if (node->ctype->kind == CTYPE_LONG) {
-                emit_line(ctx, "movsx rax, eax       ;cast to long\n");
+                emit_line(ctx, "movsx rax, eax       ;cast to long");
             } else if (node->ctype->kind == CTYPE_SHORT) {
-                emit_line(ctx, "movsx eax, ax        ; cast to short\n");
+                emit_line(ctx, "movsx eax, ax        ; cast to short");
             } else {
-                error("Unsupported cast type\n");
+                error("Unsupported cast type");
             }
             break;
         default:
-            error("Unexpected node type %d\n", get_ast_node_name(node));
+            error("Unexpected node type %d", get_ast_node_name(node));
     }
 }
 
@@ -330,7 +332,7 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
         case AST_VAR_REF: {
 
             char * label = create_variable_reference(ctx, node);
-            emit_line(ctx, "lea rcx, %s\n", label);
+            emit_line(ctx, "lea rcx, %s", label);
             free(label);
 
             break;
@@ -338,10 +340,10 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
         case AST_UNARY_EXPR:
             if (node->unary.op == UNARY_DEREF) {
                 emit_expr(ctx, node->unary.operand);
-                emit_line(ctx, "mov rcx, rax\n");
+                emit_line(ctx, "mov rcx, rax");
             }
             else {
-                error("Unsupported unary operator in emit_addr\n");
+                error("Unsupported unary operator in emit_addr");
             }
             break;
         case AST_ARRAY_ACCESS: {
@@ -350,10 +352,10 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             base_offset = abs(base_offset);
 
             emit_expr(ctx, node->array_access.index);    // put result in eax
-            emit_line(ctx, "imul eax, %d\n", node->ctype->size);  // scale index
-            emit_line(ctx, "mov rcx, rbp\n");
-            emit_line(ctx, "sub rcx, %d\n", base_offset);
-            emit_line(ctx, "add rcx, rax\n");
+            emit_line(ctx, "imul eax, %d", node->ctype->size);  // scale index
+            emit_line(ctx, "mov rcx, rbp");
+            emit_line(ctx, "sub rcx, %d", base_offset);
+            emit_line(ctx, "add rcx, rax");
 
             // ASTNode * indices[MAX_DIMENSIONS];
             // int index_count = 0;
@@ -407,7 +409,7 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             break;
         }
         default:
-            error("Unexpected node type %s\n", get_ast_node_name(node));
+            error("Unexpected node type %s", get_ast_node_name(node));
 
     }
 }
@@ -426,9 +428,9 @@ void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
         case BINOP_SUB:
         case BINOP_MUL:
             emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-            emit_line(ctx, "push rax\n");                     // push lhs result
+            emit_line(ctx, "push rax");                     // push lhs result
             emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-            emit_line(ctx, "pop rcx\n");                      // pop lhs to ECX
+            emit_line(ctx, "pop rcx");                      // pop lhs to ECX
             emit_binary_op(ctx, node->binary.op);        // emit proper for op
             break;
         case BINOP_DIV:
@@ -464,20 +466,20 @@ void emit_logical_and(EmitterContext * ctx, ASTNode * node) {
 
     //lhs 
     emit_tree_node(ctx, node->binary.lhs);
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "je", "false", label_false);
 
     //rhs
     emit_tree_node(ctx, node->binary.rhs);
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "je", "false", label_false);
 
     // both true
-    emit_line(ctx, "mov eax, 1\n");
+    emit_line(ctx, "mov eax, 1");
     emit_jump(ctx, "jmp", "end", label_end);
 
     emit_label(ctx, "false", label_false);
-    emit_line(ctx, "mov eax, 0\n");
+    emit_line(ctx, "mov eax, 0");
 
     emit_label(ctx, "end", label_end);
 }
@@ -488,81 +490,81 @@ void emit_logical_or(EmitterContext * ctx, ASTNode* node) {
 
     // lhs
     emit_tree_node(ctx, node->binary.lhs);
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "jne", "true", label_true);
 
     // rhs
     emit_tree_node(ctx, node->binary.rhs);
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "jne", "true", label_true);
 
     emit_label(ctx, "true", label_true);
-    emit_line(ctx, "mov eax, 1\n");
+    emit_line(ctx, "mov eax, 1");
 
     emit_label(ctx, "end", label_end);
 }
 
 void emit_binary_div(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_line(ctx, "push rax\n");                     // push lhs result
+    emit_line(ctx, "push rax");                     // push lhs result
     emit_tree_node(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-    emit_line(ctx, "mov ecx, eax\n");                 // move denominator to ecx
-    emit_line(ctx, "pop rax\n");                      // restore numerator to eax
-    emit_line(ctx, "cdq\n");
-    emit_line(ctx, "idiv ecx\n");
+    emit_line(ctx, "mov ecx, eax");                 // move denominator to ecx
+    emit_line(ctx, "pop rax");                      // restore numerator to eax
+    emit_line(ctx, "cdq");
+    emit_line(ctx, "idiv ecx");
 }
 
 void emit_binary_mod(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_line(ctx, "push rax\n");                     // push lhs result
+    emit_line(ctx, "push rax");                     // push lhs result
     emit_tree_node(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-    emit_line(ctx, "mov ecx, eax\n");                 // move denominator to ecx
-    emit_line(ctx, "pop rax\n");                      // restore numerator to eax
-    emit_line(ctx, "cdq\n");
-    emit_line(ctx, "idiv ecx\n");               // divide eax by ecx. result goes to eax, remainder to edx
-    emit_line(ctx, "mov eax, edx\n");           // move remainer in edx to eax
+    emit_line(ctx, "mov ecx, eax");                 // move denominator to ecx
+    emit_line(ctx, "pop rax");                      // restore numerator to eax
+    emit_line(ctx, "cdq");
+    emit_line(ctx, "idiv ecx");               // divide eax by ecx. result goes to eax, remainder to edx
+    emit_line(ctx, "mov eax, edx");           // move remainer in edx to eax
 }
 
 void emit_binary_comparison(EmitterContext * ctx, ASTNode * node) {
     // eval left-hand side -> result in eax -> push results onto the stack
     emit_tree_node(ctx, node->binary.lhs);
-    emit_line(ctx, "push rax\n");
+    emit_line(ctx, "push rax");
 
     // eval right-hand side -> reult in eax
 
     emit_tree_node(ctx, node->binary.rhs);
 
     // restore lhs into rcx
-    emit_line(ctx, "pop rcx\n");
-    emit_line(ctx, "mov ecx, ecx\n");   // zero upper bits
+    emit_line(ctx, "pop rcx");
+    emit_line(ctx, "mov ecx, ecx");   // zero upper bits
 
     // compare rcx (lhs) with eax (rhs), cmp rcx, eax means rcx - eax
-    emit_line(ctx, "cmp ecx, eax\n");
+    emit_line(ctx, "cmp ecx, eax");
 
     // emit proper setX based on operator type
     switch (node->binary.op) {
         case BINOP_EQ:
-            emit_line(ctx, "sete al\n");
+            emit_line(ctx, "sete al");
             break;
 
         case BINOP_NE:
-            emit_line(ctx, "setne al\n");
+            emit_line(ctx, "setne al");
             break;
 
         case BINOP_LT:
-            emit_line(ctx, "setl al\n");
+            emit_line(ctx, "setl al");
             break;
 
         case BINOP_LE:
-            emit_line(ctx, "setle al\n");
+            emit_line(ctx, "setle al");
             break;
 
         case BINOP_GT:
-            emit_line(ctx, "setg al\n");
+            emit_line(ctx, "setg al");
             break;
 
         case BINOP_GE:
-            emit_line(ctx, "setge al\n");
+            emit_line(ctx, "setge al");
             break;
 
         default:
@@ -570,7 +572,7 @@ void emit_binary_comparison(EmitterContext * ctx, ASTNode * node) {
     }
 
     // zero-extend result to full eax
-    emit_line(ctx, "movzx eax, al\n");
+    emit_line(ctx, "movzx eax, al");
 
 }
 
@@ -578,14 +580,14 @@ void emit_binary_comparison(EmitterContext * ctx, ASTNode * node) {
 void emit_binary_op(EmitterContext * ctx, BinaryOperator op) {
     switch(op) {
         case BINOP_ADD:
-            emit_line(ctx, "add eax, ecx\n");
+            emit_line(ctx, "add eax, ecx");
             break;
         case BINOP_SUB:
-              emit_line(ctx, "sub ecx, eax\n");
-              emit_line(ctx, "mov eax, ecx\n");
+              emit_line(ctx, "sub ecx, eax");
+              emit_line(ctx, "mov eax, ecx");
             break;
         case BINOP_MUL:
-            emit_line(ctx, "imul eax, ecx\n");
+            emit_line(ctx, "imul eax, ecx");
             break;
         default:
             error("Unsupported binary operator: %s", token_type_name(op));
@@ -596,7 +598,7 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
     switch (node->unary.op) {
         case UNARY_NEGATE:
             emit_expr(ctx, node->unary.operand);
-            emit_line(ctx, "neg eax\n");
+            emit_line(ctx, "neg eax");
             break;
         case UNARY_PLUS:
             // noop
@@ -604,67 +606,67 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
         case UNARY_NOT:
             // !x becomes (x == 0) -> 1 else 0
             emit_expr(ctx, node->unary.operand);
-            emit_line(ctx, "cmp eax, 0\n");
-            emit_line(ctx, "sete al\n");
-            emit_line(ctx, "movzx eax, al\n");
+            emit_line(ctx, "cmp eax, 0");
+            emit_line(ctx, "sete al");
+            emit_line(ctx, "movzx eax, al");
             break;
         case UNARY_PRE_INC: {
             char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "mov eax, %s\n", reference_label);
-            emit_line(ctx, "add eax, 1\n");
-            emit_line(ctx, "mov %s, eax\n", reference_label);
+            emit_line(ctx, "mov eax, %s", reference_label);
+            emit_line(ctx, "add eax, 1");
+            emit_line(ctx, "mov %s, eax", reference_label);
             free(reference_label);
             break;
         }
         case UNARY_PRE_DEC: {
             char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "mov eax, %s\n", reference_label);
-            emit_line(ctx, "sub eax, 1\n");
-            emit_line(ctx, "mov %s, eax\n", reference_label);
+            emit_line(ctx, "mov eax, %s", reference_label);
+            emit_line(ctx, "sub eax, 1");
+            emit_line(ctx, "mov %s, eax", reference_label);
             free(reference_label);
         break;
         }
         case UNARY_POST_INC: {
             char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "mov eax, %s\n", reference_label);
-            emit_line(ctx, "mov ecx, eax\n");
-            emit_line(ctx, "add eax, 1\n");
-            emit_line(ctx, "mov %s, eax\n", reference_label);
-            emit_line(ctx, "mov eax, ecx\n");
+            emit_line(ctx, "mov eax, %s", reference_label);
+            emit_line(ctx, "mov ecx, eax");
+            emit_line(ctx, "add eax, 1");
+            emit_line(ctx, "mov %s, eax", reference_label);
+            emit_line(ctx, "mov eax, ecx");
             free(reference_label);
             break;
         }
         case UNARY_POST_DEC: {
             char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "mov eax, %s\n", reference_label);
-            emit_line(ctx, "mov ecx, eax\n");
-            emit_line(ctx, "sub eax, 1\n");
-            emit_line(ctx, "mov %s, eax\n", reference_label);
-            emit_line(ctx, "mov eax, ecx\n");
+            emit_line(ctx, "mov eax, %s", reference_label);
+            emit_line(ctx, "mov ecx, eax");
+            emit_line(ctx, "sub eax, 1");
+            emit_line(ctx, "mov %s, eax", reference_label);
+            emit_line(ctx, "mov eax, ecx");
             free(reference_label);
             break;
         }
         case UNARY_ADDRESS: {
             char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "lea rax, %s\n", reference_label);
-            emit_line(ctx, "push rax\n");
+            emit_line(ctx, "lea rax, %s", reference_label);
+            emit_line(ctx, "push rax");
             free(reference_label);
             break;
         }
         case UNARY_DEREF: {
             emit_expr(ctx, node->unary.operand);
-            emit_line(ctx, "pop rax\n");
+            emit_line(ctx, "pop rax");
             if (node->ctype->kind == CTYPE_CHAR) {
-                emit_line(ctx, "movzx eax, BYTE [rax]\n");
+                emit_line(ctx, "movzx eax, BYTE [rax]");
             } else if (node->ctype->kind == CTYPE_SHORT) {
-                emit_line(ctx, "movzx eax, WORD [rax]\n");
+                emit_line(ctx, "movzx eax, WORD [rax]");
             } else if (node->ctype->kind == CTYPE_INT) {
-                emit_line(ctx, "mov eax, [rax]\n");
+                emit_line(ctx, "mov eax, [rax]");
             }
             else if (node->ctype->kind == CTYPE_LONG) {
-                emit_line(ctx, "mov rax, [rax]\n");
+                emit_line(ctx, "mov rax, [rax]");
             }
-            emit_line(ctx, "push rax\n");
+            emit_line(ctx, "push rax");
             break;
         }
         default:
@@ -679,17 +681,17 @@ void emit_if_statement(EmitterContext * ctx, ASTNode * node) {
     // eval condition
     emit_tree_node(ctx, node->if_stmt.cond);
     // compare result with 0
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "cmp eax, 0");
 
     if (node->if_stmt.else_stmt) {
-        emit_line(ctx, "je Lelse%d\n", id);  // jump to else if false
+        emit_line(ctx, "je Lelse%d", id);  // jump to else if false
         emit_tree_node(ctx, node->if_stmt.then_stmt);
-        emit_line(ctx, "jmp Lend%d\n", id);  // jump to end over else
+        emit_line(ctx, "jmp Lend%d", id);  // jump to end over else
         emit_label(ctx, "else", id);
         emit_tree_node(ctx, node->if_stmt.else_stmt);
     }
     else {
-        emit_line(ctx, "je Lend%d\n", id);  // skip over if false
+        emit_line(ctx, "je Lend%d", id);  // skip over if false
         emit_tree_node(ctx, node->if_stmt.then_stmt);
     }
     emit_label(ctx, "end", id);
@@ -701,7 +703,7 @@ void emit_while_statement(EmitterContext * ctx, ASTNode * node) {
     char * loop_end_label = make_label_text("while_end", get_label_id(ctx));
 
     emit_tree_node(ctx, node->switch_stmt.expr);
-    emit_line(ctx, "push rax   ; save switch expression\n");
+    emit_line(ctx, "push rax   ; save switch expression");
 
     push_loop_context(ctx, loop_start_label, loop_end_label);
 
@@ -710,7 +712,7 @@ void emit_while_statement(EmitterContext * ctx, ASTNode * node) {
     // eval cond
     emit_tree_node(ctx, node->while_stmt.cond);
     // cmp to zero
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "cmp eax, 0");
     // jmp to end if condition not met
     emit_jump_from_text(ctx, "je", loop_end_label);
     emit_tree_node(ctx, node->while_stmt.body);
@@ -728,7 +730,7 @@ void emit_do_while_statement(EmitterContext * ctx, ASTNode * node) {
     emit_label(ctx, "do_while_start", id);
     emit_tree_node(ctx, node->do_while_stmt.body);
     emit_tree_node(ctx, node->do_while_stmt.expr);
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "jne", "do_while_start", id);
     emit_label(ctx, "do_while_end", id);
 }
@@ -754,14 +756,14 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
 //    emit_text_section_header(ctx);
     int local_space = node->function_decl.size;
 
-    emit_line(ctx, "%s:\n", node->function_decl.name);
+    emit_line(ctx, "%s:", node->function_decl.name);
 
-    emit_line(ctx, "push rbp\n");
-    emit_line(ctx,  "mov rbp, rsp\n");
+    emit_line(ctx, "push rbp");
+    emit_line(ctx,  "mov rbp, rsp");
 
     if (local_space > 0) {
         int aligned_space = (local_space + 15) & ~15;
-        emit_line(ctx, "sub rsp, %d\n", aligned_space);
+        emit_line(ctx, "sub rsp, %d", aligned_space);
     }
 
     if (node->function_decl.param_list) {
@@ -773,8 +775,8 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     emit_block(ctx, node->function_decl.body, false);
 
     emit_label_from_text(ctx, func_end_label);
-    emit_line(ctx, "leave\n");
-    emit_line(ctx, "ret\n");
+    emit_line(ctx, "leave");
+    emit_line(ctx, "ret");
 
     pop_function_exit_context(ctx);
     free(func_end_label);
@@ -788,7 +790,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             for (int i=0;i<init_items->count;i++) {
                 ASTNode * init_value = ASTNode_list_get(init_items, i);
                 emit_expr(ctx, init_value);
-                emit_line(ctx, "push rax\n");
+                emit_line(ctx, "push rax");
 
                 // TODO FIX emit_addr call
 //                emit_addr(ctx, node);
@@ -797,7 +799,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 
                 int offset = symbol->info.array.offset + i*4;
 
-                emit_line(ctx, "lea rcx, [rbp%+d]\n", offset);
+                emit_line(ctx, "lea rcx, [rbp%+d]", offset);
                 // if (symbol->info.array.offset >= 0) {
                 //     emit_line(ctx, "lea rcx, [rbp - %d]\n", offset);
                 // }
@@ -805,16 +807,16 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
                 //     emit_line(ctx, "lea rcx, [rbp + %d]\n", -offset);
                 // }
 
-                emit_line(ctx, "pop rax\n");
-                emit_line(ctx, "mov [rcx], eax\n");
+                emit_line(ctx, "pop rax");
+                emit_line(ctx, "mov [rcx], eax");
             }
         }
         else {
             emit_expr(ctx, node->var_decl.init_expr);
-            emit_line(ctx, "push rax\n");
+            emit_line(ctx, "push rax");
             emit_addr(ctx, node);
-            emit_line(ctx, "pop rax\n");
-            emit_line(ctx, "mov %s [rcx], %s\n",
+            emit_line(ctx, "pop rax");
+            emit_line(ctx, "mov %s [rcx], %s",
                 mem_size_for_type(node->ctype),
                 reg_for_type(node->ctype));
             // if (node->ctype->kind == CTYPE_CHAR) {
@@ -839,17 +841,17 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 void emit_assignment(EmitterContext * ctx, ASTNode* node) {
     // eval RHS -> rax then push
     emit_expr(ctx, node->binary.rhs);
-    emit_line(ctx, "push rax\n");
+    emit_line(ctx, "push rax");
 
     // eval LHS addr -> rcx
     emit_addr(ctx, node->binary.lhs);
 
     // pop RHS in rax
-    emit_line(ctx, "pop rax\n");
+    emit_line(ctx, "pop rax");
 
     CType * ctype = node->binary.lhs->ctype;
 
-    emit_line(ctx, "mov %s [rcx], %s\n",
+    emit_line(ctx, "mov %s [rcx], %s",
         mem_size_for_type(ctype),
         reg_for_type(ctype));
 
@@ -872,28 +874,28 @@ void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
     emit_addr(ctx, node->binary.lhs);
 
     // push LHS address on stack
-    emit_line(ctx, "push rcx\n");
+    emit_line(ctx, "push rcx");
 
     // load current value into eax
-    emit_line(ctx, "mov eax, [rcx]\n");
+    emit_line(ctx, "mov eax, [rcx]");
 
     // save current RHS value in eax on stack
-    emit_line(ctx, "push rax\n");
+    emit_line(ctx, "push rax");
 
     // evaluate RHS into eax
     emit_expr(ctx, node->binary.rhs);
 
     // restore LHS into ecx
-    emit_line(ctx, "pop rcx\n");
+    emit_line(ctx, "pop rcx");
 
     // add RHS to LHS
-    emit_line(ctx, "add eax, ecx\n");
+    emit_line(ctx, "add eax, ecx");
 
     // restore LHS address
-    emit_line(ctx, "pop rcx\n");
+    emit_line(ctx, "pop rcx");
 
     // write back result to LHS
-    emit_line(ctx, "mov [rcx], eax\n");
+    emit_line(ctx, "mov [rcx], eax");
 
     // add RHS to LHS
 
@@ -913,30 +915,30 @@ void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
     emit_addr(ctx, node->binary.lhs);
 
     // push LHS address on stack
-    emit_line(ctx, "push rcx\n");
+    emit_line(ctx, "push rcx");
 
     // load current value into eax
-    emit_line(ctx, "mov eax, [rcx]\n");
+    emit_line(ctx, "mov eax, [rcx]");
 
     // save current RHS value in eax on stack
-    emit_line(ctx, "push rax\n");
+    emit_line(ctx, "push rax");
 
     // evaluate RHS into eax
     emit_expr(ctx, node->binary.rhs);
 
-    emit_line(ctx, "mov ecx, eax\n");
+    emit_line(ctx, "mov ecx, eax");
 
     // restore LHS into ecx
-    emit_line(ctx, "pop rax\n");
+    emit_line(ctx, "pop rax");
 
     // sub RHS from LHS
-    emit_line(ctx, "sub eax, ecx\n");
+    emit_line(ctx, "sub eax, ecx");
 
     // restore LHS address
-    emit_line(ctx, "pop rcx\n");
+    emit_line(ctx, "pop rcx");
 
     // write back result to LHS
-    emit_line(ctx, "mov [rcx], eax\n");
+    emit_line(ctx, "mov [rcx], eax");
 
 
     // char * reference_label  = create_variable_reference(ctx, node->binary.lhs);
@@ -981,7 +983,7 @@ void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
     emit_label_from_text(ctx, condition_label);
     if (node->for_stmt.cond_expr) {
         emit_tree_node(ctx, node->for_stmt.cond_expr);
-        emit_line(ctx, "cmp eax, 0\n");
+        emit_line(ctx, "cmp eax, 0");
         emit_jump_from_text(ctx, "je", end_label);     // exit if false
     }
 
@@ -1002,7 +1004,7 @@ void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
 void emit_pass_argument(EmitterContext * ctx, CType * type, ASTNode * node) {
     emit_tree_node(ctx, node);
     char * reference_label = create_variable_reference(ctx, node);
-    emit_line(ctx, "mov %s %s, %s\n",
+    emit_line(ctx, "mov %s %s, %s",
         mem_size_for_type(type),
         reference_label,
         reg_for_type(type));
@@ -1038,7 +1040,7 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
         for (int i = node->function_call.arg_list->count - 1; i >= 0; i--) {
             ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
             emit_expr(ctx, argNode);
-            emit_line(ctx, "push rax\n");
+            emit_line(ctx, "push rax");
             arg_count++;
         }
 
@@ -1055,11 +1057,11 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
     }
 
     // // call the function
-    emit_line(ctx, "call %s\n", node->function_call.name);
+    emit_line(ctx, "call %s", node->function_call.name);
 
     // // clean up arguments
     if (arg_count > 0) {
-        emit_line(ctx, "add rsp, %d\n", arg_count*8);
+        emit_line(ctx, "add rsp, %d", arg_count*8);
     }
 }
 
@@ -1073,13 +1075,13 @@ void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
         if (statement->type == AST_CASE_STMT) {
             statement->case_stmt.label = make_label_text("case", get_label_id(ctx));
 //            runtime_info(statement)->label = make_label_text("case", get_label_id(ctx));
-            emit_line(ctx, "mov rax, [rsp]\n");
-            emit_line(ctx, "cmp rax, %d\n", statement->case_stmt.constExpression->int_value);
-            emit_line(ctx, "je %s\n",  statement->case_stmt.label);
+            emit_line(ctx, "mov rax, [rsp]");
+            emit_line(ctx, "cmp rax, %d", statement->case_stmt.constExpression->int_value);
+            emit_line(ctx, "je %s",  statement->case_stmt.label);
         }
         else if (statement->type == AST_DEFAULT_STMT) {
             statement->default_stmt.label = make_label_text("default", get_label_id(ctx));
-            emit_line(ctx, "jmp %s\n", statement->default_stmt.label);
+            emit_line(ctx, "jmp %s", statement->default_stmt.label);
         }
     }
 }
@@ -1093,11 +1095,11 @@ void emit_switch_bodies(EmitterContext * ctx, ASTNode * node) {
         ASTNode * statement = n->value;
 
         if (statement->type == AST_CASE_STMT) {
-            emit_line(ctx, "\n%s:\n", statement->case_stmt.label);
+            emit_line(ctx, "\n%s:", statement->case_stmt.label);
             emit_tree_node(ctx, statement->case_stmt.stmt);
         }
         else if (statement->type == AST_DEFAULT_STMT) {
-            emit_line(ctx, "\n%s:\n", statement->default_stmt.label);
+            emit_line(ctx, "\n%s:", statement->default_stmt.label);
             emit_tree_node(ctx, statement->default_stmt.stmt);
         }
     }
@@ -1121,7 +1123,7 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
     // second pass emit all labels and bodies
     emit_switch_bodies(ctx, node);
 
-    emit_line(ctx, "\n%s:\n", break_label);
+    emit_line(ctx, "\n%s:", break_label);
 
     pop_switch_context(ctx);
 
@@ -1134,18 +1136,18 @@ void emit_case_statement(EmitterContext * ctx, ASTNode * node) {
     node->case_stmt.label = strdup(case_label);
 
     // load switch value back from the stack
-    emit_line(ctx, "mov rax, [rsp] ; reload switch expr\n");
+    emit_line(ctx, "mov rax, [rsp] ; reload switch expr");
     
     // emit the jmp to the case body
-    emit_line(ctx, "cmp rax, %d\n", node->case_stmt.constExpression->int_value);
-    emit_line(ctx, "je %s\n", case_label);
+    emit_line(ctx, "cmp rax, %d", node->case_stmt.constExpression->int_value);
+    emit_line(ctx, "je %s", case_label);
 
     // emit the case body
-    emit_line(ctx, "%s\n", node->case_stmt.label);
+    emit_line(ctx, "%s", node->case_stmt.label);
     emit_tree_node(ctx, node->case_stmt.stmt);
     // emit jump to break
 
-    emit_line(ctx, "jmp %s\n", current_switch_break_label(ctx));
+    emit_line(ctx, "jmp %s", current_switch_break_label(ctx));
 
     free(case_label);
 }
@@ -1246,7 +1248,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         }
         case AST_ARRAY_ACCESS: {
             int offset = get_offset(ctx, node);
-            emit_line(ctx, "mov eax, [rbp%+d]\n", offset);
+            emit_line(ctx, "mov eax, [rbp%+d]", offset);
             break;
         }
         case AST_INITIALIZER_LIST: {
@@ -1284,42 +1286,42 @@ void emit_print_int_extension_function(EmitterContext * ctx) {
     int label_loop = get_label_id(ctx);
 
     emit_bss_section_header(ctx);
-    emit_line(ctx, "buffer%d resb 20\n", label_buffer);
+    emit_line(ctx, "buffer%d resb 20", label_buffer);
 
     emit_text_section_header(ctx);
-    emit_line(ctx, "print_int:\n");
-    emit_line(ctx, "; assumes integer to print is in eax\n");
-    emit_line(ctx, "; converts and prints using syscall\n");
-    emit_line(ctx, "mov rcx, buffer%d + 19\n", label_buffer);
-    emit_line(ctx, "mov byte [rcx], 10\n");
-    emit_line(ctx, "dec rcx\n");
-    emit_line(ctx, "\n");
-    emit_line(ctx, "cmp eax, 0\n");
+    emit_line(ctx, "print_int:");
+    emit_line(ctx, "; assumes integer to print is in eax");
+    emit_line(ctx, "; converts and prints using syscall");
+    emit_line(ctx, "mov rcx, buffer%d + 19", label_buffer);
+    emit_line(ctx, "mov byte [rcx], 10");
+    emit_line(ctx, "dec rcx");
+    emit_line(ctx, "");
+    emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "jne", "convert", label_convert);
-    emit_line(ctx, "mov byte [rcx], '0'\n");
-    emit_line(ctx, "dec rcx\n");
+    emit_line(ctx, "mov byte [rcx], '0'");
+    emit_line(ctx, "dec rcx");
     emit_jump(ctx, "jmp", "done", label_done);
-    emit_line(ctx, "\n");
+    emit_line(ctx, "");
     emit_label(ctx, "convert", label_convert);
-    emit_line(ctx, "xor edx, edx\n");
-    emit_line(ctx, "mov ebx, 10\n");
+    emit_line(ctx, "xor edx, edx");
+    emit_line(ctx, "mov ebx, 10");
     emit_label(ctx, "loop", label_loop);
-    emit_line(ctx, "xor edx, edx\n");
-    emit_line(ctx, "div ebx\n");
-    emit_line(ctx, "add dl, '0'\n");
-    emit_line(ctx, "mov [rcx], dl\n");
-    emit_line(ctx, "dec rcx\n");
-    emit_line(ctx, "test eax, eax\n");
+    emit_line(ctx, "xor edx, edx");
+    emit_line(ctx, "div ebx");
+    emit_line(ctx, "add dl, '0'");
+    emit_line(ctx, "mov [rcx], dl");
+    emit_line(ctx, "dec rcx");
+    emit_line(ctx, "test eax, eax");
     emit_jump(ctx, "jnz", "loop", label_loop);
-    emit_line(ctx, "\n");
+    emit_line(ctx, "");
     emit_label(ctx, "done", label_done);
-    emit_line(ctx, "lea rsi, [rcx + 1]\n");
-    emit_line(ctx, "mov rdx, buffer%d + 20\n", label_buffer);
-    emit_line(ctx, "sub rdx, rsi\n");
-    emit_line(ctx, "mov rax, 1\n");
-    emit_line(ctx, "mov rdi, 1\n");
-    emit_line(ctx, "syscall\n");
-    emit_line(ctx, "ret\n");
+    emit_line(ctx, "lea rsi, [rcx + 1]");
+    emit_line(ctx, "mov rdx, buffer%d + 20", label_buffer);
+    emit_line(ctx, "sub rdx, rsi");
+    emit_line(ctx, "mov rax, 1");
+    emit_line(ctx, "mov rdi, 1");
+    emit_line(ctx, "syscall");
+    emit_line(ctx, "ret");
 
 }
 
