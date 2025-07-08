@@ -292,3 +292,13 @@ char * c_type_kind_to_string(CTypeKind kind) {
             default: return "<unknown>";
     }
 }
+
+int sizeof_type(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_LONG: return 8;
+        case CTYPE_INT: return 4;
+        case CTYPE_SHORT: return 2;
+        case CTYPE_CHAR: return 1;
+        case CTYPE_PTR: return 8;
+    }
+}

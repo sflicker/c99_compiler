@@ -215,6 +215,39 @@ void emit_cast(EmitterContext * ctx, CType * from_type, CType * to_type) {
     }
 }
 
+void emit_binary_add(EmitterContext * ctx, ASTNode * node) {
+    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
+    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
+
+    emit_line(ctx, "pop rcx");                      // pop lhs to ECX
+    emit_line(ctx, "pop rax");
+
+    CType *lhs_type = node->binary.lhs->ctype;
+    CType *rhs_type = node->binary.rhs->ctype;
+
+    if (lhs_type->kind == CTYPE_PTR && is_integer_type(rhs_type)) {
+        int elem_size = sizeof_type(lhs_type);
+        emit_line(ctx, "imul rcx, %d", elem_size);
+        emit_line(ctx, "add rax, rcx");
+    }
+    else if (is_integer_type(lhs_type) && rhs_type->kind == CTYPE_PTR) {
+        int elem_size = sizeof_type(rhs_type);
+        emit_line(ctx, "imul rax, %d", elem_size);
+        emit_line(ctx, "add rax, rcx");
+    }
+    else if (is_integer_type(lhs_type) && is_integer_type(rhs_type)) {
+        emit_line(ctx, "add rax, rcx");
+    }
+    else {
+        error("Unsupported types for binary add operation");
+    }
+//    emit_binary_op(ctx, node->binary.op);        // emit proper for op
+
+    emit_line(ctx, "push rax");
+
+}
+
+
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     emit_data_section_header(ctx);
     for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
@@ -428,6 +461,7 @@ void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
             emit_binary_comparison(ctx, node);
             break;
         case BINOP_ADD:
+            emit_binary_add(ctx, node);
         case BINOP_SUB:
         case BINOP_MUL:
             emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX

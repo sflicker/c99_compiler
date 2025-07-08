@@ -244,11 +244,12 @@ ASTNode * create_var_ref_node(const char * name) {
     return node;
 }
 
-ASTNode * create_array_access_node(ASTNode * arrayExpr, ASTNode * indexExpr) {
+ASTNode * create_array_access_node(ASTNode * base, ASTNode * index) {
     ASTNode * node = create_ast();
     node->type = AST_ARRAY_ACCESS;
-    node->array_access.base = arrayExpr;
-    node->array_access.index = indexExpr;
+    node->array_access.base = base;
+    node->array_access.index = index;
+    node->ctype = base->ctype != NULL ? base->ctype->base_type : NULL;
     return node;
 }
 
