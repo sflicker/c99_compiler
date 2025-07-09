@@ -36,6 +36,7 @@ typedef struct EmitterContext {
 } EmitterContext;
 
 EmitterContext * create_emitter_context();
+EmitterContext * create_emitter_context_from_fp(FILE * file);
 int get_label_id(EmitterContext * ctx);
 void emitter_finalize(EmitterContext * ctx);
 

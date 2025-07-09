@@ -316,16 +316,20 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
     switch (node->type) {
         case AST_INT_LITERAL:
             emit_line(ctx, "mov eax, %d", node->int_value);
+            emit_line(ctx, "push rax");
             break;
         case AST_VAR_REF: {
             if (node->symbol->ctype->kind == CTYPE_ARRAY) {
                 emit_line(ctx, "lea rax, [rbp-%d]", abs(node->symbol->info.var.offset));
+                emit_line(ctx, "push rax");
             }
             else if (node->symbol->node->var_decl.is_global) {
                 emit_line(ctx, "mov eax, [rel %s] ", node->symbol->name);
+                emit_line(ctx, "push rax");
             } else {
                 int offset = node->symbol->info.var.offset;
                 emit_line(ctx, "mov %s, [rbp%+d]", reg_for_type(node->ctype), offset);
+                emit_line(ctx, "push rax");
             }
             break;
         }
@@ -359,6 +363,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
     }
+
 }
 
 
@@ -462,12 +467,14 @@ void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
             break;
         case BINOP_ADD:
             emit_binary_add(ctx, node);
+            break;
         case BINOP_SUB:
         case BINOP_MUL:
             emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-            emit_line(ctx, "push rax");                     // push lhs result
+   //         emit_line(ctx, "push rax");                     // push lhs result
             emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
             emit_line(ctx, "pop rcx");                      // pop lhs to ECX
+            emit_line(ctx, "pop rax");
             emit_binary_op(ctx, node->binary.op);        // emit proper for op
             break;
         case BINOP_DIV:

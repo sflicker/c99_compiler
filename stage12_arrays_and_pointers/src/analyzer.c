@@ -214,7 +214,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             if (!symbol) { error("Symbol not found"); return; }
             node->symbol = symbol;
             if (symbol->ctype->kind == CTYPE_ARRAY) {
-                 node->ctype = make_pointer_type(symbol->ctype);
+                 node->ctype = make_pointer_type(symbol->ctype->base_type);
             }
             else {
                 node->ctype = symbol->ctype;

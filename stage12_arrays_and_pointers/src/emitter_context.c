@@ -25,6 +25,18 @@ EmitterContext * create_emitter_context(const char * filename) {
     return ctx;
 }
 
+EmitterContext * create_emitter_context_from_fp(FILE * file) {
+    EmitterContext * ctx = malloc(sizeof(EmitterContext));
+    ctx->label_id = 0;
+    ctx->filename = "memf";
+    ctx->out = file;
+    ctx->emit_print_int_extension = false;
+    ctx->functionExitStack = NULL;
+    ctx->switch_stack = NULL;
+    ctx->loop_stack = NULL;
+    return ctx;
+}
+
 void emitter_finalize(EmitterContext * ctx) {
     fclose(ctx->out);
     free(ctx->filename);
