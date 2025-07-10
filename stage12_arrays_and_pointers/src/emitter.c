@@ -219,8 +219,8 @@ void emit_binary_add(EmitterContext * ctx, ASTNode * node) {
     emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
     emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
 
-    emit_line(ctx, "pop rcx");                      // pop lhs to ECX
-    emit_line(ctx, "pop rax");
+    emit_line(ctx, "pop rcx");                      // pop rhs to RCX
+    emit_line(ctx, "pop rax");                      // pop lhs to RAX
 
     CType *lhs_type = node->binary.lhs->ctype;
     CType *rhs_type = node->binary.rhs->ctype;
@@ -236,6 +236,23 @@ void emit_binary_add(EmitterContext * ctx, ASTNode * node) {
         emit_line(ctx, "add rax, rcx");
     }
     else if (is_integer_type(lhs_type) && is_integer_type(rhs_type)) {
+        emit_line(ctx, "; lhs in rax, rhs in rcx");
+        if (lhs_type->kind == CTYPE_CHAR) {
+            emit_line(ctx, "movsx rax, al");
+        } else if (lhs_type->kind == CTYPE_SHORT) {
+            emit_line(ctx, "movsx rax, ax");
+        } else if (lhs_type->kind == CTYPE_INT) {
+            emit_line(ctx, "movsxd rax, eax");
+        }
+
+        if (rhs_type->kind == CTYPE_CHAR) {
+            emit_line(ctx, "movsx rcx, cl");
+        } else if (rhs_type->kind == CTYPE_SHORT) {
+            emit_line(ctx, "movsx rcx, cx");
+        } else if (rhs_type->kind == CTYPE_INT) {
+            emit_line(ctx, "movsxd rcx, ecx");
+        }
+
         emit_line(ctx, "add rax, rcx");
     }
     else {
