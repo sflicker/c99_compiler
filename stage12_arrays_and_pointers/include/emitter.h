@@ -64,6 +64,7 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node);
 void emit_case_statement(EmitterContext * ctx, ASTNode * node);
 void emit_break_statement(EmitterContext * ctx, ASTNode * node);
 void emit_continue_statement(EmitterContext * ctx, ASTNode * node);
-void emit_csst(EmitterContext * ctx, CType * from_type, CType * to_type);
+void emit_csst(EmitterContext * ctx, ASTNode * node);
+void emit_binary_multi(EmitterContext * ctx, ASTNode * node);
 
 #endif

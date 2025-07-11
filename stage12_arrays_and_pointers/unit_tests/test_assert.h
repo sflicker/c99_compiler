@@ -6,6 +6,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "util.h"
+
 #define TEST_USE_COLOR 1
 
 #if TEST_USE_COLOR
@@ -19,6 +21,8 @@
 #define COLOR_RED     ""
 #define COLOR_CYAN    ""
 #endif
+
+
 
 #define TEST_MSG(msg)   \
     do {                \
@@ -42,6 +46,8 @@
         fflush(stdout); \
         if ((expected) != (actual)) { \
             printf(COLOR_RED "FAILED\n" COLOR_RESET); \
+            printf("  Expected:", expected); \
+            printf("  Actual: ", actual); \
             fprintf(stderr, "    Expected: %d\n    Actual:   %d\n", (expected), (actual)); \
             exit(1); \
         } else { \
@@ -55,7 +61,8 @@
         fflush(stdout); \
         if (strcmp((expected), (actual)) != 0) { \
             printf(COLOR_RED "FAILED\n" COLOR_RESET); \
-            fprintf(stderr, "    Expected: \"%s\"\n    Actual:   \"%s\"\n", (expected), (actual)); \
+            print_with_label("Expected", expected); \
+            print_with_label("Actual", actual ); \
             exit(1); \
         } else { \
             printf(COLOR_GREEN "Passed\n" COLOR_RESET); \

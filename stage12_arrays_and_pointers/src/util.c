@@ -94,4 +94,22 @@ void print_indent(int indent) {
 }
 
 
+void print_with_label(const char *label, const char *text) {
+    const char *p = text;
+    printf("%s] ", label);
+    while (*p) {
+        // print until next \n or \0
+        const char *line_end = strchr(p, '\n');
+        if (line_end && *line_end == '\n') {
+            printf("%.*s", (int)(line_end - p + 1), p);   // uses \n from text
+        } else {
+            printf("%.*s\n", (int)(line_end - p), p);
+        }
+        // print label spaces for next line including space after label
+        printf("%*s", (int)strlen(label) + 1 + 1, " ");
+        p = line_end + 1;
+
+    }
+    printf("\n");
+}
 

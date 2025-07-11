@@ -33,6 +33,8 @@ const char * current_test = NULL;
 //     *dst = '\0';
 // }
 
+typedef enum { EXPR, BLOCK, GLOBAL} PARSER_OP;
+
 void strip_comments(char *src, char *dst) {
     while (*src) {
         // Skip leading whitespace to peek at first non-whitespace
@@ -71,11 +73,22 @@ void strip_comments(char *src, char *dst) {
     *dst = '\0';
 }
 
-void run_emitter_test(char * c_fragment, char * expected) {
+void run_emitter_test(char * c_fragment, char * expected, PARSER_OP op) {
     tokenlist * tokens = tokenize(c_fragment);
     ParserContext * ctx = create_parser_context(tokens);
 
-    ASTNode * node = parse_expression(ctx);
+    ASTNode * node;
+    switch (op) {
+        case EXPR:
+            node = parse_expression(ctx);
+            break;
+        case BLOCK:
+            node = parse_block(ctx);
+            break;
+        case GLOBAL:
+            node = parse_translation_unit(ctx);
+            break;
+    }
     printf("\nAST After Parsing\n");
     print_ast(node, 0);
     free_parser_context(ctx);
@@ -103,7 +116,7 @@ void run_emitter_test(char * c_fragment, char * expected) {
 
     strip_comments(buffer, normalizedOutput);
 
-    TEST_ASSERT("Verifying generated code is correct", strcmp(expected, normalizedOutput) == 0);
+    TEST_ASSERT_EQ_STR("Verifying generated code is correct", expected, normalizedOutput);
 
     free(normalizedOutput);
 }
@@ -116,7 +129,7 @@ void test_emit_basic_expr() {
         "mov eax, 42\n"
         "push rax\n";
 
-    run_emitter_test(c_fragment, expected);
+    run_emitter_test(c_fragment, expected, EXPR);
 }
 
 void test_emit_add_literals_expr() {
@@ -135,7 +148,48 @@ void test_emit_add_literals_expr() {
         "add rax, rcx\n"
         "push rax\n";
 
-    run_emitter_test(c_fragment, expected);
+    run_emitter_test(c_fragment, expected, EXPR);
+
+}
+
+void test_emit_add_int_var_block() {
+    TEST_MSG("add two literals test");
+    char * c_fragment = "{"
+                        "    int a = 1;"
+                        "    int b = 2;"
+                        "    int c = a + b;"
+                        "}";
+
+    char * expected =
+        "mov eax, 20\n"
+        "push rax\n"
+        "mov eax, 22\n"
+        "push rax\n"
+        "pop rcx\n"
+        "pop rax\n"
+        "movsxd rax, eax\n"
+        "movsxd rcx, ecx\n"
+        "add rax, rcx\n"
+        "push rax\n";
+
+    run_emitter_test(c_fragment, expected, BLOCK);
+
+}
+
+void test_emit_multi_literals_expr() {
+    TEST_MSG("multi literals test");
+    char * c_fragment = "2 * 3";
+    char * expected =
+        "mov eax, 2\n"
+        "push rax\n"
+        "mov eax, 3\n"
+        "push rax\n"
+        "pop rcx\n"
+        "pop rax\n"
+        "imul eax, ecx\n"
+        "push rax\n";
+
+    run_emitter_test(c_fragment, expected, EXPR);
 
 }
 
@@ -146,7 +200,7 @@ void test_emit_literal_with_int_cast() {
         "mov eax, 42\n"
         "push rax\n";
 
-    run_emitter_test(c_fragment, expected);
+    run_emitter_test(c_fragment, expected, EXPR);
 }
 
 void test_emit_literal_with_char_cast() {
@@ -156,9 +210,12 @@ void test_emit_literal_with_char_cast() {
 
     char * expected =
         "mov eax, 42\n"
+        "push rax\n"
+        "pop rax\n"
+        "movsx eax, al\n"
         "push rax\n";
 
-    run_emitter_test(c_fragment, expected);
+    run_emitter_test(c_fragment, expected, EXPR);
 }
 
 void test_emit_literal_with_short_cast() {
@@ -166,16 +223,21 @@ void test_emit_literal_with_short_cast() {
     char * c_fragment = "(short)42";
     char * expected =
         "mov eax, 42\n"
+        "push rax\n"
+        "pop rax\n"
+        "movsx eax, ax\n"
         "push rax\n";
 
-    run_emitter_test(c_fragment, expected);
+    run_emitter_test(c_fragment, expected, EXPR);
 }
 
 int main() {
     RUN_TEST(test_emit_basic_expr);
-    RUN_TEST(test_emit_add_literals_expr);
-    RUN_TEST(test_emit_literal_with_int_cast);
     RUN_TEST(test_emit_literal_with_char_cast);
+    RUN_TEST(test_emit_literal_with_int_cast);
     RUN_TEST(test_emit_literal_with_short_cast);
+    RUN_TEST(test_emit_add_literals_expr);
+    RUN_TEST(test_emit_add_int_var_block);
+    RUN_TEST(test_emit_multi_literals_expr);
 }
 

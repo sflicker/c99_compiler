@@ -12,7 +12,8 @@ include_directories(include)
 
 # Glob all source files in src/
 file(GLOB SRC_FILES src/*.c)
-set(MAIN_SRC src/main.c)
+set(MAIN_SRC src/main.c
+)
 
 # Create a library from all source files except main.c
 list(REMOVE_ITEM SRC_FILES ${MAIN_SRC})

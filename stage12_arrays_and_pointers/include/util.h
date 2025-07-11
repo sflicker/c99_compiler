@@ -7,5 +7,6 @@ char * read_text_file(const char* filename);
 char *write_temp_file(const char *content);
 const char * get_file_extension(const char * filename);
 void print_indent(int indent);
+void print_with_label(const char *label, const char *text);
 
 #endif

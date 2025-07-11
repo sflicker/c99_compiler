@@ -170,7 +170,13 @@ char * get_reservation_directive(CType * ctype) {
     return NULL;
 }
 
-void emit_cast(EmitterContext * ctx, CType * from_type, CType * to_type) {
+void emit_cast(EmitterContext * ctx, ASTNode * node) {
+
+    emit_expr(ctx, node->cast_expr.expr);     // eval inner expression
+
+    CType * from_type = node->cast_expr.expr->ctype;
+    CType * to_type = node->cast_expr.target_type;
+
     int from_size = from_type->size;
     int to_size = to_type->size;
 
@@ -183,18 +189,21 @@ void emit_cast(EmitterContext * ctx, CType * from_type, CType * to_type) {
 
     // narrowing
     if (from_size > to_size) {
+        emit_line(ctx, "pop rax");
         switch (to_size) {
             case 1: emit_line(ctx, "movsx eax, al"); break;
-            case 2: emit_line(ctx, "movsx eax, ax)"); break;
+            case 2: emit_line(ctx, "movsx eax, ax"); break;
             case 4: emit_line(ctx, "mov eax, eax"); break;
             default:
                 error("Unsupported narrowing cast to %d bytes", to_size);
         }
+        emit_line(ctx, "push rax");
         return;
     }
 
     // widening cast
     if (from_size < to_size) {
+        emit_line(ctx, "pop rax");
         if (from_signed && to_signed) {
             switch (from_size) {
                 case 1: emit_line(ctx, "movsx eax, al"); break;
@@ -212,6 +221,7 @@ void emit_cast(EmitterContext * ctx, CType * from_type, CType * to_type) {
                     error("Unsupported zero-extension from %d bytes", from_size);
             }
         }
+        emit_line(ctx, "push rax");
     }
 }
 
@@ -264,6 +274,14 @@ void emit_binary_add(EmitterContext * ctx, ASTNode * node) {
 
 }
 
+void emit_binary_multi(EmitterContext * ctx, ASTNode * node) {
+    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
+    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
+    emit_line(ctx, "pop rcx");                      // pop lhs to ECX
+    emit_line(ctx, "pop rax");
+    emit_binary_op(ctx, node->binary.op);        // emit proper for op
+    emit_line(ctx, "push rax");
+}
 
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     emit_data_section_header(ctx);
@@ -364,18 +382,21 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "mov eax, [rcx]");
             break;
         case AST_CAST_EXPR:
-            emit_expr(ctx, node->cast_expr.expr);     // eval inner expression
-            if (node->ctype->kind == CTYPE_INT) {
-                emit_line(ctx, "; cast to int: value already in eax");
-            } else if (node->ctype->kind == CTYPE_CHAR) {
-                emit_line(ctx, "movsx eax, al        ;cast to char");
-            } else if (node->ctype->kind == CTYPE_LONG) {
-                emit_line(ctx, "movsx rax, eax       ;cast to long");
-            } else if (node->ctype->kind == CTYPE_SHORT) {
-                emit_line(ctx, "movsx eax, ax        ; cast to short");
-            } else {
-                error("Unsupported cast type");
-            }
+            // emit_expr(ctx, node->cast_expr.expr);     // eval inner expression
+            // emit_line(ctx, "pop rax");
+            emit_cast(ctx, node);
+            // if (node->ctype->kind == CTYPE_INT) {
+            //     emit_line(ctx, "; cast to int: value already in eax");
+            // } else if (node->ctype->kind == CTYPE_CHAR) {
+            //     emit_line(ctx, "movsx eax, al        ;cast to char");
+            // } else if (node->ctype->kind == CTYPE_LONG) {
+            //     emit_line(ctx, "movsx rax, eax       ;cast to long");
+            // } else if (node->ctype->kind == CTYPE_SHORT) {
+            //     emit_line(ctx, "movsx eax, ax        ; cast to short");
+            // } else {
+            //     error("Unsupported cast type");
+            // }
+            //emit_line(ctx, "push rax");
             break;
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
@@ -487,12 +508,13 @@ void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
             break;
         case BINOP_SUB:
         case BINOP_MUL:
-            emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-   //         emit_line(ctx, "push rax");                     // push lhs result
-            emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-            emit_line(ctx, "pop rcx");                      // pop lhs to ECX
-            emit_line(ctx, "pop rax");
-            emit_binary_op(ctx, node->binary.op);        // emit proper for op
+            emit_binary_multi(ctx, node);
+   //          emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
+   // //         emit_line(ctx, "push rax");                     // push lhs result
+   //          emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
+   //          emit_line(ctx, "pop rcx");                      // pop lhs to ECX
+   //          emit_line(ctx, "pop rax");
+   //          emit_binary_op(ctx, node->binary.op);        // emit proper for op
             break;
         case BINOP_DIV:
             emit_binary_div(ctx, node);
@@ -1310,6 +1332,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_BINARY_EXPR:
         case AST_UNARY_EXPR:
         case AST_INT_LITERAL:
+        case AST_CAST_EXPR:
         case AST_VAR_REF: {
             emit_expr(ctx, node);
             break;
@@ -1336,10 +1359,10 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_label(ctx, node->labeled_stmt.label, 0);
             emit_tree_node(ctx, node->labeled_stmt.stmt);
             break;
-        case AST_CAST_EXPR:
-            emit_tree_node(ctx, node->cast_expr.expr);
-            emit_cast(ctx, node->cast_expr.expr->ctype, node->cast_expr.target_type);
-            break;
+        // case AST_CAST_EXPR:
+        //     emit_expr(ctx, node->cast_expr.expr);
+        //     emit_cast(ctx, node->cast_expr.expr->ctype, node->cast_expr.target_type);
+        //     break;
         default:
             error("Unhandled type %s\n", node->type);
             break;
