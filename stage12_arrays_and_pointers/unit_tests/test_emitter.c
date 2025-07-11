@@ -176,6 +176,19 @@ void test_emit_add_int_var_block() {
 
 }
 
+void test_emit_int_declaration() {
+    TEST_MSG("declaration test");
+    char * c_fragment =
+        "{"
+        "    int a = 1;"
+        "}";
+
+    char * expected = "\n";
+
+    run_emitter_test(c_fragment, expected, BLOCK);
+
+}
+
 void test_emit_multi_literals_expr() {
     TEST_MSG("multi literals test");
     char * c_fragment = "2 * 3";
@@ -236,6 +249,7 @@ int main() {
     RUN_TEST(test_emit_literal_with_char_cast);
     RUN_TEST(test_emit_literal_with_int_cast);
     RUN_TEST(test_emit_literal_with_short_cast);
+    RUN_TEST(test_emit_int_declaration);
     RUN_TEST(test_emit_add_literals_expr);
     RUN_TEST(test_emit_add_int_var_block);
     RUN_TEST(test_emit_multi_literals_expr);

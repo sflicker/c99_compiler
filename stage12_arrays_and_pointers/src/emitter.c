@@ -901,7 +901,6 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
         else {
             emit_line(ctx,"; initializing variable");
             emit_expr(ctx, node->var_decl.init_expr);
-            emit_line(ctx, "push rax");
             emit_addr(ctx, node);
             emit_line(ctx, "pop rax");
             emit_line(ctx, "mov %s [rcx], %s",
