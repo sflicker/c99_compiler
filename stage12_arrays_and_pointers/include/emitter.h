@@ -66,5 +66,6 @@ void emit_break_statement(EmitterContext * ctx, ASTNode * node);
 void emit_continue_statement(EmitterContext * ctx, ASTNode * node);
 void emit_csst(EmitterContext * ctx, ASTNode * node);
 void emit_binary_multi(EmitterContext * ctx, ASTNode * node);
+void emit_binary_sub(EmitterContext * ctx, ASTNode * node);
 
 #endif

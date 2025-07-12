@@ -274,6 +274,56 @@ void emit_binary_add(EmitterContext * ctx, ASTNode * node) {
 
 }
 
+void emit_binary_sub(EmitterContext * ctx, ASTNode * node) {
+    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
+    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
+
+    emit_line(ctx, "pop rcx");                      // pop rhs to RCX
+    emit_line(ctx, "pop rax");                      // pop lhs to RAX
+
+    CType *lhs_type = node->binary.lhs->ctype;
+    CType *rhs_type = node->binary.rhs->ctype;
+
+    if (lhs_type->kind == CTYPE_PTR && is_integer_type(rhs_type)) {
+        int elem_size = sizeof_type(lhs_type);
+        emit_line(ctx, "imul rcx, %d", elem_size);
+        emit_line(ctx, "add rax, rcx");
+    }
+    else if (is_integer_type(lhs_type) && rhs_type->kind == CTYPE_PTR) {
+        int elem_size = sizeof_type(rhs_type);
+        emit_line(ctx, "imul rax, %d", elem_size);
+        emit_line(ctx, "add rax, rcx");
+    }
+    else if (is_integer_type(lhs_type) && is_integer_type(rhs_type)) {
+        emit_line(ctx, "; lhs in rax, rhs in rcx");
+        if (lhs_type->kind == CTYPE_CHAR) {
+            emit_line(ctx, "movsx rax, al");
+        } else if (lhs_type->kind == CTYPE_SHORT) {
+            emit_line(ctx, "movsx rax, ax");
+        } else if (lhs_type->kind == CTYPE_INT) {
+            emit_line(ctx, "movsxd rax, eax");
+        }
+
+        if (rhs_type->kind == CTYPE_CHAR) {
+            emit_line(ctx, "movsx rcx, cl");
+        } else if (rhs_type->kind == CTYPE_SHORT) {
+            emit_line(ctx, "movsx rcx, cx");
+        } else if (rhs_type->kind == CTYPE_INT) {
+            emit_line(ctx, "movsxd rcx, ecx");
+        }
+
+        emit_line(ctx, "sub rax, rcx");
+    }
+    else {
+        error("Unsupported types for binary add operation");
+    }
+    //    emit_binary_op(ctx, node->binary.op);        // emit proper for op
+
+    emit_line(ctx, "push rax");
+
+}
+
+
 void emit_binary_multi(EmitterContext * ctx, ASTNode * node) {
     emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
     emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
@@ -507,6 +557,8 @@ void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
             emit_binary_add(ctx, node);
             break;
         case BINOP_SUB:
+            emit_binary_sub(ctx, node);
+            break;
         case BINOP_MUL:
             emit_binary_multi(ctx, node);
    //          emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
@@ -589,23 +641,30 @@ void emit_logical_or(EmitterContext * ctx, ASTNode* node) {
 
 void emit_binary_div(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_line(ctx, "push rax");                     // push lhs result
     emit_tree_node(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-    emit_line(ctx, "mov ecx, eax");                 // move denominator to ecx
-    emit_line(ctx, "pop rax");                      // restore numerator to eax
+    emit_line(ctx, "pop rcx");           // pop rhs to rCX
+    emit_line(ctx, "pop rax");           // pop lhs to rax
+
+    // emit_line(ctx, "mov ecx, eax");                 // move denominator to ecx
+    // emit_line(ctx, "pop rax");                      // restore numerator to eax
     emit_line(ctx, "cdq");
     emit_line(ctx, "idiv ecx");
+    emit_line(ctx, "push rax");
+
 }
 
 void emit_binary_mod(EmitterContext * ctx, ASTNode * node) {
-    emit_tree_node(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_line(ctx, "push rax");                     // push lhs result
-    emit_tree_node(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-    emit_line(ctx, "mov ecx, eax");                 // move denominator to ecx
-    emit_line(ctx, "pop rax");                      // restore numerator to eax
+
+    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
+    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
+    emit_line(ctx, "pop rcx");           // pop rhs to rCX
+    emit_line(ctx, "pop rax");           // pop lhs to rax
+
     emit_line(ctx, "cdq");
     emit_line(ctx, "idiv ecx");               // divide eax by ecx. result goes to eax, remainder to edx
     emit_line(ctx, "mov eax, edx");           // move remainer in edx to eax
+
+    emit_line(ctx, "push rax");
 }
 
 void emit_binary_comparison(EmitterContext * ctx, ASTNode * node) {
