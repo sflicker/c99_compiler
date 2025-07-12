@@ -74,6 +74,8 @@ void strip_comments(char *src, char *dst) {
 }
 
 void run_emitter_test(char * c_fragment, char * expected, PARSER_OP op) {
+    TEST_MSG("Test Fragment: ");
+    TEST_MSG(c_fragment);
     tokenlist * tokens = tokenize(c_fragment);
     ParserContext * ctx = create_parser_context(tokens);
 

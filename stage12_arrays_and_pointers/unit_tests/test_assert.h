@@ -42,7 +42,7 @@
 
 #define TEST_ASSERT_EQ_INT(msg, expected, actual) \
     do { \
-        printf("%s... ", msg); \
+        printf(COLOR_CYAN "[%s] " COLOR_RESET " %s... ", current_test, msg); \
         fflush(stdout); \
         if ((expected) != (actual)) { \
             printf(COLOR_RED "FAILED\n" COLOR_RESET); \
@@ -57,7 +57,7 @@
 
 #define TEST_ASSERT_EQ_STR(msg, expected, actual) \
     do { \
-        printf("%s... ", msg); \
+        printf(COLOR_CYAN "[%s] " COLOR_RESET " %s... ", current_test, msg); \
         fflush(stdout); \
         if (strcmp((expected), (actual)) != 0) { \
             printf(COLOR_RED "FAILED\n" COLOR_RESET); \
@@ -71,7 +71,7 @@
 
 #define TEST_ASSERT_NOT_NULL(msg, ptr) \
     do { \
-        printf("%s... ", msg "\n"); \
+        printf(COLOR_CYAN "[%s]" COLOR_RESET " %s... ", current_test, msg "\n"); \
         fflush(stdout); \
         if ((ptr) == NULL) { \
             printf(COLOR_RED "FAILED\n" COLOR_RESET); \

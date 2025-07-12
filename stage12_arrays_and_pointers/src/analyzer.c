@@ -10,7 +10,8 @@
 #include "symbol.h"
 #include "symbol_table.h"
 
-int local_offset = -8;
+//int local_offset = -8;
+int local_offset = 0;
 int param_offset = 16;
 int function_local_storage = 0;
 

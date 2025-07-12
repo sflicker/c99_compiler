@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10...4.0)
 project(
         mimic99-stage12
         VERSION 1.0
-        LANGUAGES C)
+        LANGUAGES C ASM)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -g")
@@ -56,3 +56,36 @@ add_custom_target(run_all_tests
         COMMAND ./run_all_tests.sh mimic99
         DEPENDS mimic99
         COMMENT "Running all tests via script")
+
+# ---- Build all .asm files in asm/ ----
+
+# Find all .asm files in asm/ directory
+file(GLOB ASM_FILES ${CMAKE_SOURCE_DIR}/asm/*.asm)
+
+foreach(ASM_FILE ${ASM_FILES})
+    get_filename_component(ASM_NAME ${ASM_FILE} NAME_WE)
+
+    # Define the object file name in the build directory
+    set(ASM_OBJ ${CMAKE_BINARY_DIR}/${ASM_NAME}.o)
+
+    # Custom command to assemble .asm → .o
+    add_custom_command(
+            OUTPUT ${ASM_OBJ}
+            COMMAND nasm -f elf64 -g -F dwarf -o ${ASM_OBJ} ${ASM_FILE}
+            DEPENDS ${ASM_FILE}
+            COMMENT "Assembling ${ASM_NAME}.asm → ${ASM_NAME}.o with debug info"
+    )
+
+    # Executable target for each .asm file
+    add_executable(${ASM_NAME} ${ASM_OBJ})
+
+    # Tell CMake how to link it
+    set_target_properties(${ASM_NAME} PROPERTIES LINKER_LANGUAGE C)
+
+    # Optional: put all asm executables into asm/build/
+    set_target_properties(${ASM_NAME} PROPERTIES
+            LINKER_LANGUAGE C
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/asm/build
+            LINK_FLAGS "-nostartfiles -nostdlib"
+    )
+endforeach()
