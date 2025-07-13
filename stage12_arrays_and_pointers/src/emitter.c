@@ -9,10 +9,12 @@
 #include "c_type.h"
 #include "ast.h"
 #include "emitter.h"
+
 #include "token.h"
 #include "util.h"
 #include "error.h"
 #include "emitter_context.h"
+#include "emit_extensions.h"
 #include "symbol.h"
 
 
@@ -361,39 +363,6 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     emit_trailer(ctx);
 }
 
-void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
-    int label_pass = get_label_id(ctx);
-
-    // evaluate expression
-    emit_tree_node(ctx, node->expr_stmt.expr);
-
-    // compare result in eax with 0
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "jne", "assert_pass", label_pass);
-
-    // assert failed
-    // print message
-    emit_line(ctx, "mov rax, 1");
-    emit_line(ctx, "mov rdi, 1");
-    emit_line(ctx, "lea rsi, [rel assert_fail_msg]");
-    emit_line(ctx, "mov rdx, 17");
-    emit_line(ctx, "syscall");
-
-    // exit
-    emit_line(ctx, "mov rax, 60");
-    emit_line(ctx, "mov rdi, 1");
-    emit_line(ctx, "syscall");
-
-    emit_label(ctx, "assert_pass", label_pass);
-
-}
-
-void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node) {
-    // emit the expression storing it in EAX
-    emit_tree_node(ctx, node->expr_stmt.expr);
-    emit_line(ctx, "call print_int");
-    ctx->emit_print_int_extension = true;
-}
 
 // emit_expr.
 // generate code to eval the expression storing the final result in eax or rax
@@ -927,7 +896,7 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
-    emit_line(ctx, "; emitting var declaration");
+    emit_line(ctx, "; emitting variable '%s' declaration", node->symbol->name);
     if (node->var_decl.init_expr) {
         if (node->var_decl.init_expr->type == AST_INITIALIZER_LIST) {
             emit_line(ctx,"; initializing array");
@@ -1332,7 +1301,8 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
 //            emit_function_call(ctx, node);
             break;
         case AST_EXPRESSION_STMT:
-            emit_tree_node(ctx, node->expr_stmt.expr);
+//            emit_tree_node(ctx, node->expr_stmt.expr);
+            emit_expr(ctx, node->expr_stmt.expr);
             break;
         case AST_ASSERT_EXTENSION_STATEMENT:
             emit_assert_extension_statement(ctx, node);
@@ -1406,51 +1376,6 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
     }
 }
 
-void emit_print_int_extension_function(EmitterContext * ctx) {
-    int label_convert = get_label_id(ctx);
-    int label_done = get_label_id(ctx);
-    int label_buffer = get_label_id(ctx);
-    int label_loop = get_label_id(ctx);
-
-    emit_bss_section_header(ctx);
-    emit_line(ctx, "buffer%d resb 20", label_buffer);
-
-    emit_text_section_header(ctx);
-    emit_line(ctx, "print_int:");
-    emit_line(ctx, "; assumes integer to print is in eax");
-    emit_line(ctx, "; converts and prints using syscall");
-    emit_line(ctx, "mov rcx, buffer%d + 19", label_buffer);
-    emit_line(ctx, "mov byte [rcx], 10");
-    emit_line(ctx, "dec rcx");
-    emit_line(ctx, "");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "jne", "convert", label_convert);
-    emit_line(ctx, "mov byte [rcx], '0'");
-    emit_line(ctx, "dec rcx");
-    emit_jump(ctx, "jmp", "done", label_done);
-    emit_line(ctx, "");
-    emit_label(ctx, "convert", label_convert);
-    emit_line(ctx, "xor edx, edx");
-    emit_line(ctx, "mov ebx, 10");
-    emit_label(ctx, "loop", label_loop);
-    emit_line(ctx, "xor edx, edx");
-    emit_line(ctx, "div ebx");
-    emit_line(ctx, "add dl, '0'");
-    emit_line(ctx, "mov [rcx], dl");
-    emit_line(ctx, "dec rcx");
-    emit_line(ctx, "test eax, eax");
-    emit_jump(ctx, "jnz", "loop", label_loop);
-    emit_line(ctx, "");
-    emit_label(ctx, "done", label_done);
-    emit_line(ctx, "lea rsi, [rcx + 1]");
-    emit_line(ctx, "mov rdx, buffer%d + 20", label_buffer);
-    emit_line(ctx, "sub rdx, rsi");
-    emit_line(ctx, "mov rax, 1");
-    emit_line(ctx, "mov rdi, 1");
-    emit_line(ctx, "syscall");
-    emit_line(ctx, "ret");
-
-}
 
 void emit(EmitterContext * ctx, ASTNode * translation_unit) {
    // populate_symbol_table(translation_unit);

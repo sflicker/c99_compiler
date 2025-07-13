@@ -31,9 +31,7 @@ void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node);
 //void emit_assert_extension_call(EmitterContext * ctx, ASTNode * node);
 
 void emit_array_access(EmitterContext * ctx, ASTNode * node);
-void emit_print_extension_statement(EmitterContext * ctx, ASTNode * node);
-void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node);
-void emit_print_int_extension_function(EmitterContext * ctx);
+//void emit_print_int_extension_function(EmitterContext * ctx);
 
 void emit_binary_expr(EmitterContext * ctx, ASTNode *node);
 void emit_binary_op(EmitterContext * ctx, BinaryOperator op);

@@ -111,7 +111,10 @@ void run_emitter_test(char * c_fragment, char * expected, PARSER_OP op) {
     FILE * memf = open_memstream(&buffer, &buffer_size);
 
     EmitterContext * emitter_context = create_emitter_context_from_fp(memf);
+
+    // run codegen 'emit' test
     emit_tree_node(emitter_context, node);
+
     emitter_finalize(emitter_context);
 
     printf("Generated code:\n%s\n", buffer);
@@ -278,13 +281,85 @@ void test_emit_add_assign() {
                         "  int a = 41; \n"
                         "  a += 1; \n"
                         "}";
-    char * expected = "mov eax, 1\n"
+
+    char * expected = "mov eax, 41\n"
                       "push rax\n"
                       "lea rcx, [rbp-4]\n"
                       "push rcx\n"
                       "pop rcx\n"
                       "pop rax\n"
+                      "mov DWORD [rcx], eax\n"
+                      "lea rcx, [rbp-4]\n"
+                      "push rcx\n"
+                      "mov DWORD eax, [rcx]\n"
+                      "push rax\n"
+                      "mov eax, 1\n"
+                      "push rax\n"
+                      "pop rcx\n"
+                      "pop rax\n"
+                      "add eax, ecx\n"
+                      "pop rcx\n"
+                      "mov [rcx], eax\n";
+
+    run_emitter_test(c_fragment, expected, BLOCK);
+
+}
+
+void test_emit_sub_with_vars() {
+    TEST_MSG("sub test");
+    char * c_fragment = "{ \n"
+                        "int a;\n"
+                        "int b;\n"
+                        "int c;\n"
+                        "a = 43;\n"
+                        "b = 1;\n"
+                        "c = a - b;\n"
+                        "}\n";
+
+    char * expected = "mov eax, 43\n"          // a = 32;
+                      "push rax\n"
+                      "lea rcx, [rbp-4]\n"
+                      "push rcx\n"
+                      "pop rcx\n"
+                      "pop rax\n"
+                      "mov DWORD [rcx], eax\n"
+                      "mov eax, 1\n"            // b = 1;
+                      "push rax\n"
+                      "lea rcx, [rbp-8]\n"
+                      "push rcx\n"
+                      "pop rcx\n"
+                      "pop rax\n"
                       "mov DWORD [rcx], eax\n";
+
+    run_emitter_test(c_fragment, expected, BLOCK);
+
+}
+
+void test_emit_sub_assign() {
+    TEST_MSG("sub assignment test");
+    char * c_fragment = "{ \n"
+                        "  int a = 43; \n"
+                        "  a -= 1; \n"
+                        "}";
+
+    char * expected = "mov eax, 43\n"
+                      "push rax\n"
+                      "lea rcx, [rbp-4]\n"
+                      "push rcx\n"
+                      "pop rcx\n"
+                      "pop rax\n"
+                      "mov DWORD [rcx], eax\n"
+                      "lea rcx, [rbp-4]\n"
+                      "push rcx\n"
+                      "mov DWORD eax, [rcx]\n"
+                      "push rax\n"
+                      "mov eax, 1\n"
+                      "push rax\n"
+                      "pop rcx\n"
+                      "pop rax\n"
+                      "add eax, ecx\n"
+                      "pop rcx\n"
+                      "mov [rcx], eax\n";
 
     run_emitter_test(c_fragment, expected, BLOCK);
 
@@ -300,5 +375,8 @@ int main() {
     RUN_TEST(test_emit_add_int_var_block);
     RUN_TEST(test_emit_multi_literals_expr);
     RUN_TEST(test_emit_add_assign);
+    RUN_TEST(test_emit_sub_with_vars);
+    RUN_TEST(test_emit_sub_assign);
+
 }
 
