@@ -640,18 +640,20 @@ void emit_binary_mod(EmitterContext * ctx, ASTNode * node) {
 void emit_binary_comparison(EmitterContext * ctx, ASTNode * node) {
     // eval left-hand side -> result in eax -> push results onto the stack
     emit_tree_node(ctx, node->binary.lhs);
-    emit_line(ctx, "push rax");
+    emit_tree_node(ctx, node->binary.rhs);
+
+    emit_line(ctx, "pop rcx");
+    emit_line(ctx, "pop rax");
 
     // eval right-hand side -> reult in eax
 
-    emit_tree_node(ctx, node->binary.rhs);
 
     // restore lhs into rcx
-    emit_line(ctx, "pop rcx");
     emit_line(ctx, "mov ecx, ecx");   // zero upper bits
+    emit_line(ctx, "mov eax, eax");   // zero upper bits
 
-    // compare rcx (lhs) with eax (rhs), cmp rcx, eax means rcx - eax
-    emit_line(ctx, "cmp ecx, eax");
+    // compare rax (lhs) with ecx (rhs), cmp rcx, eax means rcx - eax
+    emit_line(ctx, "cmp eax, ecx");
 
     // emit proper setX based on operator type
     switch (node->binary.op) {
@@ -960,10 +962,13 @@ void emit_assignment(EmitterContext * ctx, ASTNode* node) {
         get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
     // eval RHS -> rax then push
     emit_expr(ctx, node->binary.rhs);
-    emit_line(ctx, "push rax");
+//    emit_line(ctx, "push rax");
 
     // eval LHS addr -> rcx
     emit_addr(ctx, node->binary.lhs);
+
+    // pop LHS into rcx
+    emit_line(ctx, "pop rcx");
 
     // pop RHS in rax
     emit_line(ctx, "pop rax");
@@ -1010,20 +1015,23 @@ void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
     emit_addr(ctx, node->binary.lhs);
 
     // push LHS address on stack
-    emit_line(ctx, "push rcx");
-
-    // load current value into eax
-    emit_line(ctx, "mov eax, [rcx]");
-
-    // save current RHS value in eax on stack
+    emit_line(ctx, "mov DWORD eax, [rcx]");
     emit_line(ctx, "push rax");
+
+    // // load current value into eax
+    // emit_line(ctx, "mov eax, [rcx]");
+    //
+    // // save current RHS value in eax on stack
+    // emit_line(ctx, "push rax");
 
     // evaluate RHS into eax
     emit_expr(ctx, node->binary.rhs);
 
-    emit_line(ctx, "mov ecx, eax");
+//    emit_line(ctx, "mov ecx, eax");
 
-    // restore LHS into ecx
+    // restore RHS into ecx
+    emit_line(ctx, "pop rcx");
+    // restore LHS into eax
     emit_line(ctx, "pop rax");
 
     // sub RHS from LHS

@@ -2,6 +2,7 @@
 // Created by scott on 7/13/25.
 //
 
+#include "emitter.h"
 #include "emitter_context.h"
 
 void emit_print_int_extension_function(EmitterContext * ctx) {

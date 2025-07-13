@@ -15,6 +15,10 @@ if [ "$1" == "--memcheck" ]; then
 fi
 
 PROG=$1
+SUBDIR=$2
+
+echo PROG=$PROG
+echo SUBDIR=$SUBDIR
 
 echo "Cleaning previous runs..."
 rm -rf integration_tests/build
@@ -46,7 +50,12 @@ TIMEOUT_TOTAL=0
 WRONG_OUTPUT_TOTAL=0
 UNKNOWN_FAILURE_TOTAL=0
 
-for cfile in $(find integration_tests -name 'test*.c' | sort); do
+TEST_DIR=integration_tests
+if [[ -n "$SUBDIR" ]]; then
+    TEST_DIR="$TEST_DIR/$SUBDIR"
+fi
+
+for cfile in $(find $TEST_DIR -name 'test*.c' | sort); do
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
 
     filename=$(basename "$cfile")

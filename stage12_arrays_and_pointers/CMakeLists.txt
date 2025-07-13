@@ -14,6 +14,7 @@ include_directories(include)
 file(GLOB SRC_FILES src/*.c)
 set(MAIN_SRC src/main.c
 )
+list(REMOVE_DUPLICATES SRC_FILES)
 
 # Create a library from all source files except main.c
 list(REMOVE_ITEM SRC_FILES ${MAIN_SRC})

@@ -316,7 +316,7 @@ void test_emit_sub_with_vars() {
                         "c = a - b;\n"
                         "}\n";
 
-    char * expected = "mov eax, 43\n"          // a = 32;
+    char * expected = "mov eax, 43\n"          // a = 43;
                       "push rax\n"
                       "lea rcx, [rbp-4]\n"
                       "push rcx\n"
@@ -329,7 +329,23 @@ void test_emit_sub_with_vars() {
                       "push rcx\n"
                       "pop rcx\n"
                       "pop rax\n"
+                      "mov DWORD [rcx], eax\n"  // c = a - b
+                      "mov eax, [rbp-4]\n"
+                      "push rax\n"
+                      "mov eax, [rbp-8]\n"
+                      "push rax\n"
+                      "pop rcx\n"
+                      "pop rax\n"
+                      "movsxd rax, eax\n"
+                      "movsxd rcx, ecx\n"
+                      "sub rax, rcx\n"
+                      "push rax\n"
+                      "lea rcx, [rbp-12]\n"
+                      "push rcx\n"
+                      "pop rcx\n"
+                      "pop rax\n"
                       "mov DWORD [rcx], eax\n";
+
 
     run_emitter_test(c_fragment, expected, BLOCK);
 
@@ -357,7 +373,7 @@ void test_emit_sub_assign() {
                       "push rax\n"
                       "pop rcx\n"
                       "pop rax\n"
-                      "add eax, ecx\n"
+                      "sub eax, ecx\n"
                       "pop rcx\n"
                       "mov [rcx], eax\n";
 
