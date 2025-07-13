@@ -272,6 +272,24 @@ void test_emit_literal_with_short_cast() {
     run_emitter_test(c_fragment, expected, EXPR);
 }
 
+void test_emit_add_assign() {
+    TEST_MSG("add assignment test");
+    char * c_fragment = "{ \n"
+                        "  int a = 41; \n"
+                        "  a += 1; \n"
+                        "}";
+    char * expected = "mov eax, 1\n"
+                      "push rax\n"
+                      "lea rcx, [rbp-4]\n"
+                      "push rcx\n"
+                      "pop rcx\n"
+                      "pop rax\n"
+                      "mov DWORD [rcx], eax\n";
+
+    run_emitter_test(c_fragment, expected, BLOCK);
+
+}
+
 int main() {
     RUN_TEST(test_emit_basic_expr);
     RUN_TEST(test_emit_literal_with_char_cast);
@@ -281,5 +299,6 @@ int main() {
     RUN_TEST(test_emit_add_literals_expr);
     RUN_TEST(test_emit_add_int_var_block);
     RUN_TEST(test_emit_multi_literals_expr);
+    RUN_TEST(test_emit_add_assign);
 }
 

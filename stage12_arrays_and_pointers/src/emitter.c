@@ -1005,17 +1005,6 @@ void emit_assignment(EmitterContext * ctx, ASTNode* node) {
         mem_size_for_type(ctype),
         reg_for_type(ctype));
 
-    // if (ctype->kind == CTYPE_CHAR) {
-    //     emit_line(ctx, "mov byte [rcx], eax\n");
-    // } else if (ctype->kind == CTYPE_SHORT) {
-    //     emit_line(ctx, "mov word [rcx], eax\n");
-    // } else if (ctype->kind == CTYPE_INT) {
-    //     emit_line(ctx, "mov dword [rcx], eax\n");
-    // } else if (ctype->kind == CTYPE_LONG || ctype->kind == CTYPE_PTR) {
-    //     emit_line(ctx, "mov qword [rcx], rax\n");
-    // } else {
-    //     error("Unsupported type in assignment");
-    // }
 }
 
 void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
@@ -1023,20 +1012,17 @@ void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
     // compute lhs address -> rcx
     emit_addr(ctx, node->binary.lhs);
 
-    // push LHS address on stack
-    emit_line(ctx, "push rcx");
-
-    // load current value into eax
-    emit_line(ctx, "mov eax, [rcx]");
-
-    // save current RHS value in eax on stack
+    // load lhs into rax
+    emit_line(ctx, "mov DWORD eax, [rcx]");
     emit_line(ctx, "push rax");
 
     // evaluate RHS into eax
     emit_expr(ctx, node->binary.rhs);
 
-    // restore LHS into ecx
+    // restore RHS into ecx
     emit_line(ctx, "pop rcx");
+    // restore LHS into eax
+    emit_line(ctx, "pop rax");
 
     // add RHS to LHS
     emit_line(ctx, "add eax, ecx");
@@ -1047,16 +1033,6 @@ void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
     // write back result to LHS
     emit_line(ctx, "mov [rcx], eax");
 
-    // add RHS to LHS
-
-    // char * reference_label = create_variable_reference(ctx, node->binary.lhs);
-    // emit_line(ctx, "mov eax, %s\n", reference_label);
-    // emit_line(ctx, "push rax\n");
-    // emit_tree_node(ctx, node->binary.rhs);
-    // emit_line(ctx, "pop rcx\n");
-    // emit_line(ctx, "add eax, ecx\n");
-    // emit_line(ctx, "mov %s, eax\n", reference_label);
-    // free(reference_label);
 }
 
 void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
