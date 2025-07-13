@@ -68,4 +68,5 @@ void emit_csst(EmitterContext * ctx, ASTNode * node);
 void emit_binary_multi(EmitterContext * ctx, ASTNode * node);
 void emit_binary_sub(EmitterContext * ctx, ASTNode * node);
 
+void reset_size_and_offsets();
 #endif

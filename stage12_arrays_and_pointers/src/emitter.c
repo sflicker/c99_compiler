@@ -462,6 +462,7 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
 
             char * label = create_variable_reference(ctx, node);
             emit_line(ctx, "lea rcx, %s", label);
+            emit_line(ctx, "push rcx");
             free(label);
 
             break;
@@ -961,6 +962,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx,"; initializing variable");
             emit_expr(ctx, node->var_decl.init_expr);
             emit_addr(ctx, node);
+            emit_line(ctx, "pop rcx");
             emit_line(ctx, "pop rax");
             emit_line(ctx, "mov %s [rcx], %s",
                 mem_size_for_type(node->ctype),

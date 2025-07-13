@@ -97,6 +97,7 @@ void run_emitter_test(char * c_fragment, char * expected, PARSER_OP op) {
     tokenlist_free(tokens);
 
     init_global_table();
+    reset_size_and_offsets();
     AnalyzerContext * analyzer_context = analyzer_context_new();
     analyze(analyzer_context, node);
     analyzer_context_free(analyzer_context);
@@ -163,16 +164,35 @@ void test_emit_add_int_var_block() {
                         "}";
 
     char * expected =
-        "mov eax, 20\n"
+        "mov eax, 1\n"
         "push rax\n"
-        "mov eax, 22\n"
+        "lea rcx, [rbp-4]\n"
+        "push rcx\n"
+        "pop rcx\n"
+        "pop rax\n"
+        "mov DWORD [rcx], eax\n"
+        "mov eax, 2\n"
+        "push rax\n"
+        "lea rcx, [rbp-8]\n"
+        "push rcx\n"
+        "pop rcx\n"
+        "pop rax\n"
+        "mov DWORD [rcx], eax\n"
+        "mov eax, [rbp-4]\n"
+        "push rax\n"
+        "mov eax, [rbp-8]\n"
         "push rax\n"
         "pop rcx\n"
         "pop rax\n"
         "movsxd rax, eax\n"
         "movsxd rcx, ecx\n"
         "add rax, rcx\n"
-        "push rax\n";
+        "push rax\n"
+        "lea rcx, [rbp-12]\n"
+        "push rcx\n"
+        "pop rcx\n"
+        "pop rax\n"
+        "mov DWORD [rcx], eax\n";
 
     run_emitter_test(c_fragment, expected, BLOCK);
 
@@ -185,7 +205,13 @@ void test_emit_int_declaration() {
         "    int a = 1;"
         "}";
 
-    char * expected = "\n";
+    char * expected = "mov eax, 1\n"
+                      "push rax\n"
+                      "lea rcx, [rbp-4]\n"
+                      "push rcx\n"
+                      "pop rcx\n"
+                      "pop rax\n"
+                      "mov DWORD [rcx], eax\n";
 
     run_emitter_test(c_fragment, expected, BLOCK);
 

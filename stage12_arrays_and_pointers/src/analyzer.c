@@ -15,6 +15,12 @@ int local_offset = 0;
 int param_offset = 16;
 int function_local_storage = 0;
 
+void reset_size_and_offsets() {
+    local_offset = 0;
+    param_offset = 16;
+    function_local_storage = 0;
+}
+
 CType * apply_integer_promotions(CType * t) {
     if (t->kind == CTYPE_CHAR || t->kind == CTYPE_SHORT) {
         return &CTYPE_INT_T;
@@ -55,9 +61,7 @@ int astNodeListLength(ASTNode_list * ast_nodes) {
 void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
 
     enter_scope();
-    local_offset = 0;
-    param_offset = 16;
-    function_local_storage = 0;
+    reset_size_and_offsets();
     Symbol_list * symbol_list = NULL;
     if (node->function_decl.param_list != NULL) {
         symbol_list = malloc(sizeof(Symbol_list));
