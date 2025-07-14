@@ -398,7 +398,9 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_ARRAY_ACCESS:
             emit_addr(ctx, node);
+            emit_line(ctx, "pop rcx");
             emit_line(ctx, "mov eax, [rcx]");
+            emit_line(ctx, "push rax");
             break;
         case AST_CAST_EXPR:
             // emit_expr(ctx, node->cast_expr.expr);     // eval inner expression
