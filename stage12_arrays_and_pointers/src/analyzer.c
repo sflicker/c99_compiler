@@ -39,7 +39,7 @@ bool is_lvalue(ASTNode * node) {
         error("node must not be null");
     }
     switch (node->type) {
-        case AST_VAR_REF:
+        case AST_VAR_REF_EXPR:
         case AST_ARRAY_ACCESS:
             return true;
 
@@ -114,7 +114,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
         }
 
-        case AST_FUNCTION_CALL: {
+        case AST_FUNCTION_CALL_EXPR: {
             Symbol * functionSymbol = lookup_table_symbol(getGlobalScope(), node->function_call.name);
             if (!functionSymbol) {
                 error("function symbol not found - %s", node->function_call.name);
@@ -149,7 +149,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
         }
 
-        case AST_BLOCK:
+        case AST_BLOCK_STMT:
             if (node->block.introduce_scope) enter_scope();
 
             for (ASTNode_list_node * n = node->block.statements->head; n != NULL; n = n->next) {
@@ -214,7 +214,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->ctype = node->unary.operand->ctype;
             break;
 
-        case AST_VAR_REF: {
+        case AST_VAR_REF_EXPR: {
             Symbol * symbol = lookup_symbol(node->var_ref.name);
             if (!symbol) { error("Symbol not found"); return; }
             node->symbol = symbol;

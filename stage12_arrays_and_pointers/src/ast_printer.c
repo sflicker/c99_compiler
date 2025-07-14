@@ -55,7 +55,7 @@ void print_ast(ASTNode * node, int indent) {
                 print_ast(node->function_decl.body, indent+1);
             }
             break;
-        case AST_FUNCTION_CALL:
+        case AST_FUNCTION_CALL_EXPR:
             ctype_to_cdecl(node->ctype, buf, sizeof(buf));
             printf("FunctionCall: %s, type: %s\n", node->function_call.name, buf);
             if (node->function_call.arg_list) {
@@ -133,7 +133,7 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->switch_stmt.expr, indent+1);
             print_ast(node->switch_stmt.stmt, indent+1);
             break;
-        case AST_BLOCK:
+        case AST_BLOCK_STMT:
             printf("BlockStmt\n");
             for (ASTNode_list_node * n = node->block.statements->head; n; n = n->next) {
                 print_ast(n->value, indent+1);
@@ -180,7 +180,7 @@ void print_ast(ASTNode * node, int indent) {
                 print_ast(node->var_decl.init_expr, indent+2);
             }
             break;
-        case AST_VAR_REF:
+        case AST_VAR_REF_EXPR:
             ctype_to_cdecl(node->ctype, buf, sizeof(buf));
             printf("VariableExpression: %s, ctype: %s\n", node->var_ref.name, buf);
             break;

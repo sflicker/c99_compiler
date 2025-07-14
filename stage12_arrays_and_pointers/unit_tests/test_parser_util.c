@@ -220,7 +220,7 @@ void test_create_function_call_node_no_args() {
     ASTNode * node = create_function_call_node(funcname, NULL);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node is type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
+    TEST_ASSERT("Verify node is type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL_EXPR);
     TEST_ASSERT("Verify function label is correct", strcmp(node->var_ref.name, funcname) == 0);
     TEST_ASSERT("Verify arg list is NULL", node->function_call.arg_list == NULL);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
@@ -236,7 +236,7 @@ void test_create_function_call_node_with_args() {
     ASTNode * node = create_function_call_node(funcname, arg_list);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node is type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
+    TEST_ASSERT("Verify node is type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL_EXPR);
     TEST_ASSERT("Verify function label is correct", strcmp(node->var_ref.name, funcname) == 0);
     TEST_ASSERT("Verify arg list contains 1 arg", node->function_call.arg_list->count == 1);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
@@ -250,7 +250,7 @@ void test_create_var_ref_node() {
     ASTNode * node = create_var_ref_node(var_name);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node is type AST_VAR_REF", node->type == AST_VAR_REF);
+    TEST_ASSERT("Verify node is type AST_VAR_REF", node->type == AST_VAR_REF_EXPR);
     TEST_ASSERT("Verify var name is correct", strcmp(node->var_ref.name, var_name) == 0);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 
@@ -412,7 +412,7 @@ void test_create_block_node() {
     
     ASTNode * node = create_block_node(statements);
     TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node is AST_BLOCK", node->type == AST_BLOCK);
+    TEST_ASSERT("Verify node is AST_BLOCK", node->type == AST_BLOCK_STMT);
     TEST_ASSERT("Verify block has 1 statement", node->block.count == 1);
     TEST_ASSERT("Verify node ctype is null", node->ctype == NULL);
 

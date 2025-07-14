@@ -125,7 +125,7 @@ void pop_loop_context(EmitterContext * ctx) {
  */
 
 int get_offset(EmitterContext * ctx, ASTNode * node) {
-   if (node->type == AST_VAR_DECL || node->type == AST_VAR_REF) {
+   if (node->type == AST_VAR_DECL || node->type == AST_VAR_REF_EXPR) {
        return node->symbol->info.var.offset;
    }
    if (node->type == AST_ARRAY_ACCESS) {

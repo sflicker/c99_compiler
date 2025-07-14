@@ -32,7 +32,7 @@ void free_ast(ASTNode * node) {
             free_ast(node->function_decl.body);
             break;
 
-        case AST_FUNCTION_CALL:
+        case AST_FUNCTION_CALL_EXPR:
             ASTNode_list_free(node->function_call.arg_list);
             free(node->function_call.arg_list);
             break;
@@ -41,7 +41,7 @@ void free_ast(ASTNode * node) {
             free_ast(node->return_stmt.expr);
             break;
 
-        case AST_BLOCK:
+        case AST_BLOCK_STMT:
             ASTNode_list_free(node->block.statements);
             free(node->block.statements);
             break;
@@ -70,7 +70,7 @@ void free_ast(ASTNode * node) {
             free_ast(node->expr_stmt.expr);
             break;
 
-        case AST_VAR_REF:
+        case AST_VAR_REF_EXPR:
             free(node->var_ref.name);
             break;
         case AST_ARRAY_ACCESS:
@@ -201,11 +201,11 @@ const char * get_ast_node_name(ASTNode * node) {
         case AST_CASE_STMT: return "CaseStmt";
         case AST_DEFAULT_STMT: return "DefaultStmt";
         case AST_FUNCTION_DECL: return "FunctionDecl";
-        case AST_FUNCTION_CALL: return "FunctionCall";
+        case AST_FUNCTION_CALL_EXPR: return "FunctionCallExpr";
         case AST_VAR_DECL: return "VarDecl";
-        case AST_VAR_REF: return "VarRef";
+        case AST_VAR_REF_EXPR: return "VarRefExpr";
         case AST_TRANSLATION_UNIT: return "TranslationUnit";
-        case AST_BLOCK: return "Block";
+        case AST_BLOCK_STMT: return "BlockStmt";
         case AST_EXPRESSION_STMT: return "ExpressionStmt";
         case AST_BINARY_EXPR: return "BinaryExpr";
         case AST_UNARY_EXPR: return "UnaryExpr";
@@ -256,7 +256,7 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
             }
             return true;
             break;
-        case AST_VAR_REF:
+        case AST_VAR_REF_EXPR:
             if (!strcmp(a->var_ref.name, b->var_ref.name) == 0) {
                 fprintf(stderr, "ast variable names do not match - %s, %s\n",
                     a->var_ref.name, b->var_ref.name);
@@ -274,7 +274,7 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
         case AST_UNARY_EXPR:
             return (a->unary.op == b->unary.op) &&
                 ast_equal(a->unary.operand, b->unary.operand);
-        case AST_FUNCTION_CALL:
+        case AST_FUNCTION_CALL_EXPR:
             return (strcmp(a->function_call.name, b->function_call.name) == 0 &&
                 ctype_lists_equal(
                     astNodeListToTypeList(a->function_call.arg_list),
@@ -294,7 +294,7 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
                 ast_equal(a->for_stmt.update_expr, b->for_stmt.update_expr) &&
                     ast_equal(a->for_stmt.cond_expr, b->for_stmt.cond_expr) &&
                     ast_equal(a->for_stmt.body, b->for_stmt.body);
-        case AST_BLOCK: {
+        case AST_BLOCK_STMT: {
 
             for (int i=0;i<a->block.statements->count;i++) {
                 ASTNode * a_stmt = ASTNode_list_get(a->block.statements, i);

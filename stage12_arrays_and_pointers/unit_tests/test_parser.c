@@ -51,7 +51,7 @@ void test_parse_postfix__function_call() {
     ASTNode * node = parse_postfix_expression(ctx);
     print_ast(node, 0);
 
-    TEST_ASSERT("Verifying node is of type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
+    TEST_ASSERT("Verifying node is of type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL_EXPR);
     TEST_ASSERT("Verifying correct name", strcmp(node->function_call.name, "myfunc") == 0);
     TEST_ASSERT("Verifying argument list is empty", node->function_call.arg_list == NULL);
     TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
@@ -95,7 +95,7 @@ void test_parse_postfix__function_call__with_args() {
     ASTNode * node = parse_postfix_expression(ctx);
     print_ast(node, 0);
 
-    TEST_ASSERT("Verifying node is of type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL);
+    TEST_ASSERT("Verifying node is of type AST_FUNCTION_CALL", node->type == AST_FUNCTION_CALL_EXPR);
     TEST_ASSERT("Verifying correct name", strcmp(node->function_call.name, "myfunc") == 0);
     TEST_ASSERT("Verifying argument list contains 4 args", node->function_call.arg_list->count == 4);
     TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
@@ -111,7 +111,7 @@ void test_parse_primary__variable_ref() {
     ASTNode * node = parse_primary(ctx);
     print_ast(node, 0);
 
-    TEST_ASSERT("Verifying node is of type AST_VAR_REF", node->type == AST_VAR_REF);
+    TEST_ASSERT("Verifying node is of type AST_VAR_REF", node->type == AST_VAR_REF_EXPR);
     TEST_ASSERT("Verifying correct name", strcmp(node->function_call.name, "a") == 0);
     TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
 
@@ -132,7 +132,7 @@ void test_parse_postfix_expression__inc() {
     // verify
     TEST_ASSERT("Verifying node is of type AST_UNARY_POST_INC", node->type == AST_UNARY_EXPR);
     TEST_ASSERT("Verifying op is of type UNARY_POST_INC", node->unary.op == UNARY_POST_INC);
-    TEST_ASSERT("Verifying Operand is correct type", node->unary.operand->type == AST_VAR_REF);
+    TEST_ASSERT("Verifying Operand is correct type", node->unary.operand->type == AST_VAR_REF_EXPR);
     TEST_ASSERT("Verifying Operand has correct name", strcmp(node->unary.operand->var_ref.name, "a") == 0);
     TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
 
@@ -153,7 +153,7 @@ void test_parse_postfix_expression__dec() {
 
     // verify
     TEST_ASSERT("Verifying node os of type AST_UNARY_POST_DEC", node->type == AST_UNARY_EXPR);
-    TEST_ASSERT("Verifying Operand is correct type", node->unary.operand->type == AST_VAR_REF);
+    TEST_ASSERT("Verifying Operand is correct type", node->unary.operand->type == AST_VAR_REF_EXPR);
     TEST_ASSERT("Verifying Operand has correct name", strcmp(node->unary.operand->var_ref.name, "a") == 0);
     TEST_ASSERT("Verifying node ctype is NULL", node->ctype == NULL);
 
@@ -1013,7 +1013,7 @@ void test_array_with_initializer() {
     print_ast(astNode, 0);
 
     TEST_ASSERT("Verify node is not NULL", astNode != NULL);
-    TEST_ASSERT("Verify node is a BLOOK", astNode->type == AST_BLOCK);
+    TEST_ASSERT("Verify node is a BLOOK", astNode->type == AST_BLOCK_STMT);
     TEST_ASSERT("Verify block has one child node", astNode->block.statements->count == 1);
 
     ASTNode * array_decl = astNode->block.statements->head->value;

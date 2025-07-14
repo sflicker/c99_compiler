@@ -211,7 +211,7 @@ ASTNode * create_function_declaration_node(const char * name, CType * func_type,
 
 ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
     ASTNode * node = create_ast();
-    node->type = AST_FUNCTION_CALL;
+    node->type = AST_FUNCTION_CALL_EXPR;
     node->function_call.name = strdup(name);
     node->function_call.arg_list = args;
     node->function_call.arg_count = (args != NULL) ? args->count : 0;
@@ -238,7 +238,7 @@ ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_
 
 ASTNode * create_var_ref_node(const char * name) {
     ASTNode * node = create_ast();
-    node->type = AST_VAR_REF;
+    node->type = AST_VAR_REF_EXPR;
     node->var_ref.name = strdup(name);
     node->ctype = NULL;
     return node;
@@ -296,7 +296,7 @@ ASTNode * create_cast_expr_node(CType * target_type, ASTNode * expr) {
 
 ASTNode * create_block_node(ASTNode_list * stmts) {
     ASTNode * node = create_ast();
-    node->type = AST_BLOCK;
+    node->type = AST_BLOCK_STMT;
     node->block.statements = stmts;
     node->block.count = stmts->count;
     node->block.introduce_scope = true;

@@ -372,7 +372,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "mov eax, %d", node->int_value);
             emit_line(ctx, "push rax");
             break;
-        case AST_VAR_REF: {
+        case AST_VAR_REF_EXPR: {
             if (node->symbol->ctype->kind == CTYPE_ARRAY) {
                 emit_line(ctx, "lea rax, [rbp-%d]", abs(node->symbol->info.var.offset));
                 emit_line(ctx, "push rax");
@@ -393,7 +393,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
         case AST_BINARY_EXPR:
             emit_binary_expr(ctx, node);
             break;
-        case AST_FUNCTION_CALL:
+        case AST_FUNCTION_CALL_EXPR:
             emit_function_call(ctx, node);
             break;
         case AST_ARRAY_ACCESS:
@@ -427,7 +427,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
 void emit_addr(EmitterContext * ctx, ASTNode * node) {
     switch (node->type) {
         case AST_VAR_DECL:
-        case AST_VAR_REF: {
+        case AST_VAR_REF_EXPR: {
 
             char * label = create_variable_reference(ctx, node);
             emit_line(ctx, "lea rcx, %s", label);
@@ -1173,7 +1173,7 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
 void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
     assert(node->type == AST_SWITCH_STMT);
     ASTNode * block = node->switch_stmt.stmt;
-    assert(block->type == AST_BLOCK);
+    assert(block->type == AST_BLOCK_STMT);
 
     for (ASTNode_list_node * n = block->block.statements->head; n; n = n->next) {
         ASTNode * statement = n->value;        
@@ -1194,7 +1194,7 @@ void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
 void emit_switch_bodies(EmitterContext * ctx, ASTNode * node) {
         assert(node->type == AST_SWITCH_STMT);
     ASTNode * block = node->switch_stmt.stmt;
-    assert(block->type == AST_BLOCK);
+    assert(block->type == AST_BLOCK_STMT);
 
     for (ASTNode_list_node * n = block->block.statements->head; n; n = n->next) {
         ASTNode * statement = n->value;
@@ -1306,7 +1306,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
                 emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
             }
             break;
-        case AST_FUNCTION_CALL:
+        case AST_FUNCTION_CALL_EXPR:
             emit_expr(ctx, node);
 //            emit_function_call(ctx, node);
             break;
@@ -1320,7 +1320,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_PRINT_EXTENSION_STATEMENT:
             emit_print_int_extension_call(ctx, node);
             break;
-        case AST_BLOCK:
+        case AST_BLOCK_STMT:
             emit_block(ctx, node, true);
             break;
         case AST_IF_STMT:
@@ -1349,7 +1349,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_UNARY_EXPR:
         case AST_INT_LITERAL:
         case AST_CAST_EXPR:
-        case AST_VAR_REF: {
+        case AST_VAR_REF_EXPR: {
             emit_expr(ctx, node);
             break;
         }
