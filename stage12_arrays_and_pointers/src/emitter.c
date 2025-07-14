@@ -1149,7 +1149,7 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
         for (int i = node->function_call.arg_list->count - 1; i >= 0; i--) {
             ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
             emit_expr(ctx, argNode);
-            emit_line(ctx, "push rax");
+//            emit_line(ctx, "push rax");
             arg_count++;
         }
 
@@ -1172,6 +1172,8 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
     if (arg_count > 0) {
         emit_line(ctx, "add rsp, %d", arg_count*8);
     }
+
+    //emit_line(ctx, "push rax");
 }
 
 void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
@@ -1309,6 +1311,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
                 emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
             }
+            emit_line(ctx, "pop rax");
             break;
         case AST_FUNCTION_CALL_EXPR:
             emit_expr(ctx, node);
