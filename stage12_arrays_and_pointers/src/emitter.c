@@ -451,10 +451,12 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             base_offset = abs(base_offset);
 
             emit_expr(ctx, node->array_access.index);    // put result in eax
+            emit_line(ctx, "pop rax");
             emit_line(ctx, "imul eax, %d", node->ctype->size);  // scale index
             emit_line(ctx, "mov rcx, rbp");
             emit_line(ctx, "sub rcx, %d", base_offset);
             emit_line(ctx, "add rcx, rax");
+            emit_line(ctx, "push rcx");
 
             // ASTNode * indices[MAX_DIMENSIONS];
             // int index_count = 0;
