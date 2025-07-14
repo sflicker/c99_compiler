@@ -712,7 +712,9 @@ void emit_unary(EmitterContext * ctx, ASTNode * node) {
     switch (node->unary.op) {
         case UNARY_NEGATE:
             emit_expr(ctx, node->unary.operand);
+            emit_line(ctx, "pop rax");
             emit_line(ctx, "neg eax");
+            emit_line(ctx, "push rax");
             break;
         case UNARY_PLUS:
             // noop
