@@ -238,12 +238,12 @@ void emit_binary_add(EmitterContext * ctx, ASTNode * node) {
     CType *rhs_type = node->binary.rhs->ctype;
 
     if (lhs_type->kind == CTYPE_PTR && is_integer_type(rhs_type)) {
-        int elem_size = sizeof_type(lhs_type);
+        int elem_size = sizeof_type(rhs_type);
         emit_line(ctx, "imul rcx, %d", elem_size);
         emit_line(ctx, "add rax, rcx");
     }
     else if (is_integer_type(lhs_type) && rhs_type->kind == CTYPE_PTR) {
-        int elem_size = sizeof_type(rhs_type);
+        int elem_size = sizeof_type(lhs_type);
         emit_line(ctx, "imul rax, %d", elem_size);
         emit_line(ctx, "add rax, rcx");
     }
@@ -914,7 +914,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
                 emit_line(ctx, "; initializing element %d", i);
                 ASTNode * init_value = ASTNode_list_get(init_items, i);
                 emit_expr(ctx, init_value);
-                emit_line(ctx, "push rax");
+//                emit_line(ctx, "push rax");
 
                 // TODO FIX emit_addr call
 //                emit_addr(ctx, node);
