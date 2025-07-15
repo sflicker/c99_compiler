@@ -1361,8 +1361,9 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             break;
         }
         case AST_ARRAY_ACCESS: {
-            int offset = get_offset(ctx, node);
-            emit_line(ctx, "mov eax, [rbp%+d]", offset);
+            emit_expr(ctx, node);
+            // int offset = get_offset(ctx, node);
+            // emit_line(ctx, "mov eax, [rbp%+d]", offset);
             break;
         }
         case AST_INITIALIZER_LIST: {
