@@ -1173,7 +1173,7 @@ void emit_function_call(EmitterContext * ctx, ASTNode * node) {
         emit_line(ctx, "add rsp, %d", arg_count*8);
     }
 
-    //emit_line(ctx, "push rax");
+    emit_line(ctx, "push rax");
 }
 
 void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
