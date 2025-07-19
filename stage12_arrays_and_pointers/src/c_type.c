@@ -5,6 +5,7 @@
 
 #include "ast.h"
 #include "c_type.h"
+#include "error.h"
 
 CType CTYPE_CHAR_T = {
     .kind = CTYPE_CHAR,
@@ -295,10 +296,13 @@ char * c_type_kind_to_string(CTypeKind kind) {
 
 int sizeof_type(CType * ctype) {
     switch (ctype->kind) {
-        case CTYPE_LONG: return 8;
-        case CTYPE_INT: return 4;
-        case CTYPE_SHORT: return 2;
-        case CTYPE_CHAR: return 1;
-        case CTYPE_PTR: return 8;
+        case CTYPE_CHAR:     return 1;
+        case CTYPE_SHORT:    return 2;
+        case CTYPE_INT:      return 4;
+        case CTYPE_LONG:     return 8;
+        case CTYPE_PTR:      return 8;
+        case CTYPE_ARRAY:    return ctype->array_len * sizeof_type(ctype->base_type);
+        case CTYPE_FUNCTION: error("Cannot apply sizeof to function type"); return 0;
+        default: error("Unknown type"); return 0;
     }
 }

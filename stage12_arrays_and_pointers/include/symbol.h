@@ -16,7 +16,7 @@ typedef enum {
 typedef enum {
     STORAGE_LOCAL,
     STORAGE_GLOBAL,
-    STORAGE_ARGUMENT
+    STORAGE_PARAMETER,
 } StorageKind;
 
 
@@ -31,6 +31,7 @@ typedef struct Symbol {
     union {
         struct {
             int offset;
+            StorageKind storage;
         } var;
 
         struct {
@@ -43,6 +44,7 @@ typedef struct Symbol {
             int offset;
             int dimensions[MAX_DIMENSIONS];
             int num_dimensions;
+            StorageKind storage;
         } array;
     } info;
 } Symbol;

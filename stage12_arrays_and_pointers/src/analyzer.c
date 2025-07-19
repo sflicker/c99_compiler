@@ -69,6 +69,7 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
         for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
             Symbol * symbol = create_symbol(n->value->var_decl.name, SYMBOL_VAR, n->value->ctype, n->value);
             symbol->info.var.offset = param_offset;
+            symbol->info.var.storage = STORAGE_PARAMETER;
             param_offset += 8;
             add_symbol(symbol);
             n->value->symbol = symbol;
@@ -162,10 +163,17 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         case AST_VAR_DECL:
             Symbol * symbol = create_symbol(node->var_decl.name, SYMBOL_VAR, node->ctype, node);
             if (node->var_decl.is_param) {
-                // probably shouldn't be here
+                symbol->info.var.storage = STORAGE_PARAMETER;
+                // handled in function
+                //symbol->info.var.offset = param_offset;
+                //symbol->info.var.storage = STORAGE_PARAMETER;
+            }
+            else if (node->var_decl.is_global) {
+                symbol->info.var.storage = STORAGE_GLOBAL;
             }
             else {
                 symbol->info.var.offset = local_offset - node->ctype->size;
+                symbol->info.var.storage = STORAGE_LOCAL;
                 // local_offset -= 8;
                 // function_local_storage += 8;
                 local_offset -= node->ctype->size;

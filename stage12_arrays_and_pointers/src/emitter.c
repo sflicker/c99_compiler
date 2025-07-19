@@ -150,27 +150,88 @@ void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * lab
 
 char * get_data_directive(CType * ctype) {
     switch (ctype->kind) {
-        case CTYPE_CHAR: return "db";
-        case CTYPE_SHORT: return "dw";
-        case CTYPE_INT: return "dd";
-        case CTYPE_LONG: return "dw";
+        case CTYPE_CHAR:   return "db";
+        case CTYPE_SHORT:  return "dw";
+        case CTYPE_INT:    return "dd";
+        case CTYPE_LONG:   return "dq";
+        case CTYPE_PTR:    return "dq";
+        case CTYPE_ARRAY:  return get_data_directive(ctype->base_type);
         default:
-            error("Unsupported data type");
+            error("Unsupported data type for data directive: %s", ctype->kind);
     }
     return NULL;
 }
 
 char * get_reservation_directive(CType * ctype) {
     switch (ctype->kind) {
-        case CTYPE_CHAR: return "resb 1";
-        case CTYPE_SHORT: return "resw 1";
-        case CTYPE_INT: return "resd 1";
-        case CTYPE_LONG: return "resq 1";
+        case CTYPE_CHAR: return "resb";
+        case CTYPE_SHORT: return "resw";
+        case CTYPE_INT: return "resd";
+        case CTYPE_LONG: return "resq";
+        case CTYPE_PTR: return "resq";
+        case CTYPE_ARRAY: return get_reservation_directive(ctype->base_type);
         default:
             error("Unsupported data type");
     }
     return NULL;
 }
+
+void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
+    emit_data_section_header(ctx);
+    for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
+        ASTNode * global_var = n->value;
+        if (global_var->var_decl.init_expr) {
+            // TODO write out correct emit_tree_node(ctx, n->value);
+            char * data_directive = get_data_directive(global_var->ctype);
+            if (is_array_type(global_var->ctype)) {
+                ASTNode * init_expr = global_var->var_decl.init_expr;
+                ASTNode_list * init_list = init_expr->initializer_list.items;
+                char buff[1024];
+                buff[0] = '\0';
+                if (global_var->ctype->array_len < init_list->count) {
+                    error("Array has too many items in initializer");
+                }
+                size_t used = snprintf(buff, sizeof(buff), "%s:   %s ", global_var->var_decl.name, data_directive);
+                for (int i = 0; i < global_var->ctype->array_len; i++) {
+                    if (i > 0) {
+                        used += snprintf(buff + used, sizeof(buff) - used, ",");
+                    }
+                    if (i < init_list->count) {
+                        int value = ASTNode_list_get(init_list, i)->int_value;
+                        used += snprintf(buff+used, sizeof(buff) - used, " %d", value);
+                    }
+                    else {
+                        used += snprintf(buff+used, sizeof(buff)  -used,  " 0");
+                    }
+                }
+                emit_line(ctx, buff);
+                // global_var->ctype->array_len < global_var->var_decl.init_expr ? 1 : 0;
+                // for (int i=0;global_var->)
+            }
+            else {
+                emit_line(ctx, "%s: %s %d", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->int_value);
+            }
+        }
+    }
+
+    emit_bss_section_header(ctx);
+    for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
+        ASTNode * global_var = n->value;
+        if (!global_var->var_decl.init_expr) {
+            // TODO write out correct emit_tree_node(ctx, n->value);
+            char * reservation_directive = get_reservation_directive(global_var->ctype);
+            int size = (is_array_type(global_var->ctype) ? global_var->ctype->array_len : 1);
+            emit_line(ctx, "%s: %s %d", global_var->var_decl.name, reservation_directive, size);
+        }
+    }
+
+    emit_text_section_header(ctx);
+    for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
+        emit_tree_node(ctx, n->value);
+    }
+    emit_trailer(ctx);
+}
+
 
 void emit_cast(EmitterContext * ctx, ASTNode * node) {
 
@@ -335,35 +396,6 @@ void emit_binary_multi(EmitterContext * ctx, ASTNode * node) {
     emit_line(ctx, "push rax");
 }
 
-void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
-    emit_data_section_header(ctx);
-    for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
-        ASTNode * global_var = n->value;
-        if (global_var->var_decl.init_expr) {
-            // TODO write out correct emit_tree_node(ctx, n->value);
-            char * data_directive = get_data_directive(global_var->ctype);
-            emit_line(ctx, "%s: %s %d", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->int_value);
-        }
-    }
-
-    emit_bss_section_header(ctx);
-    for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
-        ASTNode * global_var = n->value;
-        if (!global_var->var_decl.init_expr) {
-            // TODO write out correct emit_tree_node(ctx, n->value);
-            char * reservation_directive = get_reservation_directive(global_var->ctype);
-            emit_line(ctx, "%s: %s", global_var->var_decl.name, reservation_directive);
-        }
-    }
-
-    emit_text_section_header(ctx);
-    for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
-        emit_tree_node(ctx, n->value);
-    }
-    emit_trailer(ctx);
-}
-
-
 // emit_expr.
 // generate code to eval the expression storing the final result in eax or rax
 void emit_expr(EmitterContext * ctx, ASTNode * node) {
@@ -378,7 +410,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
                 emit_line(ctx, "push rax");
             }
             else if (node->symbol->node->var_decl.is_global) {
-                emit_line(ctx, "mov eax, [rel %s] ", node->symbol->name);
+                emit_line(ctx, "mov %s, [rel %s] ", reg_for_type(node->ctype), node->symbol->name);
                 emit_line(ctx, "push rax");
             } else {
                 int offset = node->symbol->info.var.offset;
@@ -449,14 +481,19 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_ARRAY_ACCESS: {
 
-            int base_offset = get_offset(ctx, node);
-            base_offset = abs(base_offset);
+            char * label = create_variable_reference(ctx, node);
+            emit_line(ctx, "lea rcx, %s", label);
+            emit_line(ctx, "push rcx");
+
+            // int base_offset = get_offset(ctx, node);
+            // base_offset = abs(base_offset);
 
             emit_expr(ctx, node->array_access.index);    // put result in eax
             emit_line(ctx, "pop rax");
             emit_line(ctx, "imul eax, %d", node->ctype->size);  // scale index
-            emit_line(ctx, "mov rcx, rbp");
-            emit_line(ctx, "sub rcx, %d", base_offset);
+//            emit_line(ctx, "mov rcx, rbp");
+//            emit_line(ctx, "sub rcx, %d", base_offset);
+            emit_line(ctx, "pop rcx");
             emit_line(ctx, "add rcx, rax");
             emit_line(ctx, "push rcx");
 
@@ -1284,6 +1321,8 @@ void emit_continue_statement(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_array_access(EmitterContext * ctx, ASTNode * node) {
+    char * var_ref = create_variable_reference(ctx, node);
+
     int base_address = get_offset(ctx, node);
 
     // generate code for index
