@@ -186,18 +186,21 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
             if (is_array_type(global_var->ctype)) {
                 ASTNode * init_expr = global_var->var_decl.init_expr;
                 ASTNode_list * init_list = init_expr->initializer_list.items;
+                ASTNode_list * flattened_list = create_node_list();
+                flatten_list(init_list, flattened_list);
                 char buff[1024];
                 buff[0] = '\0';
-                if (global_var->ctype->array_len < init_list->count) {
+                int total_elements = get_total_nested_array_elements(global_var);
+                if (total_elements < flattened_list->count) {
                     error("Array has too many items in initializer");
                 }
                 size_t used = snprintf(buff, sizeof(buff), "%s:   %s ", global_var->var_decl.name, data_directive);
-                for (int i = 0; i < global_var->ctype->array_len; i++) {
+                for (int i = 0; i < total_elements; i++) {
                     if (i > 0) {
                         used += snprintf(buff + used, sizeof(buff) - used, ",");
                     }
-                    if (i < init_list->count) {
-                        int value = ASTNode_list_get(init_list, i)->int_value;
+                    if (i < flattened_list->count) {
+                        int value = ASTNode_list_get(flattened_list, i)->int_value;
                         used += snprintf(buff+used, sizeof(buff) - used, " %d", value);
                     }
                     else {

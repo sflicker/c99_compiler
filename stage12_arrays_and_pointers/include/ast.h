@@ -213,5 +213,7 @@ const char * get_binary_op_name(BinaryOperator op);
 const char * get_unary_op_name(UnaryOperator op);
 bool ast_equal(ASTNode * a, ASTNode * b);
 const char * get_ast_node_name(ASTNode * node);
-
+ASTNode_list * create_node_list();
+void flatten_list(ASTNode_list * list, ASTNode_list * flattened_list);
+int get_total_nested_array_elements(ASTNode * node);
 #endif

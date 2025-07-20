@@ -319,3 +319,4 @@ int sizeof_basetype(CType * ctype) {
         default: error("Unknown type"); return 0;
     }
 }
+

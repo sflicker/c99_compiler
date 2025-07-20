@@ -321,12 +321,12 @@ ASTNode * create_assert_extension_node(ASTNode * expr) {
     return node;
 }
 
-ASTNode_list * create_node_list() {
-    ASTNode_list * list = malloc(sizeof(ASTNode_list));
-    ASTNode_list_init(list, free_ast);
-
-    return list;
-}
+// ASTNode_list * create_node_list() {
+//     ASTNode_list * list = malloc(sizeof(ASTNode_list));
+//     ASTNode_list_init(list, free_ast);
+//
+//     return list;
+// }
 
 CType * get_ctype_from_token(Token* token) {
     switch (token->type) {

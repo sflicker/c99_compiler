@@ -35,8 +35,6 @@ ASTNode * create_initializer_list(ASTNode_list * list);
 ASTNode * create_print_extension_node(ASTNode * expr);
 ASTNode * create_assert_extension_node(ASTNode * expr);
 
-ASTNode_list * create_node_list();
-            
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
 CType * get_ctype_from_token(Token* token);

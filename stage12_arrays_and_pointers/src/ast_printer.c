@@ -194,9 +194,16 @@ void print_ast(ASTNode * node, int indent) {
         case AST_INITIALIZER_LIST: {
             printf("InitializerList: [");
             for (ASTNode_list_node * n = node->initializer_list.items->head; n; n = n->next) {
-                printf("%d", n->value->int_value);
-                if (n->next != NULL) {
-                    printf(", ");
+                ASTNode * node = n->value;
+                if (node->type == AST_INITIALIZER_LIST) {
+//                    printf("\n");
+                    print_ast(node, indent+1);
+                }
+                else {
+                    printf("%d", n->value->int_value);
+                    if (n->next != NULL) {
+                        printf(", ");
+                    }
                 }
             }
             printf("]\n");

@@ -310,3 +310,31 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
     fprintf(stderr, "ASTNodes are not equal\n");
     return false;
 }
+
+ASTNode_list * create_node_list() {
+    ASTNode_list * list = malloc(sizeof(ASTNode_list));
+    ASTNode_list_init(list, free_ast);
+
+    return list;
+}
+
+void flatten_list(ASTNode_list * list, ASTNode_list * flattened_list) {
+    for (int i=0;i<list->count;i++) {
+        ASTNode * astNode = ASTNode_list_get(list, i);
+        if (astNode->type == AST_INITIALIZER_LIST) {
+            flatten_list(astNode->initializer_list.items, flattened_list);
+        } else {
+            ASTNode_list_append(flattened_list, astNode);
+        }
+    }
+}
+
+int get_total_nested_array_elements(ASTNode * node) {
+    int sum = 0;
+    CType * ctype = node->ctype;
+    while (is_array_type(ctype)) {
+        sum += ctype->array_len;
+        ctype = ctype->base_type;
+    }
+    return sum;
+}

@@ -598,7 +598,13 @@ ASTNode * parse_initializer_list(ParserContext * parserContext) {
     ASTNode_list * items = create_node_list();
 
     while (!is_current_token(parserContext, TOKEN_RBRACE)) {
-        ASTNode * item = parse_expression(parserContext);
+        ASTNode * item = NULL;
+        if (is_current_token(parserContext, TOKEN_LBRACE)) {
+            item = parse_initializer_list(parserContext);
+        }
+        else {
+            item = parse_expression(parserContext);
+        }
         ASTNode_list_append(items, item);
 
         if (is_current_token(parserContext, TOKEN_COMMA)) {
