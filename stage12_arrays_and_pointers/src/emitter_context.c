@@ -136,13 +136,21 @@ int get_offset(EmitterContext * ctx, ASTNode * node) {
 }
 
 bool is_global_var(EmitterContext * ctx, ASTNode * node) {
-    Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
-        node->array_access.base->symbol : node->symbol;
+    if (node->type == AST_ARRAY_ACCESS) {
+        return is_global_var(ctx, node->array_access.base);
+    }
+     //Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
+    //     node->array_access.base->symbol : node->symbol;
+    Symbol * symbol = node->symbol;
     return symbol->node->var_decl.is_global;
 }
 
 char * get_var_name(EmitterContext * ctx, ASTNode * node) {
-    Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
-        node->array_access.base->symbol : node->symbol;
+    if (node->type == AST_ARRAY_ACCESS) {
+        return get_var_name(ctx, node->array_access.base);
+    }
+    // Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
+    //     node->array_access.base->symbol : node->symbol;
+    Symbol * symbol = node->symbol;
     return symbol->name;
 }
