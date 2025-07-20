@@ -78,6 +78,7 @@ bool is_pointer_type(CType * ctype);
 bool is_signed_type(CType * ctype);
 CType * decay_if_array(CType * ctype);
 int sizeof_type(CType * ctype);
+int sizeof_basetype(CType * ctype);
 
 #endif
 

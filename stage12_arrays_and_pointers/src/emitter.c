@@ -947,26 +947,22 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx,"; initializing array");
             Symbol * symbol = node->symbol;
             ASTNode_list * init_items = node->var_decl.init_expr->initializer_list.items;
-            for (int i=0;i<init_items->count;i++) {
+//            for (int i=0;i<init_items->count;i++) {
+            for (int i=0;i<node->ctype->array_len;i++) {
                 emit_line(ctx, "; initializing element %d", i);
-                ASTNode * init_value = ASTNode_list_get(init_items, i);
-                emit_expr(ctx, init_value);
-//                emit_line(ctx, "push rax");
 
-                // TODO FIX emit_addr call
-//                emit_addr(ctx, node);
+                if (i < init_items->count) {
+                    ASTNode * init_value = ASTNode_list_get(init_items, i);
+                    emit_expr(ctx, init_value);
+                }
+                else {
+                    emit_line(ctx, "mov eax, 0");
+                    emit_line(ctx, "push rax");
+                }
 
-//                emit_addr(ctx, node->array_access.base);
-
-                int offset = symbol->info.array.offset + i*4;
+                int offset = symbol->info.array.offset + i*sizeof_basetype(node->ctype);
 
                 emit_line(ctx, "lea rcx, [rbp%+d]", offset);
-                // if (symbol->info.array.offset >= 0) {
-                //     emit_line(ctx, "lea rcx, [rbp - %d]\n", offset);
-                // }
-                // else {
-                //     emit_line(ctx, "lea rcx, [rbp + %d]\n", -offset);
-                // }
 
                 emit_line(ctx, "pop rax");
                 emit_line(ctx, "mov [rcx], eax");

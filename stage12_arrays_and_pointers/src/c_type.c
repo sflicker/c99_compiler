@@ -306,3 +306,16 @@ int sizeof_type(CType * ctype) {
         default: error("Unknown type"); return 0;
     }
 }
+
+int sizeof_basetype(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR:     return 1;
+        case CTYPE_SHORT:    return 2;
+        case CTYPE_INT:      return 4;
+        case CTYPE_LONG:     return 8;
+        case CTYPE_PTR:      return 8;
+        case CTYPE_ARRAY:    return sizeof_type(ctype->base_type);
+        case CTYPE_FUNCTION: error("Cannot apply sizeof to function type"); return 0;
+        default: error("Unknown type"); return 0;
+    }
+}
