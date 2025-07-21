@@ -314,7 +314,7 @@ int sizeof_basetype(CType * ctype) {
         case CTYPE_INT:      return 4;
         case CTYPE_LONG:     return 8;
         case CTYPE_PTR:      return 8;
-        case CTYPE_ARRAY:    return sizeof_type(ctype->base_type);
+        case CTYPE_ARRAY:    return sizeof_basetype(ctype->base_type);
         case CTYPE_FUNCTION: error("Cannot apply sizeof to function type"); return 0;
         default: error("Unknown type"); return 0;
     }

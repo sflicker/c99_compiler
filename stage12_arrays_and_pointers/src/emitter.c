@@ -950,12 +950,16 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx,"; initializing array");
             Symbol * symbol = node->symbol;
             ASTNode_list * init_items = node->var_decl.init_expr->initializer_list.items;
+            ASTNode_list * flattened_list = create_node_list();
+            flatten_list(init_items, flattened_list);
+            int total_items = get_total_nested_array_elements(node);
 //            for (int i=0;i<init_items->count;i++) {
-            for (int i=0;i<node->ctype->array_len;i++) {
+//            for (int i=0;i<node->ctype->array_len;i++) {
+            for (int i = 0; i < total_items; i++) {
                 emit_line(ctx, "; initializing element %d", i);
 
-                if (i < init_items->count) {
-                    ASTNode * init_value = ASTNode_list_get(init_items, i);
+                if (i < flattened_list->count) {
+                    ASTNode * init_value = ASTNode_list_get(flattened_list, i);
                     emit_expr(ctx, init_value);
                 }
                 else {
