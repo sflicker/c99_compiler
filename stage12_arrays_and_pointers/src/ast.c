@@ -330,11 +330,18 @@ void flatten_list(ASTNode_list * list, ASTNode_list * flattened_list) {
 }
 
 int get_total_nested_array_elements(ASTNode * node) {
-    int sum = 0;
+    int total = 1;
     CType * ctype = node->ctype;
     while (is_array_type(ctype)) {
-        sum += ctype->array_len;
+        total *= ctype->array_len;
         ctype = ctype->base_type;
     }
-    return sum;
+    return total;
+}
+
+int get_array_base_element_size(ASTNode * node) {
+    while (is_array_type(node->ctype)) {
+        node = node->array_access.base;
+    }
+    return node->ctype->size;
 }

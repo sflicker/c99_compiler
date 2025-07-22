@@ -492,12 +492,33 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             // base_offset = abs(base_offset);
 
             emit_expr(ctx, node->array_access.index);    // put result in eax
+            int dim = node->ctype->size;
+            int base_size = node->ctype->size;
             emit_line(ctx, "pop rax");
-            emit_line(ctx, "imul eax, %d", node->ctype->size);  // scale index
+
+            // if a second dimension.. TODO make work for more than 2.
+            if (node->array_access.base->type == AST_ARRAY_ACCESS) {
+//                int remaining_size = get_total_nested_array_elements(node->array_access.base);
+//                emit_line(ctx, "imul rax, %d", remaining_size);  // scale index
+//                emit_line(ctx, "push rax");
+
+                node = node->array_access.base;
+                emit_expr(ctx, node->array_access.index);
+                emit_line(ctx, "pop rax");
+                emit_line(ctx, "imul rax, %d", dim);
+                emit_line(ctx, "pop rcx");
+                emit_line(ctx, "add rax, rcx");
+            }
+//            emit_line(ctx, "imul rax, %d", get_array_base_element_size(node) );  // scale index
+            emit_line(ctx, "imul rax, %d", base_size);
+
 //            emit_line(ctx, "mov rcx, rbp");
 //            emit_line(ctx, "sub rcx, %d", base_offset);
+//            emit_line(ctx, "pop rcx");
+//            emit_line(ctx, "add rcx, rax");
             emit_line(ctx, "pop rcx");
             emit_line(ctx, "add rcx, rax");
+
             emit_line(ctx, "push rcx");
 
             // ASTNode * indices[MAX_DIMENSIONS];
