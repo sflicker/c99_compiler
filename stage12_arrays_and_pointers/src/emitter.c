@@ -492,7 +492,7 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             // base_offset = abs(base_offset);
 
             emit_expr(ctx, node->array_access.index);    // put result in eax
-            int dim = node->ctype->size;
+            int dim = node->array_access.base->ctype->array_len;
             int base_size = node->ctype->size;
 //            emit_line(ctx, "pop rax");
 
