@@ -65,9 +65,8 @@ ASTNode * parse_initializer_list(ParserContext * parserContext);
 ParamInfo_list * parse_parameter_type_list(ParserContext * ctx/*, ASTNode_list ** out_params*/);
 
 CType * parse_type_specifier(ParserContext * ctx);
-CType * parse_declarator(ParserContext * ctx, CType * base_type /*, char **out_name ,
-    ASTNode_list ** out_params, CType ** func_type*/ );
-CType * parse_direct_declarator(ParserContext * ctx, CType * base_type);
-CType * parse_postfix_declarator(ParserContext * ctx, CType * base_type);
+Declarator * parse_declarator(ParserContext * ctx, Declarator * declarator);
+Declarator * parse_direct_declarator(ParserContext * ctx, Declarator * declarator);
+Declarator * parse_postfix_declarator(ParserContext * ctx, Declarator * declarator);
 
 #endif

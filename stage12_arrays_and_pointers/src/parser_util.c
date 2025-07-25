@@ -12,6 +12,7 @@
 #include "token.h"
 #include "ast.h"
 #include "c_type.h"
+#include "parser.h"
 #include "parser_context.h"
 #include "parser_util.h"
 
@@ -312,6 +313,15 @@ ASTNode * create_print_extension_node(ASTNode * expr) {
     node->ctype = NULL;
     return node;
 }
+
+Declarator * make_declarator() {
+    Declarator * declarator = malloc(sizeof(Declarator));
+    declarator->name = NULL;
+    declarator->type = NULL;
+    declarator->param_list = NULL;
+    return declarator;
+}
+
 
 ASTNode * create_assert_extension_node(ASTNode * expr) {
     ASTNode * node = create_ast();

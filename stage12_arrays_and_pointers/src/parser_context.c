@@ -140,18 +140,18 @@ int get_current_token_col(ParserContext * parserContext) {
     return peek(parserContext)->col;
 }
 
-void set_current_decl_name(ParserContext * parserContext, const char * name) {
-    parserContext->current_decl_name = name;
-}
-
-const char * get_current_decl_name(ParserContext * parserContext) {
-    return parserContext->current_decl_name;
-}
-
-void set_current_decl_param_list(ParserContext * parserContext, ASTNode_list * astParam_list) {
-    parserContext->astParam_list = astParam_list;
-}
-
-ASTNode_list * get_current_decl_param_list(ParserContext * parserContext) {
-    return parserContext->astParam_list;
-}
+// void set_current_decl_name(ParserContext * parserContext, const char * name) {
+//     parserContext->current_decl_name = name;
+// }
+//
+// const char * get_current_decl_name(ParserContext * parserContext) {
+//     return parserContext->current_decl_name;
+// }
+//
+// void set_current_decl_param_list(ParserContext * parserContext, ASTNode_list * astParam_list) {
+//     parserContext->astParam_list = astParam_list;
+// }
+//
+// ASTNode_list * get_current_decl_param_list(ParserContext * parserContext) {
+//     return parserContext->astParam_list;
+// }

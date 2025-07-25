@@ -1,9 +1,8 @@
 #ifndef _PARSER_UTIL_H_
 #define _PARSER_UTIL_H_
 #include "ast.h"
+#include "parser.h"
 #include "parser_context.h"
-
-
 
 ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals);
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand);
@@ -39,5 +38,6 @@ BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
 CType * get_ctype_from_token(Token* token);
 
+Declarator * make_declarator();
 
 #endif
