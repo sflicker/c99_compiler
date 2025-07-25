@@ -31,8 +31,8 @@ ASTNode * parse(tokenlist * tokenList);
 ASTNode * parse_translation_unit(ParserContext * parserContext);
 ASTNode * parse_external_declaration(ParserContext * parserContext);
 //ASTNode * parse_function(ParserContext * parserContext);
-ASTNode * parse_function_definition(ParserContext * parserContext, char * name, CType * ctype, ASTNode_list * param_list);
-ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, char * name);
+ASTNode * parse_function_definition(ParserContext * parserContext, const char * name, CType * ctype, ASTNode_list * param_list);
+ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, const char * name);
 ASTNode * parse_statement(ParserContext* parserContext);
 ASTNode * parse_return_statement(ParserContext * parserContext);
 ASTNode * parse_block(ParserContext* parserContext);
@@ -65,7 +65,9 @@ ASTNode * parse_initializer_list(ParserContext * parserContext);
 ParamInfo_list * parse_parameter_type_list(ParserContext * ctx/*, ASTNode_list ** out_params*/);
 
 CType * parse_type_specifier(ParserContext * ctx);
-Declarator * parse_declarator(ParserContext * ctx, CType * base_type /*, char **out_name ,
+CType * parse_declarator(ParserContext * ctx, CType * base_type /*, char **out_name ,
     ASTNode_list ** out_params, CType ** func_type*/ );
+CType * parse_direct_declarator(ParserContext * ctx, CType * base_type);
+CType * parse_postfix_declarator(ParserContext * ctx, CType * base_type);
 
 #endif

@@ -1347,7 +1347,7 @@ void emit_continue_statement(EmitterContext * ctx, ASTNode * node) {
 }
 
 void emit_array_access(EmitterContext * ctx, ASTNode * node) {
-    char * var_ref = create_variable_reference(ctx, node);
+//    char * var_ref = create_variable_reference(ctx, node);
 
     int base_address = get_offset(ctx, node);
 

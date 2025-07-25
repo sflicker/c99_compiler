@@ -9,9 +9,11 @@ void print_c_type(CType * ctype, int indent) {
     if (!ctype) return;
 
     print_indent(indent);
-    char buf[128];
+    char buf[512];
+    buf[0] = '\0';
+
     ctype_to_description(ctype, buf, sizeof buf);
-    printf("CType: %s, size: %d, signed: %s, rank: %d\n", buf, ctype->size,
+    printf("CType: %s, size: %d, len: %d, signed: %s, rank: %d\n", buf, ctype->size, ctype->array_len,
         ((ctype->is_signed) ? "TRUE" : "FALSE"), ctype->rank);
     if (ctype->base_type) {
         print_c_type(ctype->base_type, indent+1);

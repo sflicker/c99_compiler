@@ -9,6 +9,8 @@
 typedef struct {
     tokenlist_cursor * cursor;
     int pos;
+    const char * current_decl_name;
+    ASTNode_list * astParam_list;
 } ParserContext;
 
 
@@ -28,5 +30,11 @@ int get_current_token_col(ParserContext * parserContext);
 bool is_current_token_a_ctype(ParserContext * parserContext);
 bool is_next_token_a_ctype(ParserContext * parserContext);
 Token * expect_ctype_token(ParserContext * ctx);
+
+void set_current_decl_name(ParserContext * parserContext, const char * name);
+const char * get_current_decl_name(ParserContext * parserContext);
+
+void set_current_decl_param_list(ParserContext * parserContext, ASTNode_list * astParam_list);
+ASTNode_list * get_current_decl_param_list(ParserContext * parserContext);
 
 #endif

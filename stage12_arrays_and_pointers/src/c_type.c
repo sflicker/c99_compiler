@@ -5,6 +5,7 @@
 
 #include "ast.h"
 #include "c_type.h"
+#include "c_type_printer.h"
 #include "error.h"
 
 CType CTYPE_CHAR_T = {
@@ -52,6 +53,7 @@ CType * make_int_type(int is_signed) {
     t->is_signed = is_signed;
     t->kind = CTYPE_INT;
     t->size = 4;
+    print_c_type(t, 0);
     return t;
 }
 CType *make_pointer_type(CType *base) {
@@ -60,6 +62,7 @@ CType *make_pointer_type(CType *base) {
     ptr->base_type = base;
     ptr->size = 8;
     ptr->array_len = 0;
+    print_c_type(ptr, 0);
     return ptr;
 }
 
@@ -69,6 +72,7 @@ CType * make_array_type(CType * base, int length) {
     ptr->array_len = length;
     ptr->base_type = base;
     ptr->size = base->size * length;
+    print_c_type(ptr, 0);
     return ptr;
 }
 
@@ -77,6 +81,7 @@ CType * make_function_type(CType * return_type, CType_list * param_types) {
     fn->kind = CTYPE_FUNCTION;
     fn->base_type = return_type;
     fn->param_types = param_types;
+    print_c_type(fn, 0);
     return fn;
 }
 
@@ -112,6 +117,7 @@ void ctype_to_description(CType * ctype, char * buf, size_t buflen) {
         case CTYPE_PTR: {
             ctype_to_description(ctype->base_type, buf, buflen);
             char tmp[128];
+            tmp[0] = '\0';
             snprintf(tmp, sizeof(tmp), "Pointer to %s", buf);
             strncat(buf, tmp, buflen - sizeof(buf) - 1);
             break;
@@ -119,6 +125,7 @@ void ctype_to_description(CType * ctype, char * buf, size_t buflen) {
         case CTYPE_ARRAY: {
             ctype_to_description(ctype->base_type, buf, buflen);
             char tmp[128];
+            tmp[0] = '\0';
             snprintf(tmp, sizeof(tmp), "Array [%d] of %s", ctype->array_len, buf);
             strncat(buf, tmp, buflen - sizeof(buf) - 1);
             break;

@@ -863,12 +863,13 @@ void test_declarator__scalar_var() {
     CType * base_type = parse_type_specifier(ctx);
     printf("BaseType\n");
     print_c_type(base_type, 0);
-    Declarator * declarator = parse_declarator(ctx, base_type/* , &name, NULL, NULL*/);
+    CType * full_type = parse_declarator(ctx, base_type/* , &name, NULL, NULL*/);
     printf("FullType\n");
-    print_c_type(declarator->type, 0);
+    print_c_type(full_type, 0);
 
-    TEST_ASSERT("Verify base_type and full_type are the same", ctype_equals(base_type, declarator->type));
-    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
+    const char * name = get_current_decl_name(ctx);
+    TEST_ASSERT("Verify base_type and full_type are the same", ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
 }
 
 void test_declarator__array_var() {
@@ -877,14 +878,15 @@ void test_declarator__array_var() {
     ParserContext * ctx = create_parser_context(tokens);
 
     CType * base_type = parse_type_specifier(ctx);
-    Declarator * declarator = parse_declarator(ctx, base_type /*, &name, NULL, NULL*/);
+    CType * full_type = parse_declarator(ctx, base_type /*, &name, NULL, NULL*/);
+    const char * name = get_current_decl_name(ctx);
 
-    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, declarator->type));
-    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
-    TEST_ASSERT("Verify full_type has Array kind", declarator->type->kind == CTYPE_ARRAY);
-    TEST_ASSERT("Verify full_type has Array len of 10", declarator->type->array_len == 10);
-    TEST_ASSERT("Verify full_type has Array size of 40", declarator->type->size == 40);
-    TEST_ASSERT("Verify full_type has int base_type", declarator->type->base_type->kind == CTYPE_INT);
+    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify full_type has Array kind", full_type->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verify full_type has Array len of 10", full_type->array_len == 10);
+    TEST_ASSERT("Verify full_type has Array size of 40", full_type->size == 40);
+    TEST_ASSERT("Verify full_type has int base_type", full_type->base_type->kind == CTYPE_INT);
 
 }
 
@@ -895,14 +897,16 @@ void test_declarator__array_multi_var() {
 
     CType * base_type = parse_type_specifier(ctx);
     print_c_type(base_type, 0);
-    Declarator * declarator = parse_declarator(ctx, base_type /*, &name, NULL, NULL*/);
-    print_c_type(declarator->type, 0);
+    CType * full_type = parse_declarator(ctx, base_type /*, &name, NULL, NULL*/);
+    print_c_type(full_type, 0);
 
-    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, declarator->type));
-    TEST_ASSERT("Verify Correct name", strcmp("a", declarator->name) == 0);
-    TEST_ASSERT("Verify full_type has Array kind", declarator->type->kind == CTYPE_ARRAY);
-    TEST_ASSERT("Verify full_type has Array base_type", declarator->type->base_type->kind == CTYPE_ARRAY);
-    TEST_ASSERT("Verify full_type.base.base has int_type", declarator->type->base_type->base_type->kind == CTYPE_INT);
+    const char * name = get_current_decl_name(ctx);
+
+    TEST_ASSERT("Verify base_type and full_type are not the same", !ctype_equals(base_type, full_type));
+    TEST_ASSERT("Verify Correct name", strcmp("a", name) == 0);
+    TEST_ASSERT("Verify full_type has Array kind", full_type->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verify full_type has Array base_type", full_type->base_type->kind == CTYPE_ARRAY);
+    TEST_ASSERT("Verify full_type.base.base has int_type", full_type->base_type->base_type->kind == CTYPE_INT);
 
 }
 

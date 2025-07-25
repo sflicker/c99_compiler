@@ -12,6 +12,7 @@
 #include "parser_util.h"
 #include "parser_context.h"
 #include "c_type.h"
+#include "c_type_printer.h"
 
 /* 
    Simple C compiler example 
@@ -154,27 +155,28 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
 
     CType * base_type = parse_type_specifier(parserContext);
+    print_c_type(base_type, 0);
 
-    Declarator * declarator = parse_declarator(parserContext, base_type);
+    base_type = parse_declarator(parserContext, base_type);
+    const char * name = get_current_decl_name(parserContext);
+    ASTNode_list * param_list = get_current_decl_param_list(parserContext);
 
-    if (declarator->type->kind == CTYPE_FUNCTION) {
+    if (base_type->kind == CTYPE_FUNCTION) {
         if (is_current_token(parserContext, TOKEN_LBRACE)) {
-            return parse_function_definition(parserContext, declarator->name, declarator->type, declarator->param_list);
+            return parse_function_definition(parserContext, name, base_type, get_current_decl_param_list(parserContext) /*declarator->param_list*/ );
         }
         if (is_current_token(parserContext, TOKEN_SEMICOLON)) {
             // handle forward function declaration
             expect_token(parserContext, TOKEN_SEMICOLON);
-            return create_function_declaration_node(declarator->name, declarator->type, declarator->param_list, NULL, true);
+            return create_function_declaration_node(name, base_type, param_list, NULL, true);
         }
     }
-    ASTNode * declaration = parse_declaration_tail(parserContext, declarator->type, declarator->name);
+    ASTNode * declaration = parse_declaration_tail(parserContext, base_type, name);
     declaration->var_decl.is_global = true;
 
-    free(declarator->name);
-    free(declarator);
+//    free(name);
 
     return declaration;
-
 }
 
 Declarator * make_declarator() {
@@ -185,23 +187,42 @@ Declarator * make_declarator() {
     return declarator;
 }
 
-Declarator * parse_declarator(ParserContext * ctx, CType * base_type /*,
+CType * parse_declarator(ParserContext * ctx, CType * base_type /*,
     char ** out_name, ASTNode_list ** out_params, CType ** func_type*/) {
     // parse pointer layer
 
-    ASTNode_list * astParam_list = NULL;
-    Declarator *declarator = make_declarator();
+//    ASTNode_list * astParam_list = NULL;
+//    Declarator *declarator = make_declarator();
 
     while (match_token(ctx, TOKEN_STAR)) {
         base_type = make_pointer_type(base_type);
     }
 
-    // parse identifier
-    Token* name_id = expect_token(ctx, TOKEN_IDENTIFIER);
-    declarator->name = strdup(name_id->text);
-    // if (out_name) {
-    //     *out_name = strdup(name_id->text);
-    // }
+    return parse_direct_declarator(ctx, base_type);
+}
+
+CType * parse_direct_declarator(ParserContext * ctx, CType * base_type) {
+    if (match_token(ctx, TOKEN_LPAREN)) {
+        CType * inner = parse_declarator(ctx, base_type);
+        expect_token(ctx, TOKEN_RPAREN);
+        base_type = parse_postfix_declarator(ctx, inner);
+    } else {
+        Token* tok_name = expect_token(ctx, TOKEN_IDENTIFIER);
+        char * name = strdup(tok_name->text);
+        set_current_decl_name(ctx, name);
+        base_type = parse_postfix_declarator(ctx, base_type);
+    }
+    return base_type;
+}
+
+typedef struct ArraySizeList {
+    int count;
+    int sizes[10];
+} ArraySizeList;
+
+CType * parse_postfix_declarator(ParserContext * ctx, CType * base_type) {
+    ASTNode_list * astParam_list = NULL;
+    ArraySizeList array_sizes = {0};
 
     while (true) {
         if (match_token(ctx, TOKEN_LBRACKET)) {
@@ -209,7 +230,9 @@ Declarator * parse_declarator(ParserContext * ctx, CType * base_type /*,
             ASTNode * len_node = parse_constant_expression(ctx);
             int len = len_node->int_value;
             expect_token(ctx, TOKEN_RBRACKET);
-            base_type = make_array_type(base_type, len);
+            //            base_type = make_array_type(base_type, len);
+            array_sizes.sizes[array_sizes.count++] = len;
+
         }
         else if (is_current_token(ctx, TOKEN_LPAREN)) {
             if (is_next_token(ctx, TOKEN_RPAREN)) {
@@ -238,13 +261,68 @@ Declarator * parse_declarator(ParserContext * ctx, CType * base_type /*,
             break;
         }
     }
-                // ASTNode * node = create_var_decl_node(name, base_type, NULL);
-                // return node;
-    declarator->type = base_type;
 
-    declarator->param_list = astParam_list;
-    return declarator;
+    set_current_decl_param_list(ctx, astParam_list);
+
+    // reverse the array dimensions
+    for (int i = array_sizes.count - 1; i >= 0; --i) {
+        base_type = make_array_type(base_type, array_sizes.sizes[i]);
+    }
+
+    return base_type;
 }
+
+
+//     // parse identifier
+//     Token* name_id = expect_token(ctx, TOKEN_IDENTIFIER);
+//     declarator->name = strdup(name_id->text);
+//     // if (out_name) {
+//     //     *out_name = strdup(name_id->text);
+//     // }
+//
+//     while (true) {
+//         if (match_token(ctx, TOKEN_LBRACKET)) {
+//             // array declarator
+//             ASTNode * len_node = parse_constant_expression(ctx);
+//             int len = len_node->int_value;
+//             expect_token(ctx, TOKEN_RBRACKET);
+//             base_type = make_array_type(base_type, len);
+//
+//         }
+//         else if (is_current_token(ctx, TOKEN_LPAREN)) {
+//             if (is_next_token(ctx, TOKEN_RPAREN)) {
+//                 advance_parser(ctx);
+//                 advance_parser(ctx);
+//                 base_type = make_function_type(base_type, NULL);
+//                 // if (func_type) {
+//                 //     *func_type = make_function_type(base_type, NULL);
+//                 // }
+//             }
+//             else {
+//                 advance_parser(ctx);
+//                 ParamInfo_list * param_types = parse_parameter_type_list(ctx/*, out_params*/);
+//                 expect_token(ctx, TOKEN_RPAREN); //maybe this should be a comma or semicolon ...
+//                 base_type = make_function_type(base_type, get_ctype_list(param_types));
+//                 astParam_list = create_node_list();
+//                 for (ParamInfo_list_node * n = param_types->head; n != NULL; n = n->next) {
+//                     ASTNode_list_append(astParam_list, n->value->astNode);
+//                 }
+//                 // if (func_type) {
+//                 //     *func_type = make_function_type(base_type, param_types);
+//                 // }
+//             }
+//         }
+//         else {
+//             break;
+//         }
+//     }
+//                 // ASTNode * node = create_var_decl_node(name, base_type, NULL);
+//                 // return node;
+//     declarator->type = base_type;
+//
+//     declarator->param_list = astParam_list;
+//     return declarator;
+// }
 
 ParamInfo_list * parse_parameter_type_list(ParserContext * ctx/*, ASTNode_list ** out_params*/) {
 //    CType_list * type_list = NULL;
@@ -252,12 +330,13 @@ ParamInfo_list * parse_parameter_type_list(ParserContext * ctx/*, ASTNode_list *
 //    if (out_params) *out_params = NULL;
     while (true) {
         CType * base_type = parse_type_specifier(ctx);
+        print_c_type(base_type, 0);
 
 //        Token * ident = expect_token(ctx, TOKEN_IDENTIFIER);
 //        char * out_name;
-        Declarator * declarator = parse_declarator(ctx, base_type /*, &out_name, NULL, NULL*/);
-
-        ASTNode * param = create_var_decl_node(declarator->name, declarator->type, NULL);
+        base_type = parse_declarator(ctx, base_type /*, &out_name, NULL, NULL*/);
+        const char * name = get_current_decl_name(ctx);
+        ASTNode * param = create_var_decl_node(name, base_type, NULL);
 //        param->ctype = full_type;
 //        param->var_decl.ctype = full_type;
 
@@ -282,8 +361,8 @@ ParamInfo_list * parse_parameter_type_list(ParserContext * ctx/*, ASTNode_list *
 //        CType_list_append(type_list,full_type);
 
         ParamInfo * paramInfo = malloc(sizeof(ParamInfo));
-        paramInfo->name = strdup(declarator->name);
-        paramInfo->type = declarator->type;
+        paramInfo->name = strdup(name);
+        paramInfo->type = base_type;
         paramInfo->astNode = param;
 
         ParamInfo_list_append(param_list, paramInfo);
@@ -299,6 +378,7 @@ ASTNode_list * parse_param_list(ParserContext * parserContext) {
 
     do {
         CType * ctype = parse_type_specifier(parserContext);
+        print_c_type(ctype, 0);
         Token * param_name = expect_token(parserContext, TOKEN_IDENTIFIER);
         ASTNode * param = create_var_decl_node(param_name->text, ctype, NULL);
         param->var_decl.is_param = true;
@@ -330,7 +410,7 @@ CType * parse_type_specifier(ParserContext * ctx) {
 }
 
 
-ASTNode * parse_function_definition(ParserContext * parserContext, char * name, CType * full_type, ASTNode_list * params) {
+ASTNode * parse_function_definition(ParserContext * parserContext, const char * name, CType * full_type, ASTNode_list * params) {
 
 //    char * name = NULL;
 //    ASTNode_list * params = NULL;
@@ -348,7 +428,7 @@ ASTNode * parse_function_definition(ParserContext * parserContext, char * name, 
 
 }
 
-ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, char * id) {
+ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, const char * id) {
 //    CType * ctype = parse_ctype(parserContext);
 //    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     ASTNode * initializer_expr = NULL;
@@ -568,11 +648,13 @@ ASTNode * parse_statement(ParserContext* parserContext) {
 
 ASTNode*  parse_local_declaration(ParserContext * parserContext) {
     CType * base_type = parse_type_specifier(parserContext);
+    print_c_type(base_type, 0);
 
 //    char * name = NULL;
-    Declarator * declarator = parse_declarator(parserContext, base_type/* , &name, NULL, NULL*/);
+    base_type = parse_declarator(parserContext, base_type/* , &name, NULL, NULL*/);
+    const char * name = get_current_decl_name(parserContext);
 
-    return parse_declaration_tail(parserContext, declarator->type, declarator->name);
+    return parse_declaration_tail(parserContext, base_type, name);
 //    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     // ASTNode * init_expr = NULL;
     // if (is_current_token(parserContext, TOKEN_ASSIGN)) {
@@ -824,6 +906,7 @@ ASTNode * parse_cast_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_LPAREN) && is_next_token_a_ctype(parserContext)) {
         expect_token(parserContext, TOKEN_LPAREN);
         CType * target_type = parse_type_specifier(parserContext);
+        print_c_type(target_type, 0);
         expect_token(parserContext, TOKEN_RPAREN);
         ASTNode * expr = parse_cast_expression(parserContext);
         ASTNode * node = create_cast_expr_node(target_type, expr);
