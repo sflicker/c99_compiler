@@ -171,7 +171,7 @@ void test_analyze_array() {
     // finally the test will verify parse tree has been properly updated
     // during the analysis where symbol references etc are set.
 
-    ASTNode * varDecl = create_var_decl_node("a", make_array_type(&CTYPE_INT_T, 1), NULL);
+    //ASTNode * varDecl = create_var_decl_node("a", make_array_type(&CTYPE_INT_T, 1), NULL);
     
 
 }
