@@ -311,7 +311,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             CType * base_type = node->array_access.base->ctype;
             CType * index_type = node->array_access.index->ctype;
 
-            if (!(is_pointer_type(base_type) || is_pointer_type(index_type))) {
+            if (!(is_pointer_type(base_type) || is_array_type(base_type))) {
                 error("Array base must be a pointer or array");
             }
 
