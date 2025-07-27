@@ -488,6 +488,20 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "lea rcx, %s", label);
             emit_line(ctx, "push rcx");
 
+//            Symbol * sym = node->array_access.base->symbol;
+
+            CType * base = node->array_access.base->ctype;
+
+//            if (sym->ctype->base_type->kind == CTYPE_PTR) {
+            if (base->kind == CTYPE_PTR) {
+                emit_line(ctx, "pop rcx");
+                emit_line(ctx, "mov rcx, [rcx]");
+                emit_line(ctx, "push rcx");
+            }
+            else if (base->kind == CTYPE_ARRAY) {
+                // just use base address
+            }
+
             // int base_offset = get_offset(ctx, node);
             // base_offset = abs(base_offset);
 

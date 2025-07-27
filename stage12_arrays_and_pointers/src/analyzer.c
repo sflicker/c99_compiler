@@ -226,12 +226,14 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             Symbol * symbol = lookup_symbol(node->var_ref.name);
             if (!symbol) { error("Symbol not found"); return; }
             node->symbol = symbol;
-            if (symbol->ctype->kind == CTYPE_ARRAY) {
-                 node->ctype = make_pointer_type(symbol->ctype->base_type);
-            }
-            else {
-                node->ctype = symbol->ctype;
-            }
+            // if (symbol->ctype->kind == CTYPE_ARRAY) {
+            //      node->ctype = make_pointer_type(symbol->ctype->base_type);
+            // }
+            // else {
+            //     node->ctype = symbol->ctype;
+            // }
+            node->ctype = symbol->ctype;
+
             break;
         }
 
@@ -305,10 +307,11 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             analyze(ctx, node->array_access.base);
             analyze(ctx, node->array_access.index);
 
-            CType * base_type = decay_if_array(node->array_access.base->ctype);
+//            CType * base_type = decay_if_array(node->array_access.base->ctype);
+            CType * base_type = node->array_access.base->ctype;
             CType * index_type = node->array_access.index->ctype;
 
-            if (!is_pointer_type(base_type)) {
+            if (!(is_pointer_type(base_type) || is_pointer_type(index_type))) {
                 error("Array base must be a pointer or array");
             }
 
