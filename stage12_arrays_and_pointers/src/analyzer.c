@@ -138,8 +138,8 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                     if (is_array_type(arg_type)) {
                         arg_type = make_pointer_type(arg_type->base_type);
                     }
-
-                    if (!ctype_equal_or_compatible(arg_type, Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype)) {
+                    CType * param_type = Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype;
+                    if (!ctype_equal_or_compatible( param_type, arg_type)) {
                         error("Type mismatch for function %s", node->function_call.name);
                         return;
                     }
@@ -226,6 +226,10 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                     node->ctype = node->unary.operand->ctype->base_type;
                     break;
                 }
+            }
+            else if (node->unary.op == UNARY_ADDRESS) {
+                node->ctype = make_pointer_type(node->unary.operand->ctype);
+                break;
             }
             node->ctype = node->unary.operand->ctype;
             break;

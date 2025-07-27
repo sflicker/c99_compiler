@@ -249,6 +249,12 @@ void emit_cast(EmitterContext * ctx, ASTNode * node) {
     bool from_signed = from_type->is_signed;
     bool to_signed = to_type->is_signed;
 
+    if ((from_type->kind == CTYPE_PTR || from_type->kind == CTYPE_ARRAY) &&
+        (to_type->kind == CTYPE_PTR || to_type->kind == CTYPE_ARRAY)) {
+        // pointer to pointer or array to pointer: no-op in codegen
+        return;
+    }
+
     if (from_size == to_size) {
         return;  // NOOP
     }

@@ -37,6 +37,10 @@
 
    <type-specifier> ::= "char" | "short" | "int" | "long"
 
+   <type_name> ::= <type_specifier> { <abstract_declarator> }
+
+   <abstract_declarator> ::= "*" { <abstract_declarator> } | empty
+
    <block> ::= "{" { <statement> } "}"
 
    <statement> ::=  <var_declaration>
@@ -95,7 +99,7 @@
    <multiplicative_expr>       ::= <cast_expr> [ ("*" | "/" | "%") <cast_expr> ]*
 
    <cast_expr>        ::= <unary_expr>
-                         | "(" <type_specifier> ")" <cast_expr>
+                         | "(" <type_name> ")" <cast_expr>
    
    <unary_expr> ::= [ "+" | "-" | "!" | "++"" | "--"" ] <unary_expr> | <primary>
 
@@ -912,14 +916,22 @@ ASTNode * parse_multiplicative_expression(ParserContext * parserContext) {
     return root;
 }
 
+CType * parse_abstract_declarator(ParserContext * ctx, CType * base) {
+    while (match_token(ctx, TOKEN_STAR)) {
+        base = make_pointer_type(base);
+    }
+    return base;
+}
+
 ASTNode * parse_cast_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_LPAREN) && is_next_token_a_ctype(parserContext)) {
         expect_token(parserContext, TOKEN_LPAREN);
-        CType * target_type = parse_type_specifier(parserContext);
-        print_c_type(target_type, 0);
+        CType * base = parse_type_specifier(parserContext);
+        CType * full = parse_abstract_declarator(parserContext, base);
+        print_c_type(base, 0);
         expect_token(parserContext, TOKEN_RPAREN);
         ASTNode * expr = parse_cast_expression(parserContext);
-        ASTNode * node = create_cast_expr_node(target_type, expr);
+        ASTNode * node = create_cast_expr_node(full, expr);
         return node;
     }
 

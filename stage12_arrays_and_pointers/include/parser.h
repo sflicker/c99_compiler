@@ -68,5 +68,6 @@ CType * parse_type_specifier(ParserContext * ctx);
 Declarator * parse_declarator(ParserContext * ctx, Declarator * declarator);
 Declarator * parse_direct_declarator(ParserContext * ctx, Declarator * declarator);
 Declarator * parse_postfix_declarator(ParserContext * ctx, Declarator * declarator);
+CType * parse_abstract_declarator(ParserContext * ctx, CType * base);
 
 #endif

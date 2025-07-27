@@ -61,10 +61,10 @@ void free_ctype(CType * ctype);
 //CType *make_ptr_type(CType *base);
 
 bool ctype_equals(CType * a, CType * b);
-bool ctype_equal_or_compatible(CType * a, CType * b);
-bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b);
+bool ctype_equal_or_compatible(CType * lhs, CType * rhs);
+bool ctype_lists_equal(CTypePtr_list * lhs, CTypePtr_list * rhs);
 
-CType * common_type(CType *a, CType *b);
+CType * common_type(CType *lhs, CType *rhs);
 CTypePtr_list * astNodeListToTypeList(const ASTNode_list * param_list);
 //char * c_type_kind_to_string(CTypeKind kind);
 

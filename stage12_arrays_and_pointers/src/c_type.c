@@ -100,6 +100,8 @@ void ctype_to_description(CType * ctype, char * buf, size_t buflen) {
         snprintf(buf, buflen, "<null>");
         return;
     }
+    char inner[128];
+    inner[0] = '\0';
 
     switch(ctype->kind) {
         case CTYPE_CHAR:
@@ -115,19 +117,16 @@ void ctype_to_description(CType * ctype, char * buf, size_t buflen) {
             strncat(buf, "long", buflen - strlen(buf) - 1);
             break;
         case CTYPE_PTR: {
-            ctype_to_description(ctype->base_type, buf, buflen);
-            char tmp[128];
-            tmp[0] = '\0';
-            snprintf(tmp, sizeof(tmp), "Pointer to %s", buf);
-            strncat(buf, tmp, buflen - sizeof(buf) - 1);
+            ctype_to_description(ctype->base_type, inner, 128);
+
+            snprintf(buf, buflen, "Pointer to %s", inner);
+//            strncat(buf, tmp, buflen - sizeof(buf) - 1);
             break;
         }
         case CTYPE_ARRAY: {
-            ctype_to_description(ctype->base_type, buf, buflen);
-            char tmp[128];
-            tmp[0] = '\0';
-            snprintf(tmp, sizeof(tmp), "Array [%d] of %s", ctype->array_len, buf);
-            strncat(buf, tmp, buflen - sizeof(buf) - 1);
+            ctype_to_description(ctype->base_type, inner, 128);
+            snprintf(buf, buflen, "Array [%d] of %s", ctype->array_len, inner);
+//            strncat(buf, tmp, buflen - sizeof(buf) - 1);
             break;
         }
         case CTYPE_FUNCTION: {
@@ -233,46 +232,46 @@ CType * decay_if_array(CType * ctype) {
     return ctype;
 }
 
-bool type_is_compatible(CType * expected, CType * actual) {
-    if (expected == NULL || actual == NULL) return false;
-    if (expected->kind == actual->kind) return true;   // TODO need to add check for unsigned
-    if (is_integer_type(expected) && is_integer_type(actual)) {
-        if (actual->rank <= expected->rank) {
+bool type_is_compatible(CType * lhs, CType * rhs) {
+    if (lhs == NULL || rhs == NULL) return false;
+    if (lhs->kind == rhs->kind) return true;   // TODO need to add check for unsigned
+    if (is_integer_type(lhs) && is_integer_type(rhs)) {
+        if (rhs->rank <= lhs->rank) {
             return true;
         }
     }
     return false;
 }
 
-bool ctype_equal_or_compatible(CType * a, CType * b) {
-    return ctype_equals(a, b) || type_is_compatible(a, b);
+bool ctype_equal_or_compatible(CType * lhs, CType * rhs) {
+    return ctype_equals(lhs, rhs) || type_is_compatible(lhs, rhs);
 }
 
-bool ctype_lists_equal(CTypePtr_list * a, CTypePtr_list * b) {
-    if (a == b) return true;
-    if (!a || !b) return false;
+bool ctype_lists_equal(CTypePtr_list * lhs, CTypePtr_list * rhs) {
+    if (lhs == rhs) return true;
+    if (!lhs || !rhs) return false;
 
-    if (a->count != b->count) {
+    if (lhs->count != rhs->count) {
         return false;
     }
 
-    CTypePtr_list_node * a_node = a->head;
-    CTypePtr_list_node * b_node = b->head;
-    while (a_node && b_node) {
-        if (!ctype_equals(a_node->value, b_node->value)) {
+    CTypePtr_list_node * lhs_node = lhs->head;
+    CTypePtr_list_node * rhs_node = rhs->head;
+    while (lhs_node && rhs_node) {
+        if (!ctype_equals(lhs_node->value, rhs_node->value)) {
             return false;
         }
-        a_node = a_node->next;
-        b_node = b_node->next;
+        lhs_node = lhs_node->next;
+        rhs_node = rhs_node->next;
     }
     return true;
 }
 
-CType * common_type(CType *a, CType *b) {
-    if (a->kind == CTYPE_LONG && b->kind == CTYPE_LONG) return &CTYPE_LONG_T;
-    if (a->kind == CTYPE_INT && b->kind == CTYPE_INT) return &CTYPE_INT_T;
-    if (a->kind == CTYPE_SHORT && b->kind == CTYPE_SHORT) return &CTYPE_INT_T;  // promote to int
-    if (a->kind == CTYPE_CHAR && b->kind == CTYPE_CHAR) return &CTYPE_INT_T;  // promote to int
+CType * common_type(CType *lhs, CType *rhs) {
+    if (lhs->kind == CTYPE_LONG && rhs->kind == CTYPE_LONG) return &CTYPE_LONG_T;
+    if (lhs->kind == CTYPE_INT && rhs->kind == CTYPE_INT) return &CTYPE_INT_T;
+    if (lhs->kind == CTYPE_SHORT && rhs->kind == CTYPE_SHORT) return &CTYPE_INT_T;  // promote to int
+    if (lhs->kind == CTYPE_CHAR && rhs->kind == CTYPE_CHAR) return &CTYPE_INT_T;  // promote to int
     return NULL;
 }
 
