@@ -18,3 +18,11 @@ Symbol * create_symbol(const char * name, SymbolKind kind, CType * ctype, ASTNod
 void free_symbol(Symbol * symbol) {
 
 }
+
+Symbol * create_storage_param_symbol(const char * name, ASTNode * node, CType * ctype, int *param_offset) {
+    Symbol * symbol = create_symbol(name, SYMBOL_VAR, ctype, node);
+    symbol->info.var.offset = *param_offset;
+    symbol->info.var.storage = STORAGE_PARAMETER;
+    *param_offset += 8;
+    return symbol;
+}

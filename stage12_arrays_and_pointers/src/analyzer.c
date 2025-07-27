@@ -67,12 +67,14 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
         symbol_list = malloc(sizeof(Symbol_list));
         Symbol_list_init(symbol_list, free_symbol);;
         for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
-            Symbol * symbol = create_symbol(n->value->var_decl.name, SYMBOL_VAR, n->value->ctype, n->value);
-            symbol->info.var.offset = param_offset;
-            symbol->info.var.storage = STORAGE_PARAMETER;
-            param_offset += 8;
+            const char * name = n->value->var_decl.name;
+            ASTNode * param = n->value;
+
+            Symbol * symbol = create_storage_param_symbol(name, param, param->ctype, &param_offset);
+
             add_symbol(symbol);
-            n->value->symbol = symbol;
+
+            param->symbol = symbol;
             Symbol_list_append(symbol_list, symbol);
         }
     }
@@ -131,7 +133,13 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                     if (arg_index >= functionSymbol->info.func.num_params) {
                         error("Too many arguments for function %s", node->function_call.name);
                         return;
-                    } else if (!ctype_equal_or_compatible(arg_type, Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype)) {
+                    }
+
+                    if (is_array_type(arg_type)) {
+                        arg_type = make_pointer_type(arg_type->base_type);
+                    }
+
+                    if (!ctype_equal_or_compatible(arg_type, Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype)) {
                         error("Type mismatch for function %s", node->function_call.name);
                         return;
                     }

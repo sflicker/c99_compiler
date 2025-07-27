@@ -51,5 +51,6 @@ typedef struct Symbol {
 
 void free_symbol(Symbol * symbol);
 Symbol * create_symbol(const char * name, SymbolKind kind, CType * t, ASTNode * node);
+Symbol * create_storage_param_symbol(const char * name, ASTNode * node, CType * ctype, int *param_offset);
 
 #endif //SYMBOL_H
