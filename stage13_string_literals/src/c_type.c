@@ -56,6 +56,15 @@ CType * make_int_type(int is_signed) {
     print_c_type(t, 0);
     return t;
 }
+
+CType * make_char_type(bool is_signed) {
+    CType * t = make_type();
+    t->is_signed = is_signed;
+    t->kind = CTYPE_CHAR;
+    t->size = 1;
+    print_c_type(t, 0);
+    return t;
+}
 CType *make_pointer_type(CType *base) {
     CType *ptr = make_type();
     ptr->kind = CTYPE_PTR;

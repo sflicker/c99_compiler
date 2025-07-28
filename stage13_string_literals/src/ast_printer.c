@@ -209,6 +209,9 @@ void print_ast(ASTNode * node, int indent) {
             printf("]\n");
             break;
         }
+        case AST_STRING_LITERAL:
+            printf("StringLiteral: %s\n", node->string_literal.str);
+            break;
         default:
             error("Unknown AST Node Type: %d\n", get_ast_node_name(node));
             break;

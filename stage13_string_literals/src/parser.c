@@ -1053,6 +1053,15 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         advance_parser(parserContext);
         return create_var_ref_node(tok->text);
     }
+    if (is_current_token(parserContext, TOKEN_STRING_LITERAL)) {
+        Token * tok = peek(parserContext);
+        advance_parser(parserContext);
+        ASTNode * node = create_ast();
+        node->type = AST_STRING_LITERAL;
+        node->string_literal.str = strdup(tok->text);
+        node->ctype = make_pointer_type(make_char_type(false));
+        return node;
+    }
     error("Unhandled token error, %s", get_current_token_type_name(parserContext));
     return NULL;
 

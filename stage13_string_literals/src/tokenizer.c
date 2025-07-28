@@ -197,6 +197,41 @@ tokenlist * tokenize(const char * text) {
             }
 
         }
+        else if (ctx->curr_char == '"') {
+            char buffer[1024];
+            buffer[0] = '\0';
+            int buf_pos = 0;
+            int line = ctx->line;
+            int col = ctx->col;
+            advance(ctx);
+            while(ctx->curr_char && ctx->curr_char != '"') {
+                if (ctx->curr_char == '\\') {
+                    advance(ctx);
+                    switch (ctx->curr_char) {
+                        case 'n': buffer[buf_pos++] = '\n'; break;
+                        case 'r': buffer[buf_pos++] = '\r'; break;
+                        case 't': buffer[buf_pos++] = '\t'; break;
+                        case 'b': buffer[buf_pos++] = '\b'; break;
+                        case 'f': buffer[buf_pos++] = '\f'; break;
+                        case 'v': buffer[buf_pos++] = '\v'; break;
+                        case '0': buffer[buf_pos++] = '\0'; break;
+                        case '\\': buffer[buf_pos++] = '\\'; break;
+                        case '\'': buffer[buf_pos++] = '\''; break;
+                        case '\"': buffer[buf_pos++] = '\"'; break;
+                        default: error("Unknown escape sequence");
+                    }
+                    advance(ctx);
+                }
+                else {
+                    buffer[buf_pos++] = ctx->curr_char;
+                    advance(ctx);
+                }
+            }
+            advance(ctx);
+            buffer[buf_pos] = '\0';
+            add_token(tokens, make_string_literal_token(buffer, line, col));
+
+        }
         else if (isdigit(ctx->curr_char)) {
             tokenize_number(ctx, tokens);
         }

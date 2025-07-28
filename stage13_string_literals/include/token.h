@@ -53,6 +53,7 @@ typedef enum {
     TOKEN_MINUS_EQUAL,
     TOKEN_BANG,
     TOKEN_AMPERSAND,
+    TOKEN_STRING_LITERAL,
     TOKEN_EOF
 } TokenType;
 
@@ -76,6 +77,7 @@ Token * make_token(TokenType type, const char * text, int line, int col);
 Token * make_int_token(char * numberText, int line, int col);
 Token * make_eof_token(int line, int col);
 Token * make_identifier_token(const char * id, int line, int col);
+Token * make_string_literal_token(char * buf, int line, int col);
 
 void free_token(Token * token);
 

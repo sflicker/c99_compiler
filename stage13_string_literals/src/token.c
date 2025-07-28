@@ -61,6 +61,17 @@ Token * make_eof_token(int line, int col) {
     return eofToken;
 }
 
+Token * make_string_literal_token(char * buf, int line, int col) {
+    Token * token = malloc(sizeof(Token));
+    token->type = TOKEN_STRING_LITERAL;
+    token->text = strdup(buf);
+    token->length = strlen(buf);
+    token->int_value = 0;
+    token->line = line;
+    token->col = col;
+    return token;
+}
+
 void cleanup_token_list(tokenlist * tokens) {
 
     for (tokenlist_node * node = tokens->head; node; node = node->next) {
@@ -125,6 +136,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_CONTINUE: return "CONTINUE";
         case TOKEN_PERCENT: return "MOD";
         case TOKEN_AMPERSAND: return "AMPERSAND";
+        case TOKEN_STRING_LITERAL: return "STRING_LITERAL";
         case TOKEN_ASSERT_EXTENSION: return "_ASSERT";
         case TOKEN_PRINT_EXTENSION: return "_PRINT";
     }

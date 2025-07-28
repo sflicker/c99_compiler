@@ -79,6 +79,7 @@ bool is_signed_type(CType * ctype);
 CType * decay_if_array(CType * ctype);
 int sizeof_type(CType * ctype);
 int sizeof_basetype(CType * ctype);
+CType * make_char_type(bool is_signed);
 
 #endif
 
