@@ -460,6 +460,10 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             // }
             //emit_line(ctx, "push rax");
             break;
+        case AST_STRING_LITERAL: {
+            //TODO
+            break;
+        }
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
     }
@@ -1400,10 +1404,10 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_FUNCTION_CALL_EXPR:
             emit_expr(ctx, node);
-//            emit_function_call(ctx, node);
+            //            emit_function_call(ctx, node);
             break;
         case AST_EXPRESSION_STMT:
-//            emit_tree_node(ctx, node->expr_stmt.expr);
+            //            emit_tree_node(ctx, node->expr_stmt.expr);
             emit_expr(ctx, node->expr_stmt.expr);
             break;
         case AST_ASSERT_EXTENSION_STATEMENT:
@@ -1457,6 +1461,12 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             }
             break;
         }
+
+        case AST_STRING_LITERAL: {
+            //TODO
+            break;
+        }
+
         case AST_FOR_STMT:
             emit_for_statement(ctx, node);
             break;

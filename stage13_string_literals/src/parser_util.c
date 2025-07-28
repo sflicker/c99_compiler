@@ -245,6 +245,15 @@ ASTNode * create_var_ref_node(const char * name) {
     return node;
 }
 
+ASTNode * create_string_literal_node(const char *text) {
+    ASTNode * node = create_ast();
+    node->type = AST_STRING_LITERAL;
+    node->string_literal.value = strdup(text);
+    node->string_literal.length = (int)strlen(text);
+    node->ctype = make_pointer_type(make_char_type(false));
+    return node;
+}
+
 ASTNode * create_array_access_node(ASTNode * base, ASTNode * index) {
     ASTNode * node = create_ast();
     node->type = AST_ARRAY_ACCESS;

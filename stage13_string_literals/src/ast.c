@@ -125,6 +125,10 @@ void free_ast(ASTNode * node) {
             // DO NOTHING
             break;
 
+        case AST_STRING_LITERAL:
+            free(node->string_literal.value);
+            break;
+
         default: 
             error("Invalid AST Node Type: %s\n", get_ast_node_name(node));
             break;

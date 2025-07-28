@@ -335,6 +335,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_INITIALIZER_LIST:
+        case AST_STRING_LITERAL:
             // TODO
             break;
 

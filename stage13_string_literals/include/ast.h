@@ -54,6 +54,11 @@ typedef struct {
     UnaryOperator op;
 } UnaryExpr;
 
+typedef struct {
+    char * value;
+    int length;
+} StringLiteral;
+
 typedef enum {
     AST_RETURN_STMT,
     AST_IF_STMT,
@@ -93,6 +98,8 @@ typedef struct ASTNode {
         int int_value;
         BinaryExpr binary;
         UnaryExpr unary;
+        StringLiteral string_literal;
+
         struct {
             ASTNode_list * functions;
             ASTNode_list * globals;
@@ -204,9 +211,6 @@ typedef struct ASTNode {
             CType * initializer_type;
         } initializer_list;
 
-        struct {
-            const char * str;
-        } string_literal;
     };
 } ASTNode;
 
