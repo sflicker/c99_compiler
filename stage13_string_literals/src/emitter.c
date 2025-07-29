@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
-
+#include "list_util.h"
 #include "c_type.h"
 #include "ast.h"
 #include "emitter.h"
@@ -88,10 +88,44 @@ void emit_header(EmitterContext * ctx) {
     emit_line(ctx, "");
 }
 
-void emit_trailer(EmitterContext * ctx) {
+char * escaped_string(const char * s) {
+    size_t len = strlen(s);
+    char *output = malloc(len * 4 + 3);  // over allocate
+    char *out = output;
+
+    *out++ = '"';           // start with quote
+    for (const char * p = s; *p; p++) {
+        unsigned char c = (unsigned char) *p;
+        switch (c) {
+            case '\n': *out++ = '\\'; *out++ = 'n'; break;
+            case '\r': *out++ = '\\'; *out++ = 'r'; break;
+            case '\t': *out++ = '\\'; *out++ = 't'; break;
+            case '\\': *out++ = '\\'; *out++ = '\\'; break;
+            case '\"': *out++ = '\\'; *out++ = '\"'; break;
+            default:
+                if (c < 32 || c >= 127) {
+                    sprintf(out, "\\x%02x", c);
+                    out += 4;
+                } else {
+                    *out++ = c;
+                }
+        }
+    }
+
+    *out++ = '"';    // closing quote
+    *out = '\0';
+    return output;
+}
+
+void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals) {
     emit_line(ctx, "");
     emit_line(ctx, "section .rodata");
     emit_line(ctx, "assert_fail_msg: db \"Assertion failed!\", 10");
+
+    for (ASTNode_list_node * n = string_literals->head; n; n = n->next) {
+        ASTNode * str_literal = n->value;
+        emit_line(ctx, "%s: db %s, 0", str_literal->string_literal.label, escaped_string(str_literal->string_literal.value));
+    }
 }
 
 void emit_text_section_header(EmitterContext * ctx) {
@@ -178,6 +212,13 @@ char * get_reservation_directive(CType * ctype) {
 
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     emit_data_section_header(ctx);
+
+    for (ASTNode_list_node * n = node->translation_unit.string_literals->head; n; n = n->next) {
+        ASTNode * str_literal = n->value;
+        char * label = make_label_text("Str", get_label_id(ctx));
+        str_literal->string_literal.label = label;
+    }
+
     for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
         ASTNode * global_var = n->value;
         if (global_var->var_decl.init_expr) {
@@ -232,7 +273,7 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
         emit_tree_node(ctx, n->value);
     }
-    emit_trailer(ctx);
+    emit_rodata(ctx, node->translation_unit.string_literals);
 }
 
 
@@ -461,7 +502,9 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             //emit_line(ctx, "push rax");
             break;
         case AST_STRING_LITERAL: {
-            //TODO
+            char * label = node->string_literal.label;
+            emit_line(ctx, "lea rax, [%s]", label);
+            emit_line(ctx, "push rax");
             break;
         }
         default:

@@ -97,11 +97,17 @@ bool is_assignment(ASTNode * node) {
                 node->binary.op == BINOP_COMPOUND_ADD_ASSIGN ||
                 node->binary.op == BINOP_COMPOUND_SUB_ASSIGN;
 }
+
+bool is_comparison_op(BinaryOperator op) {
+    return op == BINOP_EQ || op == BINOP_NE || op == BINOP_GT || op == BINOP_GE || op == BINOP_LT || op == BINOP_LE;
+}
+
 void analyze(AnalyzerContext * ctx, ASTNode * node) {
     if (!node) return;
 
     switch (node->type) {
         case AST_TRANSLATION_UNIT: {
+            setTranslationUnit(ctx, node);
             enter_scope();
             for (ASTNode_list_node * n = node->translation_unit.globals->head; n != NULL; n = n->next) {
                 analyze(ctx, n->value);
@@ -213,9 +219,12 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             CType * promoted_right = is_integer_type(rhsCType)
                 ? apply_integer_promotions(rhsCType) : rhsCType;
 
-            CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
-
-            node->ctype = result_type;
+            if (is_comparison_op(node->binary.op)) {
+                node->ctype = make_int_type(false);
+            } else {
+                CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
+                node->ctype = result_type;
+            }
 
             break;
 
@@ -335,10 +344,13 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_INITIALIZER_LIST:
-        case AST_STRING_LITERAL:
             // TODO
             break;
 
+        case AST_STRING_LITERAL: {
+            ASTNode_list_append(getTranslationUnit(ctx)->translation_unit.string_literals, node);
+            break;
+        }
 
         case AST_EXPRESSION_STMT:
         case AST_ASSERT_EXTENSION_STATEMENT:

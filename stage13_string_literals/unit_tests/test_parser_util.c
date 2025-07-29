@@ -30,7 +30,9 @@ void test_create_translation_unit_node() {
     ASTNode_list * globals = create_node_list();
     ASTNode_list_append(globals, create_var_decl_node("a", &CTYPE_INT_T, NULL));
 
-    ASTNode * node = create_translation_unit_node(functions, globals);
+    ASTNode_list * string_literals = create_node_list();
+
+    ASTNode * node = create_translation_unit_node(functions, globals, string_literals);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node type is AST_TRANSLATION_UNIT", node->type == AST_TRANSLATION_UNIT);

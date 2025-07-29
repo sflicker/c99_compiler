@@ -19,7 +19,7 @@ void emit_binary_add(EmitterContext * ctx, ASTNode * node);
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node);
 void emit_line(EmitterContext * ctx, const char* fmt, ...);
 void emit_header(EmitterContext * ctx);
-void emit_trailer(EmitterContext * ctx);
+void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals);
 void emit_text_section_header(EmitterContext * ctx);
 void emit_data_section_header(EmitterContext * ctx);
 void emit_bss_section_header(EmitterContext * ctx);

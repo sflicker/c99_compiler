@@ -57,6 +57,7 @@ typedef struct {
 typedef struct {
     char * value;
     int length;
+    char * label;
 } StringLiteral;
 
 typedef enum {
@@ -103,6 +104,7 @@ typedef struct ASTNode {
         struct {
             ASTNode_list * functions;
             ASTNode_list * globals;
+            ASTNode_list * string_literals;
             int count;
         } translation_unit;
 

@@ -16,12 +16,13 @@
 #include "parser_context.h"
 #include "parser_util.h"
 
-ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals) {
+ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals, ASTNode_list * string_literals) {
     ASTNode * node = create_ast();
     node->type = AST_TRANSLATION_UNIT;
     node->translation_unit.globals = globals;
     node->translation_unit.functions = functions;
     node->translation_unit.count = functions->count;
+    node->translation_unit.string_literals = string_literals;
     node->symbol = NULL;
     return node;
 }
