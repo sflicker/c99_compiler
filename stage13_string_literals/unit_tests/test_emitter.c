@@ -381,6 +381,34 @@ void test_emit_sub_assign() {
 
 }
 
+void test_emit_array_dynamic_indexing_with_assignment() {
+    char * c_fragment = "{ \n"
+                    "  int a[2];\n"
+                    "  int i=1;\n"
+                    "  a[i] = 42;\n"
+                    "}\n";
+
+    char * expected = "";
+
+    run_emitter_test(c_fragment, expected, BLOCK);
+
+}
+
+void test_emit_array_dynamic_indexing_with_retrieval() {
+    char * c_fragment = "{ \n"
+                    "  int a[2] = {10, 20};\n"
+                    "  int i=1;\n"
+                    "  int sum = 0;\n"
+                    "  sum = a[i];\n"
+                    "}\n";
+
+    char * expected = "";
+
+    run_emitter_test(c_fragment, expected, BLOCK);
+
+}
+
+
 int main() {
     RUN_TEST(test_emit_basic_expr);
     RUN_TEST(test_emit_literal_with_char_cast);
@@ -393,6 +421,8 @@ int main() {
     RUN_TEST(test_emit_add_assign);
     RUN_TEST(test_emit_sub_with_vars);
     RUN_TEST(test_emit_sub_assign);
+    RUN_TEST(test_emit_array_dynamic_indexing_with_assignment);
+    RUN_TEST(test_emit_array_dynamic_indexing_with_retrieval);
 
 }
 

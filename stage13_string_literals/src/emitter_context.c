@@ -142,6 +142,9 @@ bool is_global_var(EmitterContext * ctx, ASTNode * node) {
      //Symbol * symbol = node->type == AST_ARRAY_ACCESS ?
     //     node->array_access.base->symbol : node->symbol;
     Symbol * symbol = node->symbol;
+    if (symbol == NULL) {
+        return false;
+    }
     return symbol->node->var_decl.is_global;
 }
 

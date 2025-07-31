@@ -16,6 +16,8 @@
 #include "emitter_context.h"
 #include "emit_extensions.h"
 #include "symbol.h"
+#include "emitter_helpers.h"
+
 
 
 // Register order for integer/pointer args in AMD64
@@ -24,47 +26,8 @@
 
 //bool emit_print_int_extension = false;
 
-char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
-    if (is_global_var(ctx, node)) {
-        const char * name = get_var_name(ctx, node);
-        int size = snprintf(NULL, 0, "[rel %s]", name) + 1;
-        char * label = malloc(size);
-        snprintf(label, size, "[rel %s]", name);
-        return label;
-    }
-    else {
-        int offset = get_offset(ctx, node);
-        int size = snprintf(NULL, 0, "[rbp%+d]", offset) + 1;
-        char * label = malloc(size);
-        snprintf(label, size, "[rbp%+d]", offset);
-        return label;
-    }
-}
 
-const char * reg_for_type(CType * ctype) {
-    switch (ctype->kind) {
-        case CTYPE_CHAR: return "al";
-        case CTYPE_SHORT: return "ax";
-        case CTYPE_INT: return "eax";
-        case CTYPE_LONG: return "rax";
-        case CTYPE_PTR: return "rax";
-        default: error("Unsupported type");
-    }
-    return NULL;
-}
 
-const char * mem_size_for_type(CType * ctype) {
-    switch (ctype->kind) {
-        case CTYPE_CHAR: return "BYTE";
-        case CTYPE_SHORT: return "WORD";
-        case CTYPE_INT: return "DWORD";
-        case CTYPE_LONG: return "QWORD";
-        case CTYPE_PTR:  return "QWORD";
-        default:
-            error("Unsupported type");
-    }
-    return NULL;
-}
 
 void emit_line(EmitterContext * ctx, const char* fmt, ...) {
     va_list args;
@@ -88,34 +51,6 @@ void emit_header(EmitterContext * ctx) {
     emit_line(ctx, "");
 }
 
-char * escaped_string(const char * s) {
-    size_t len = strlen(s);
-    char *output = malloc(len * 4 + 3);  // over allocate
-    char *out = output;
-
-    *out++ = '"';           // start with quote
-    for (const char * p = s; *p; p++) {
-        unsigned char c = (unsigned char) *p;
-        switch (c) {
-            case '\n': *out++ = '\\'; *out++ = 'n'; break;
-            case '\r': *out++ = '\\'; *out++ = 'r'; break;
-            case '\t': *out++ = '\\'; *out++ = 't'; break;
-            case '\\': *out++ = '\\'; *out++ = '\\'; break;
-            case '\"': *out++ = '\\'; *out++ = '\"'; break;
-            default:
-                if (c < 32 || c >= 127) {
-                    sprintf(out, "\\x%02x", c);
-                    out += 4;
-                } else {
-                    *out++ = c;
-                }
-        }
-    }
-
-    *out++ = '"';    // closing quote
-    *out = '\0';
-    return output;
-}
 
 void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals) {
     emit_line(ctx, "");
@@ -479,9 +414,17 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             emit_function_call(ctx, node);
             break;
         case AST_ARRAY_ACCESS:
-            emit_addr(ctx, node);
+            // emit_addr(ctx, node);
+            // emit_line(ctx, "pop rcx");
+            // emit_line(ctx, "mov eax, [rcx]");
+            // emit_line(ctx, "push rax");
+
+            emit_expr(ctx, node->array_access.base);
+            emit_expr(ctx, node->array_access.index);
             emit_line(ctx, "pop rcx");
-            emit_line(ctx, "mov eax, [rcx]");
+            emit_line(ctx, "pop rax");
+            emit_line(ctx, "add rax, rcx");
+            emit_line(ctx, "movzx eax, %s [rax]", mem_size_for_type(node->ctype));
             emit_line(ctx, "push rax");
             break;
         case AST_CAST_EXPR:
