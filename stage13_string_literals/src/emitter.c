@@ -358,13 +358,13 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             // emit_line(ctx, "mov eax, [rcx]");
             // emit_line(ctx, "push rax");
 
-            emit_expr(ctx, node->array_access.base);
-            emit_expr(ctx, node->array_access.index);
-            emit_line(ctx, "pop rcx");
-            emit_line(ctx, "pop rax");
-            emit_line(ctx, "imul rcx, %d", node->ctype->size);
-            emit_line(ctx, "add rax, rcx");
-            emit_load_from(ctx, node->ctype, "rax");
+            emit_expr(ctx, node->array_access.base);                        // emit base
+            emit_expr(ctx, node->array_access.index);                       // emit index
+            emit_line(ctx, "pop rcx");                                  // pop index
+            emit_line(ctx, "pop rax");                                  // pop base
+            emit_line(ctx, "imul rcx, %d", node->ctype->size);          // scale index
+            emit_line(ctx, "add rax, rcx");                             // add base and index
+            emit_load_from(ctx, node->ctype, "rax");                    // load
 //            emit_line(ctx, "movzx eax, %s [rax]", mem_size_for_type(node->ctype));
             emit_line(ctx, "push rax");
             break;
