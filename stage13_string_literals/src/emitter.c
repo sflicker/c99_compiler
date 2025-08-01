@@ -26,31 +26,11 @@
 
 //bool emit_print_int_extension = false;
 
-
-
-
-void emit_line(EmitterContext * ctx, const char* fmt, ...) {
-    va_list args;
-
-    // --- 1. Write to the file
-    va_start(args, fmt);
-    vfprintf(ctx->out, fmt, args);
-    va_end(args);
-    fputc('\n', ctx->out);
-
-    // --- 2. Echo to stdout (re-initialize args)
-    va_start(args, fmt);
-    vfprintf(stdout, fmt, args);
-    va_end(args);
-    fputc('\n', stdout);
-}
-
 void emit_header(EmitterContext * ctx) {
     emit_line(ctx, "section .text");
     emit_line(ctx, "global main");
     emit_line(ctx, "");
 }
-
 
 void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals) {
     emit_line(ctx, "");
@@ -94,21 +74,6 @@ void emit_bss_section_header(EmitterContext * ctx) {
     emit_line(ctx, "");
 }
 
-char * make_label_text(const char * prefix, int num) {
-    size_t buffer_size = strlen(prefix) + 20;
-    char * label = malloc(buffer_size);
-    snprintf(label, buffer_size, "%s%d", prefix, num);
-    return label;
-}
-
-void emit_label(EmitterContext * ctx, const char * prefix, int num) {
-    emit_line(ctx, "L%s%d:", prefix, num);
-}
-
-void emit_label_from_text(EmitterContext *ctx, const char * label) {
-    emit_line(ctx, "L%s:", label);
-}
-
 void emit_jump(EmitterContext * ctx, const char * op, const char * prefix, int num) {
     emit_line(ctx, "%s L%s%d", op, prefix, num);
 }
@@ -117,33 +82,7 @@ void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * lab
     emit_line(ctx, "%s L%s", op, label);
 }
 
-char * get_data_directive(CType * ctype) {
-    switch (ctype->kind) {
-        case CTYPE_CHAR:   return "db";
-        case CTYPE_SHORT:  return "dw";
-        case CTYPE_INT:    return "dd";
-        case CTYPE_LONG:   return "dq";
-        case CTYPE_PTR:    return "dq";
-        case CTYPE_ARRAY:  return get_data_directive(ctype->base_type);
-        default:
-            error("Unsupported data type for data directive: %s", ctype->kind);
-    }
-    return NULL;
-}
 
-char * get_reservation_directive(CType * ctype) {
-    switch (ctype->kind) {
-        case CTYPE_CHAR: return "resb";
-        case CTYPE_SHORT: return "resw";
-        case CTYPE_INT: return "resd";
-        case CTYPE_LONG: return "resq";
-        case CTYPE_PTR: return "resq";
-        case CTYPE_ARRAY: return get_reservation_directive(ctype->base_type);
-        default:
-            error("Unsupported data type");
-    }
-    return NULL;
-}
 
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     emit_data_section_header(ctx);
@@ -423,8 +362,10 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             emit_expr(ctx, node->array_access.index);
             emit_line(ctx, "pop rcx");
             emit_line(ctx, "pop rax");
+            emit_line(ctx, "imul rcx, %d", node->ctype->size);
             emit_line(ctx, "add rax, rcx");
-            emit_line(ctx, "movzx eax, %s [rax]", mem_size_for_type(node->ctype));
+            emit_load_from(ctx, node->ctype, "rax");
+//            emit_line(ctx, "movzx eax, %s [rax]", mem_size_for_type(node->ctype));
             emit_line(ctx, "push rax");
             break;
         case AST_CAST_EXPR:

@@ -4,7 +4,6 @@
 #include "ast.h"
 #include "emitter_context.h"
 
-char * make_label_text(const char * prefix, int num);
 const char * get_break_label(EmitterContext * ctx);
 const char * get_continue_label(EmitterContext * ctx);
 const char * reg_for_type(CType * ctype);
@@ -17,14 +16,11 @@ void emit_expr(EmitterContext * ctx, ASTNode * node);
 void emit_addr(EmitterContext * ctx, ASTNode * node);
 void emit_binary_add(EmitterContext * ctx, ASTNode * node);
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node);
-void emit_line(EmitterContext * ctx, const char* fmt, ...);
 void emit_header(EmitterContext * ctx);
 void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals);
 void emit_text_section_header(EmitterContext * ctx);
 void emit_data_section_header(EmitterContext * ctx);
 void emit_bss_section_header(EmitterContext * ctx);
-void emit_label(EmitterContext * ctx, const char * prefix, int num);
-void emit_label_from_text(EmitterContext *ctx, const char * label);
 void emit_jump(EmitterContext * ctx, const char * op, const char * prefix, int num);
 void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * label);
 void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node);

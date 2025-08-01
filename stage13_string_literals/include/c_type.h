@@ -44,7 +44,10 @@ extern CType CTYPE_LONG_T;
 extern CType CTYPE_PTR_INT_T;
 
 CType * make_type();
-CType * make_int_type(int is_signed);
+CType * make_int_type(bool is_signed);
+CType * make_char_type(bool is_signed);
+CType * make_short_type(bool is_signed);
+CType * make_long_type(bool is_signed);
 CType * make_pointer_type(CType * base);
 CType * make_array_type(CType * base, int length);
 CType * make_function_type(CType * return_type, CType_list * param_types);
@@ -79,7 +82,6 @@ bool is_signed_type(CType * ctype);
 CType * decay_if_array(CType * ctype);
 int sizeof_type(CType * ctype);
 int sizeof_basetype(CType * ctype);
-CType * make_char_type(bool is_signed);
 
 #endif
 

@@ -17,61 +17,11 @@
 #include "c_type.h"
 #include "emitter.h"
 #include "emitter_context.h"
+#include "emitter_helpers.h"
 
 const char * current_test = NULL;
 
-// void strip_comments(char *src, char *dst) {
-//     while (*src) {
-//         if (*src == ';') {
-//             // skip to end of line
-//             while (*src && *src != '\n') src++;
-//         }
-//         if (*src) {
-//             *dst++ = *src++;
-//         }
-//     }
-//     *dst = '\0';
-// }
-
 typedef enum { EXPR, BLOCK, GLOBAL} PARSER_OP;
-
-void strip_comments(char *src, char *dst) {
-    while (*src) {
-        // Skip leading whitespace to peek at first non-whitespace
-        char *line_start = src;
-        while (*src == ' ' || *src == '\t') src++;
-
-        if (*src == ';') {
-            // full line comment: skip to end of line
-            while (*src && *src != '\n') src++;
-            if (*src == '\n') src++;  // skip newline too
-            continue;
-        }
-
-        // copy line while stripping inline comments and trailing spaces before ;
-        while (*line_start && *line_start != '\n') {
-            if (*line_start == ';') {
-                // backtrack over spaces in dst
-                while (dst > src && (dst[-1] == ' ' || dst[-1] == '\t'))
-                    dst--;
-                // skip to end of line
-                while (*line_start && *line_start != '\n') line_start++;
-                break;
-            } else {
-                *dst++ = *line_start++;
-            }
-        }
-
-        // copy newline if present
-        if (*line_start == '\n') {
-            *dst++ = *line_start++;
-        }
-
-        src = line_start;
-    }
-
-    *dst = '\0';
-}
 
 void run_emitter_test(char * c_fragment, char * expected, PARSER_OP op) {
     TEST_MSG("Test Fragment: ");

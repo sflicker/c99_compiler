@@ -48,7 +48,7 @@ CType * make_type() {
     return calloc(1, sizeof(CType));
 }
 
-CType * make_int_type(int is_signed) {
+CType * make_int_type(bool is_signed) {
     CType * t = make_type();
     t->is_signed = is_signed;
     t->kind = CTYPE_INT;
@@ -65,6 +65,25 @@ CType * make_char_type(bool is_signed) {
     print_c_type(t, 0);
     return t;
 }
+
+CType * make_short_type(bool is_signed) {
+    CType * t = make_type();
+    t->is_signed = is_signed;
+    t->kind = CTYPE_SHORT;
+    t->size = 2;
+    print_c_type(t, 0);
+    return t;
+}
+
+CType * make_long_type(bool is_signed) {
+    CType * t = make_type();
+    t->is_signed = is_signed;
+    t->kind = CTYPE_LONG;
+    t->size = 8;
+    print_c_type(t, 0);
+    return t;
+}
+
 CType *make_pointer_type(CType *base) {
     CType *ptr = make_type();
     ptr->kind = CTYPE_PTR;
