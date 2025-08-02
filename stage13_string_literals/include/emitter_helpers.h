@@ -22,4 +22,10 @@ char * get_data_directive(CType * ctype);
 char * get_reservation_directive(CType * ctype);
 void strip_comments(char *src, char *dst);
 
+void emit_push(EmitterContext * ctx, const char * reg);
+void emit_pop(EmitterContext * ctx, const char * reg);
+void emit_add_rsp(EmitterContext * ctx, int amount);
+void emit_sub_rsp(EmitterContext * ctx, int amount);
+void emit_leave(EmitterContext *ctx);
+
 #endif //EMITTER_HELPERS_H

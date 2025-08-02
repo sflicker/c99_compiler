@@ -226,3 +226,26 @@ void strip_comments(char *src, char *dst) {
 
     *dst = '\0';
 }
+
+void emit_push(EmitterContext * ctx, const char * reg) {
+    emit_line(ctx, "push %s          ; stack += 8 (depth now %d)", reg, ctx->stack_depth + 8);
+    ctx->stack_depth += 8;
+}
+void emit_pop(EmitterContext * ctx, const char * reg) {
+    emit_line(ctx, "pop %s           ; stack -= 8 (depth now %d)", reg, ctx->stack_depth - 8);
+    ctx->stack_depth -= 8;
+
+}
+void emit_add_rsp(EmitterContext * ctx, int amount) {
+    emit_line(ctx, "add rsp, %d    ; stack -= %d (depth now %d)", amount, amount, ctx->stack_depth - amount);
+    ctx->stack_depth -= amount;
+}
+void emit_sub_rsp(EmitterContext * ctx, int amount) {
+    emit_line(ctx, "sub rsp, %d    ; stack += %d (depth now %d)", amount, amount, ctx->stack_depth + amount);
+    ctx->stack_depth += amount;
+}
+
+void emit_leave(EmitterContext *ctx) {
+    emit_line(ctx, "leave      ; restore rbp; stack -= 8 (depth now %d)", ctx->stack_depth - 8);
+    ctx->stack_depth -= 8;
+}

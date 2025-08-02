@@ -33,6 +33,8 @@ typedef struct EmitterContext {
     FunctionExitContext * functionExitStack;
     SwitchContext * switch_stack;
     LoopContext * loop_stack;
+    int stack_depth;
+    int local_space;
 } EmitterContext;
 
 EmitterContext * create_emitter_context();

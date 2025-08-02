@@ -22,6 +22,8 @@ EmitterContext * create_emitter_context(const char * filename) {
     ctx->functionExitStack = NULL;
     ctx->switch_stack = NULL;
     ctx->loop_stack = NULL;
+    ctx->stack_depth = 0;
+    ctx->local_space = 0;
     return ctx;
 }
 
