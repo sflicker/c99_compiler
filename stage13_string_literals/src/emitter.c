@@ -381,6 +381,9 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             if (node->ctype->kind == CTYPE_ARRAY) {
                 break;
             }
+            emit_pop(ctx, "rcx");
+
+
             emit_load_from(ctx, node->ctype, "rcx");                    // load
 //            emit_line(ctx, "push rax");
             emit_push(ctx, "rax");
