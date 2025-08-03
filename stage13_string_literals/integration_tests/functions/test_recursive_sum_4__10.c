@@ -1,5 +1,4 @@
 int sum_up(int n) {
-    _print(n);
     if (n == 0) {
         return 0;
     }

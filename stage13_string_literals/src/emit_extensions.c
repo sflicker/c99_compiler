@@ -57,6 +57,7 @@ void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
 
     // evaluate expression
     emit_tree_node(ctx, node->expr_stmt.expr);
+    emit_pop(ctx, "rax");
 
     // compare result in eax with 0
     emit_line(ctx, "cmp eax, 0");
@@ -83,5 +84,6 @@ void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node) {
     // emit the expression storing it in EAX
     emit_tree_node(ctx, node->expr_stmt.expr);
     emit_line(ctx, "call print_int");
+    emit_add_rsp(ctx, 8);
     ctx->emit_print_int_extension = true;
 }

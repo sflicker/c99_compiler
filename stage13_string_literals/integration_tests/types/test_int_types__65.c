@@ -3,7 +3,6 @@ int main() {
     short b = 32000;
 //    long c = 12345678901234;
     int x = a+b;
-    _print(x);
 //    _assert(x == 32065);
     return x;
 }
