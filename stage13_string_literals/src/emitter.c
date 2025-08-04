@@ -343,8 +343,10 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_VAR_REF_EXPR: {
             emit_addr(ctx, node);
+            emit_pop(ctx, "rax");
             if (!is_array_type(node->ctype)) {
                 emit_load_from(ctx, node->ctype, "rax");
+                emit_push(ctx, "rax");
             }
             // if (node->symbol->ctype->kind == CTYPE_ARRAY) {
             //     emit_line(ctx, "lea rax, [rbp-%d]", abs(node->symbol->info.var.offset));
@@ -404,11 +406,12 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
         case AST_VAR_REF_EXPR: {
 
             if (node->symbol->storage == STORAGE_LOCAL) {
-                int offset = node->symbol->info.var.offset;
-                emit_line(ctx, "lea rax, [rpb-%d]", offset);
+//                int offset = node->symbol->info.var.offset;
+                int offset = get_offset(ctx, node);
+                emit_line(ctx, "lea rax, [rbp%+d]", offset);
                 emit_push(ctx, "rax");
             }
-            else {
+            else if (is_global_var(ctx, node)) {
                 emit_line(ctx, "lea rax, [rel %s]", node->symbol->name);
                 emit_push(ctx, "rax");
             }
