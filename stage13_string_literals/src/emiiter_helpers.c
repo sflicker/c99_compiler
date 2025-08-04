@@ -88,22 +88,7 @@ void emit_store_to(EmitterContext * ctx, CType * t, const char * addr_reg, const
     }
 }
 
-char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
-    if (is_global_var(ctx, node)) {
-        const char * name = get_var_name(ctx, node);
-        int size = snprintf(NULL, 0, "[rel %s]", name) + 1;
-        char * label = malloc(size);
-        snprintf(label, size, "[rel %s]", name);
-        return label;
-    }
-    else {
-        int offset = get_offset(ctx, node);
-        int size = snprintf(NULL, 0, "[rbp%+d]", offset) + 1;
-        char * label = malloc(size);
-        snprintf(label, size, "[rbp%+d]", offset);
-        return label;
-    }
-}
+
 
 const char * reg_for_type(CType * ctype) {
     switch (ctype->kind) {

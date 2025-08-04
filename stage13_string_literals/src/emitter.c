@@ -17,7 +17,7 @@
 #include "emit_extensions.h"
 #include "symbol.h"
 #include "emitter_helpers.h"
-
+#include "emit_address.h"
 
 
 // Register order for integer/pointer args in AMD64
@@ -399,99 +399,6 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
 
 }
 
-
-void emit_addr(EmitterContext * ctx, ASTNode * node) {
-    switch (node->type) {
-        case AST_VAR_DECL:
-        case AST_VAR_REF_EXPR: {
-
-            if (node->symbol->storage == STORAGE_LOCAL) {
-//                int offset = node->symbol->info.var.offset;
-                int offset = get_offset(ctx, node);
-                emit_line(ctx, "lea rax, [rbp%+d]", offset);
-                emit_push(ctx, "rax");
-            }
-            else if (is_global_var(ctx, node)) {
-                emit_line(ctx, "lea rax, [rel %s]", node->symbol->name);
-                emit_push(ctx, "rax");
-            }
-            // if (node->symbol->ctype->kind == CTYPE_ARRAY) {
-            //     emit_line(ctx, "lea rax, [rbp-%d]", abs(node->symbol->info.var.offset));
-            //     emit_push(ctx, "rax");
-            // }
-            // else if (node->symbol->node->var_decl.is_global) {
-            //     emit_line(ctx, "mov %s, [rel %s] ", reg_for_type(node->ctype), node->symbol->name);
-            //     emit_push(ctx, "rax");
-            // } else {
-            //     int offset = node->symbol->info.var.offset;
-            //     emit_line(ctx, "mov %s, [rbp%+d]", reg_for_type(node->ctype), offset);
-            //     emit_push(ctx, "rax");
-            // }
-
-
-            // char * label = create_variable_reference(ctx, node);
-            // emit_line(ctx, "lea rcx, %s", label);
-            // emit_push(ctx, "rcx");
-            //
-            // free(label);
-
-            break;
-        }
-        case AST_UNARY_EXPR:
-            if (node->unary.op == UNARY_DEREF) {
-                emit_expr(ctx, node->unary.operand);
-            }
-            else {
-                error("Unsupported unary operator in emit_addr");
-            }
-            break;
-        case AST_ARRAY_ACCESS: {
-
-            emit_expr(ctx, node->array_access.base);
-            CType * base = node->array_access.base->ctype;
-
-            if (base->kind == CTYPE_PTR) {
-                // emit_pop(ctx, "rcx");
-                //
-                // emit_line(ctx, "mov rcx, [rcx]");
-                // emit_push(ctx, "rcx");
-
-            }
-            else if (base->kind == CTYPE_ARRAY) {
-                // just use base address
-            }
-
-            emit_expr(ctx, node->array_access.index);    // put result in eax
-            int dim = node->array_access.base->ctype->array_len;
-            int base_size = node->ctype->size;
-
-            // if a second dimension.. TODO make work for more than 2.
-            if (node->array_access.base->type == AST_ARRAY_ACCESS) {
-
-                node = node->array_access.base;
-                emit_expr(ctx, node->array_access.index);
-                //emit_line(ctx, "pop rax");
-                emit_pop(ctx, "rax");
-
-                emit_line(ctx, "imul rax, %d", dim);
-                emit_pop(ctx, "rcx");
-
-                emit_line(ctx, "add rax, rcx");
-                emit_push(ctx, "rax");
-            }
-            emit_pop(ctx, "rax");
-            emit_line(ctx, "imul rax, %d", base_size);
-            emit_pop(ctx, "rcx");
-            emit_line(ctx, "add rcx, rax");
-            emit_push(ctx, "rcx");
-
-            break;
-        }
-        default:
-            error("Unexpected node type %s", get_ast_node_name(node));
-
-    }
-}
 
 void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type) {
     int size = c_type->base_type ? c_type->base_type->size : 1;
@@ -1034,6 +941,8 @@ void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
     // compute lhs address -> rcx
     emit_addr(ctx, node->binary.lhs);
 
+    emit_pop(ctx, "rcx");               // pop rcx off the stack to load the lhs value
+    emit_push(ctx, "rcx");              // push rcx back on the stack to latter store the result
     // load lhs into rax
     emit_line(ctx, "mov DWORD eax, [rcx]");
 //    emit_line(ctx, "push rax");
@@ -1349,18 +1258,18 @@ void emit_continue_statement(EmitterContext * ctx, ASTNode * node) {
     emit_jump_from_text(ctx, "jmp", label);
 }
 
-void emit_array_access(EmitterContext * ctx, ASTNode * node) {
-//    char * var_ref = create_variable_reference(ctx, node);
-
-    int base_address = get_offset(ctx, node);
-
-    // generate code for index
-    emit_expr(ctx, node->array_access.index);    // result in eax
-
-    emit_line(ctx, "imul eax, eax, %d", node->ctype->size);    // scale index
-    emit_line(ctx, "mov rdx, rax");
-    emit_line(ctx, "DWORD PTR [rbp-%d]", base_address);
-}
+// void emit_array_access(EmitterContext * ctx, ASTNode * node) {
+// //    char * var_ref = create_variable_reference(ctx, node);
+//
+//     int base_address = get_offset(ctx, node);
+//
+//     // generate code for index
+//     emit_expr(ctx, node->array_access.index);    // result in eax
+//
+//     emit_line(ctx, "imul eax, eax, %d", node->ctype->size);    // scale index
+//     emit_line(ctx, "mov rdx, rax");
+//     emit_line(ctx, "DWORD PTR [rbp-%d]", base_address);
+// }
 
 void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
     if (!node) return;

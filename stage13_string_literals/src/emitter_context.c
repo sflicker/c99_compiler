@@ -126,16 +126,6 @@ void pop_loop_context(EmitterContext * ctx) {
 /* return the variable offset. for arrays's will return the base offset.
  */
 
-int get_offset(EmitterContext * ctx, ASTNode * node) {
-   if (node->type == AST_VAR_DECL || node->type == AST_VAR_REF_EXPR) {
-       return node->symbol->info.var.offset;
-   }
-   if (node->type == AST_ARRAY_ACCESS) {
-       return get_offset(ctx, node->array_access.base);
-//       return node->array_access.base->symbol->info.var.offset;
-   }
-   return 0;
-}
 
 bool is_global_var(EmitterContext * ctx, ASTNode * node) {
     if (node->type == AST_ARRAY_ACCESS) {

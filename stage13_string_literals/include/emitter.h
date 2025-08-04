@@ -13,7 +13,7 @@ void emit(EmitterContext * ctx, ASTNode * program);
 void emit_tree_node(EmitterContext * ctx, ASTNode * node);
 void emit_binary_expr(EmitterContext * ctx, ASTNode *node);
 void emit_expr(EmitterContext * ctx, ASTNode * node);
-void emit_addr(EmitterContext * ctx, ASTNode * node);
+//void emit_addr(EmitterContext * ctx, ASTNode * node);
 void emit_binary_add(EmitterContext * ctx, ASTNode * node);
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node);
 void emit_header(EmitterContext * ctx);

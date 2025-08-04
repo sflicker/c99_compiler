@@ -53,7 +53,7 @@ const char * current_switch_break_label(EmitterContext * ctx);
 void push_loop_context(EmitterContext * ctx, const char * start_label, const char * end_label);
 void pop_loop_context(EmitterContext * ctx);
 
-int get_offset(EmitterContext * ctx, ASTNode * node);
+//int get_offset(EmitterContext * ctx, ASTNode * node);
 bool is_global_var(EmitterContext * ctx, ASTNode * node);
 char * get_var_name(EmitterContext * ctx, ASTNode * node);
 #endif //EMITTER_CONTEXT_H
