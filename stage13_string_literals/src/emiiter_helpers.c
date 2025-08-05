@@ -63,6 +63,7 @@ void emit_load_from(EmitterContext * ctx, CType * t, const char * reg) {
             emit_line(ctx, "mov eax, [%s]", reg);
             break;
         case CTYPE_LONG:
+        case CTYPE_PTR:
             emit_line(ctx, "mov rax, [%s]", reg);
             break;
         default: error("Unsupported type %s for load from ");

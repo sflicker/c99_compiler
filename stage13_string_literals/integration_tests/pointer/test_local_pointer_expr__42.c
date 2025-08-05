@@ -1,7 +1,7 @@
 
 int main() {
-    int x = 42;
+    int x = 40;
     int * p = &x;
-    return *p;
+    return *p + 2;
 }
 

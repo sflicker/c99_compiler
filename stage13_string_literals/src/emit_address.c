@@ -36,6 +36,17 @@ char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
         return label;
     }
 }
+//
+// void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type) {
+//     int size = c_type->base_type ? c_type->base_type->size : 1;
+//     emit_pop(ctx, "rcx");     // offset
+//     emit_pop(ctx, "rax");     // base
+//     if (size >= 1) {
+//         emit_line(ctx, "imul rcx, %d", size);
+//     }
+//     emit_line(ctx, "add rax, rcx");
+//     emit_push(ctx, "rax");
+// }
 
 void emit_addr(EmitterContext * ctx, ASTNode * node) {
     switch (node->type) {
@@ -85,21 +96,23 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_ARRAY_ACCESS: {
 
-            emit_expr(ctx, node->array_access.base);
-            CType * base = node->array_access.base->ctype;
-
-            if (base->kind == CTYPE_PTR) {
-                // emit_pop(ctx, "rcx");
-                //
-                // emit_line(ctx, "mov rcx, [rcx]");
-                // emit_push(ctx, "rcx");
-
-            }
-            else if (base->kind == CTYPE_ARRAY) {
-                // just use base address
-            }
-
+//            emit_expr(ctx, node->array_access.base);
+            emit_addr(ctx, node->array_access.base);
+            // CType * base = node->array_access.base->ctype;
+            //
+            // if (base->kind == CTYPE_PTR) {
+            //     // emit_pop(ctx, "rcx");
+            //     //
+            //     // emit_line(ctx, "mov rcx, [rcx]");
+            //     // emit_push(ctx, "rcx");
+            //
+            // }
+            // else if (base->kind == CTYPE_ARRAY) {
+            //     // just use base address
+            // }
+            //
             emit_expr(ctx, node->array_access.index);    // put result in eax
+
             int dim = node->array_access.base->ctype->array_len;
             int base_size = node->ctype->size;
 
@@ -125,6 +138,14 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
 
             break;
         }
+        case AST_STRING_LITERAL: {
+            char * label = node->string_literal.label;
+            emit_line(ctx, "lea rax, [%s]", label);
+            emit_push(ctx, "rax");
+
+            break;
+        }
+
         default:
             error("Unexpected node type %s", get_ast_node_name(node));
 

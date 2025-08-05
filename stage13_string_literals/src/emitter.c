@@ -387,9 +387,10 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             emit_cast(ctx, node);
             break;
         case AST_STRING_LITERAL: {
-            char * label = node->string_literal.label;
-            emit_line(ctx, "lea rax, [%s]", label);
-            emit_push(ctx, "rax");
+            emit_addr(ctx, node);
+            // char * label = node->string_literal.label;
+            // emit_line(ctx, "lea rax, [%s]", label);
+            // emit_push(ctx, "rax");
 
             break;
         }
@@ -978,6 +979,9 @@ void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
 
     // compute lhs address -> rcx
     emit_addr(ctx, node->binary.lhs);
+
+    emit_pop(ctx, "rcx");               // pop rcx off the stack to load the lhs value
+    emit_push(ctx, "rcx");              // push rcx back on the stack to latter store the result
 
     // push LHS address on stack
     emit_line(ctx, "mov DWORD eax, [rcx]");
