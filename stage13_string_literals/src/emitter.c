@@ -883,7 +883,11 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
     }
     else {
         emit_line(ctx,"; initializing variable");
-        emit_expr(ctx, node->var_decl.init_expr);
+        if (is_array_type(node->var_decl.init_expr->ctype)) {
+            emit_addr(ctx, node->var_decl.init_expr);
+        } else {
+            emit_expr(ctx, node->var_decl.init_expr);
+        }
         emit_addr(ctx, node);
         // emit_line(ctx, "pop rcx");
         // emit_line(ctx, "pop rax");
@@ -915,7 +919,12 @@ void emit_assignment(EmitterContext * ctx, ASTNode* node) {
     emit_line(ctx, "; emitting assignment - LHS %s = RHS %s",
         get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
     // eval RHS -> rax then push
-    emit_expr(ctx, node->binary.rhs);
+    if (is_array_type(node->binary.rhs->ctype)) {
+        emit_addr(ctx, node->binary.rhs);
+    }
+    else {
+        emit_expr(ctx, node->binary.rhs);
+    }
 //    emit_line(ctx, "push rax");
 
     // eval LHS addr -> rcx
