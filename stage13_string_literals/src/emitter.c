@@ -399,7 +399,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
 
             if (node->ctype->kind != CTYPE_ARRAY) {
                 emit_pop(ctx, "rcx");
-
+                emit_line(ctx, "; emitting array element value");
                 emit_load_from(ctx, node->ctype, "rcx");                    // load
                 emit_push(ctx, "rax");
             }

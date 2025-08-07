@@ -48,18 +48,40 @@ ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
     return node;
 }
 
+CType * get_projected_ctype(ASTNode * node) {
+
+    CType * ctype = node->ctype;
+    if (!ctype) {
+        if (node->type == AST_UNARY_EXPR) {
+            ctype = node->unary.operand->ctype;
+        } else if (node->type == AST_BINARY_EXPR) {
+            ctype = node->binary.lhs->ctype;
+        } else {
+            error("Unable to determine a type to use to create an Array Node");
+        }
+
+    }
+
+    // not specially handled. return nodes type
+    return node->ctype;
+}
+
 ASTNode * create_initializer_list(ASTNode_list * list) {
     ASTNode * node = create_ast();
     node->type = AST_INITIALIZER_LIST;
     node->initializer_list.items = list;
     node->symbol = NULL;
     if (list->count > 0) {
-        node->initializer_list.initializer_type = make_array_type(list->head->value->ctype, list->count);
-        node->ctype = list->head->value->ctype;
+        ASTNode * first_item = list->head->value;
+        CType * ctype = first_item->ctype;
+        if (!ctype) {
+            ctype = get_projected_ctype(first_item);
+        }
+        node->ctype = ctype;
     }
     else {
+        error("zero size array initializers are not allowed");
         node->ctype = NULL;
-        node->initializer_list.initializer_type = NULL;
     }
     return node;
 }

@@ -462,7 +462,6 @@ void test_create_initializer_list() {
     TEST_ASSERT("Verify node is AST_INITIALIZER_LIST", node->type == AST_INITIALIZER_LIST);
     TEST_ASSERT("Verify node ctype is not null", node->ctype != NULL);
     TEST_ASSERT("Verify node ctype is CTYPE_INT", ctype_equals(node->ctype, &CTYPE_INT_T));
-    TEST_ASSERT("Verify node initializer ctype is Array", node->initializer_list.initializer_type->kind == CTYPE_ARRAY);
     TEST_ASSERT("Verify node contains 3 items", node->initializer_list.items->count == 3);
     TEST_ASSERT("Verify first value is 4", node->initializer_list.items->head->value->int_value == 4);
 }
