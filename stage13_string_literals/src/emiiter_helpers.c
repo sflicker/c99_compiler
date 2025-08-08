@@ -235,3 +235,15 @@ void emit_leave(EmitterContext *ctx) {
     emit_line(ctx, "leave      ; restore rbp; stack -= 8 (depth now %d)", ctx->stack_depth - 8);
     ctx->stack_depth -= 8;
 }
+
+void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type) {
+    emit_line(ctx, "; emitting pointer arithmetic");
+    int size = c_type->base_type ? c_type->base_type->size : 1;
+    emit_pop(ctx, "rcx");     // offset
+    emit_pop(ctx, "rax");     // base
+    if (size >= 1) {
+        emit_line(ctx, "imul rcx, %d", size);
+    }
+    emit_line(ctx, "add rax, rcx");
+    emit_push(ctx, "rax");
+}

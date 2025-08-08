@@ -96,45 +96,70 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_ARRAY_ACCESS: {
 
-//            emit_expr(ctx, node->array_access.base);
-            emit_addr(ctx, node->array_access.base);
-            // CType * base = node->array_access.base->ctype;
-            //
-            // if (base->kind == CTYPE_PTR) {
-            //     // emit_pop(ctx, "rcx");
-            //     //
-            //     // emit_line(ctx, "mov rcx, [rcx]");
-            //     // emit_push(ctx, "rcx");
-            //
-            // }
-            // else if (base->kind == CTYPE_ARRAY) {
-            //     // just use base address
-            // }
-            //
-            emit_expr(ctx, node->array_access.index);    // put result in eax
+            CType * base_type = node->array_access.base->ctype;
 
-            int dim = node->array_access.base->ctype->array_len;
-            int base_size = node->ctype->size;
+            emit_line(ctx, "; emitting array base");
+            emit_expr(ctx, node->array_access.base);
 
-            // if a second dimension.. TODO make work for more than 2.
-            if (node->array_access.base->type == AST_ARRAY_ACCESS) {
+            emit_line(ctx, "; emitting array index");
+            emit_expr(ctx, node->array_access.index);
 
-                node = node->array_access.base;
-                emit_expr(ctx, node->array_access.index);
-                //emit_line(ctx, "pop rax");
-                emit_pop(ctx, "rax");
-
-                emit_line(ctx, "imul rax, %d", dim);
+            if (base_type->kind == CTYPE_PTR) {
+                emit_pointer_arithmetic(ctx, node->array_access.base->ctype);
+            }
+            else if (base_type->kind == CTYPE_ARRAY) {
+                emit_line(ctx, "; emiiting array base + index*size");
+                int size = base_type->base_type ? base_type->base_type->size : 1;
                 emit_pop(ctx, "rcx");
-
+                emit_pop(ctx, "rax");
+                emit_line(ctx, "imul rcx, %d", size);
                 emit_line(ctx, "add rax, rcx");
                 emit_push(ctx, "rax");
             }
-            emit_pop(ctx, "rax");
-            emit_line(ctx, "imul rax, %d", base_size);
-            emit_pop(ctx, "rcx");
-            emit_line(ctx, "add rcx, rax");
-            emit_push(ctx, "rcx");
+            else {
+                error("Unsupported types for array access");
+            }
+
+
+// //            emit_expr(ctx, node->array_access.base);
+//             emit_addr(ctx, node->array_access.base);
+//             // CType * base = node->array_access.base->ctype;
+//             //
+//             // if (base->kind == CTYPE_PTR) {
+//             //     // emit_pop(ctx, "rcx");
+//             //     //
+//             //     // emit_line(ctx, "mov rcx, [rcx]");
+//             //     // emit_push(ctx, "rcx");
+//             //
+//             // }
+//             // else if (base->kind == CTYPE_ARRAY) {
+//             //     // just use base address
+//             // }
+//             //
+//             emit_expr(ctx, node->array_access.index);    // put result in eax
+//
+//             int dim = node->array_access.base->ctype->array_len;
+//             int base_size = node->ctype->size;
+//
+//             // if a second dimension.. TODO make work for more than 2.
+//             if (node->array_access.base->type == AST_ARRAY_ACCESS) {
+//
+//                 node = node->array_access.base;
+//                 emit_expr(ctx, node->array_access.index);
+//                 //emit_line(ctx, "pop rax");
+//                 emit_pop(ctx, "rax");
+//
+//                 emit_line(ctx, "imul rax, %d", dim);
+//                 emit_pop(ctx, "rcx");
+//
+//                 emit_line(ctx, "add rax, rcx");
+//                 emit_push(ctx, "rax");
+//             }
+//             emit_pop(ctx, "rax");
+//             emit_line(ctx, "imul rax, %d", base_size);
+//             emit_pop(ctx, "rcx");
+//             emit_line(ctx, "add rcx, rax");
+//             emit_push(ctx, "rcx");
 
             break;
         }

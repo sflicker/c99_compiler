@@ -373,29 +373,30 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             break;
         case AST_ARRAY_ACCESS:
             emit_line(ctx, "; emitting array access");
-            CType * base_type = node->array_access.base->ctype;
-
-            emit_line(ctx, "; emitting array base");
-            emit_expr(ctx, node->array_access.base);
-
-            emit_line(ctx, "; emitting array index");
-            emit_expr(ctx, node->array_access.index);
-
-            if (base_type->kind == CTYPE_PTR) {
-                emit_pointer_arithmetic(ctx, node->array_access.base->ctype);
-            }
-            else if (base_type->kind == CTYPE_ARRAY) {
-                emit_line(ctx, "; emiiting array base + index*size");
-                int size = base_type->base_type ? base_type->base_type->size : 1;
-                emit_pop(ctx, "rcx");
-                emit_pop(ctx, "rax");
-                emit_line(ctx, "imul rcx, %d", size);
-                emit_line(ctx, "add rax, rcx");
-                emit_push(ctx, "rax");
-            }
-            else {
-                error("Unsupported types for array access");
-            }
+            emit_addr(ctx, node);
+            // CType * base_type = node->array_access.base->ctype;
+            //
+            // emit_line(ctx, "; emitting array base");
+            // emit_expr(ctx, node->array_access.base);
+            //
+            // emit_line(ctx, "; emitting array index");
+            // emit_expr(ctx, node->array_access.index);
+            //
+            // if (base_type->kind == CTYPE_PTR) {
+            //     emit_pointer_arithmetic(ctx, node->array_access.base->ctype);
+            // }
+            // else if (base_type->kind == CTYPE_ARRAY) {
+            //     emit_line(ctx, "; emiiting array base + index*size");
+            //     int size = base_type->base_type ? base_type->base_type->size : 1;
+            //     emit_pop(ctx, "rcx");
+            //     emit_pop(ctx, "rax");
+            //     emit_line(ctx, "imul rcx, %d", size);
+            //     emit_line(ctx, "add rax, rcx");
+            //     emit_push(ctx, "rax");
+            // }
+            // else {
+            //     error("Unsupported types for array access");
+            // }
 
             if (node->ctype->kind != CTYPE_ARRAY) {
                 emit_pop(ctx, "rcx");
@@ -420,19 +421,6 @@ void emit_expr(EmitterContext * ctx, ASTNode * node) {
             error("Unexpected node type %d", get_ast_node_name(node));
     }
 
-}
-
-
-void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type) {
-    emit_line(ctx, "; emitting pointer arithmetic");
-    int size = c_type->base_type ? c_type->base_type->size : 1;
-    emit_pop(ctx, "rcx");     // offset
-    emit_pop(ctx, "rax");     // base
-    if (size >= 1) {
-        emit_line(ctx, "imul rcx, %d", size);
-    }
-    emit_line(ctx, "add rax, rcx");
-    emit_push(ctx, "rax");
 }
 
 void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {

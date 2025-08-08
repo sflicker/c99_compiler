@@ -28,4 +28,6 @@ void emit_add_rsp(EmitterContext * ctx, int amount);
 void emit_sub_rsp(EmitterContext * ctx, int amount);
 void emit_leave(EmitterContext *ctx);
 
+void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type);
+
 #endif //EMITTER_HELPERS_H
