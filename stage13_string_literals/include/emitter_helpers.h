@@ -29,5 +29,6 @@ void emit_sub_rsp(EmitterContext * ctx, int amount);
 void emit_leave(EmitterContext *ctx);
 
 void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type);
+void emit_binary_op(EmitterContext * ctx, BinaryOperator op);
 
 #endif //EMITTER_HELPERS_H

@@ -10,6 +10,6 @@ int func(int *b) {
 
 int main() {
     int a = 10;
-    int dummy = func(&a);      // assign return to a dummy variable which will be ignored.
+    func(&a);      // need to handle the lack of assignment to the return.
     return a;
 }

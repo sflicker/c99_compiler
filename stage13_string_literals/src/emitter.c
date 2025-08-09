@@ -18,6 +18,7 @@
 #include "symbol.h"
 #include "emitter_helpers.h"
 #include "emit_address.h"
+#include "emit_expression.h"
 
 
 // Register order for integer/pointer args in AMD64
@@ -151,567 +152,14 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
 }
 
 
-void emit_cast(EmitterContext * ctx, ASTNode * node) {
 
-    emit_expr(ctx, node->cast_expr.expr);     // eval inner expression
-
-    CType * from_type = node->cast_expr.expr->ctype;
-    CType * to_type = node->cast_expr.target_type;
-
-    int from_size = from_type->size;
-    int to_size = to_type->size;
-
-    bool from_signed = from_type->is_signed;
-    bool to_signed = to_type->is_signed;
-
-    if ((from_type->kind == CTYPE_PTR || from_type->kind == CTYPE_ARRAY) &&
-        (to_type->kind == CTYPE_PTR || to_type->kind == CTYPE_ARRAY)) {
-        // pointer to pointer or array to pointer: no-op in codegen
-        return;
-    }
-
-    if (from_size == to_size) {
-        return;  // NOOP
-    }
-
-    // narrowing
-    if (from_size > to_size) {
-        //emit_line(ctx, "pop rax");
-        emit_pop(ctx, "rax");
-        switch (to_size) {
-            case 1: emit_line(ctx, "movsx eax, al"); break;
-            case 2: emit_line(ctx, "movsx eax, ax"); break;
-            case 4: emit_line(ctx, "mov eax, eax"); break;
-            default:
-                error("Unsupported narrowing cast to %d bytes", to_size);
-        }
-        emit_push(ctx, "rax");
-//        emit_line(ctx, "push rax");
-        return;
-    }
-
-    // widening cast
-    if (from_size < to_size) {
-//        emit_line(ctx, "pop rax");
-        emit_pop(ctx, "rax");
-
-        if (from_signed && to_signed) {
-            switch (from_size) {
-                case 1: emit_line(ctx, "movsx eax, al"); break;
-                case 2: emit_line(ctx, "movsx eax, ax"); break;
-                case 4: emit_line(ctx, "movsxd rax, eax"); break;
-                default:
-                    error("Unsupported sign-extension from %d bytes", from_size);
-            }
-        } else {
-            switch (from_size) {
-                case 1: emit_line(ctx, "movzx eax, al"); break;
-                case 2: emit_line(ctx, "movzx eax, ax"); break;
-                case 4: emit_line(ctx, "mov eax, eax"); break;
-                default:
-                    error("Unsupported zero-extension from %d bytes", from_size);
-            }
-        }
-        emit_push(ctx, "rax");
-//        emit_line(ctx, "push rax");
-    }
-}
-
-void emit_binary_add(EmitterContext * ctx, ASTNode * node) {
-    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-
-//    emit_line(ctx, "pop rcx");                      // pop rhs to RCX
-//    emit_line(ctx, "pop rax");                      // pop lhs to RAX
-    emit_pop(ctx, "rcx");
-    emit_pop(ctx, "rax");
-
-
-    CType *lhs_type = node->binary.lhs->ctype;
-    CType *rhs_type = node->binary.rhs->ctype;
-
-    if (lhs_type->kind == CTYPE_PTR && is_integer_type(rhs_type)) {
-        int elem_size = sizeof_type(rhs_type);
-        emit_line(ctx, "imul rcx, %d", elem_size);
-        emit_line(ctx, "add rax, rcx");
-    }
-    else if (is_integer_type(lhs_type) && rhs_type->kind == CTYPE_PTR) {
-        int elem_size = sizeof_type(lhs_type);
-        emit_line(ctx, "imul rax, %d", elem_size);
-        emit_line(ctx, "add rax, rcx");
-    }
-    else if (is_integer_type(lhs_type) && is_integer_type(rhs_type)) {
-        emit_line(ctx, "; lhs in rax, rhs in rcx");
-        if (lhs_type->kind == CTYPE_CHAR) {
-            emit_line(ctx, "movsx rax, al");
-        } else if (lhs_type->kind == CTYPE_SHORT) {
-            emit_line(ctx, "movsx rax, ax");
-        } else if (lhs_type->kind == CTYPE_INT) {
-            emit_line(ctx, "movsxd rax, eax");
-        }
-
-        if (rhs_type->kind == CTYPE_CHAR) {
-            emit_line(ctx, "movsx rcx, cl");
-        } else if (rhs_type->kind == CTYPE_SHORT) {
-            emit_line(ctx, "movsx rcx, cx");
-        } else if (rhs_type->kind == CTYPE_INT) {
-            emit_line(ctx, "movsxd rcx, ecx");
-        }
-
-        emit_line(ctx, "add rax, rcx");
-    }
-    else {
-        error("Unsupported types for binary add operation");
-    }
-//    emit_binary_op(ctx, node->binary.op);        // emit proper for op
-
-    emit_push(ctx, "rax");
-//    emit_line(ctx, "push rax");
-
-}
-
-void emit_binary_sub(EmitterContext * ctx, ASTNode * node) {
-    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-
-    // emit_line(ctx, "pop rcx");                      // pop rhs to RCX
-    // emit_line(ctx, "pop rax");                      // pop lhs to RAX
-    emit_pop(ctx, "rcx");
-    emit_pop(ctx, "rax");
-
-
-    CType *lhs_type = node->binary.lhs->ctype;
-    CType *rhs_type = node->binary.rhs->ctype;
-
-    if (lhs_type->kind == CTYPE_PTR && is_integer_type(rhs_type)) {
-        int elem_size = sizeof_type(lhs_type);
-        emit_line(ctx, "imul rcx, %d", elem_size);
-        emit_line(ctx, "add rax, rcx");
-    }
-    else if (is_integer_type(lhs_type) && rhs_type->kind == CTYPE_PTR) {
-        int elem_size = sizeof_type(rhs_type);
-        emit_line(ctx, "imul rax, %d", elem_size);
-        emit_line(ctx, "add rax, rcx");
-    }
-    else if (is_integer_type(lhs_type) && is_integer_type(rhs_type)) {
-        emit_line(ctx, "; lhs in rax, rhs in rcx");
-        if (lhs_type->kind == CTYPE_CHAR) {
-            emit_line(ctx, "movsx rax, al");
-        } else if (lhs_type->kind == CTYPE_SHORT) {
-            emit_line(ctx, "movsx rax, ax");
-        } else if (lhs_type->kind == CTYPE_INT) {
-            emit_line(ctx, "movsxd rax, eax");
-        }
-
-        if (rhs_type->kind == CTYPE_CHAR) {
-            emit_line(ctx, "movsx rcx, cl");
-        } else if (rhs_type->kind == CTYPE_SHORT) {
-            emit_line(ctx, "movsx rcx, cx");
-        } else if (rhs_type->kind == CTYPE_INT) {
-            emit_line(ctx, "movsxd rcx, ecx");
-        }
-
-        emit_line(ctx, "sub rax, rcx");
-    }
-    else {
-        error("Unsupported types for binary add operation");
-    }
-    //    emit_binary_op(ctx, node->binary.op);        // emit proper for op
-
-    emit_push(ctx, "rax");
-//    emit_line(ctx, "push rax");
-
-}
-
-
-void emit_binary_multi(EmitterContext * ctx, ASTNode * node) {
-    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-    emit_pop(ctx, "rcx");
-    emit_pop(ctx, "rax");
-    emit_binary_op(ctx, node->binary.op);        // emit proper for op
-    emit_push(ctx, "rax");
-}
-
-// emit_expr.
-// generate code to eval the expression storing the final result in eax or rax
-void emit_expr(EmitterContext * ctx, ASTNode * node) {
-    switch (node->type) {
-        case AST_INT_LITERAL:
-            emit_line(ctx, "mov eax, %d", node->int_value);
-            emit_push(ctx, "rax");
-            break;
-        case AST_VAR_REF_EXPR: {
-            emit_addr(ctx, node);
-            if (!is_array_type(node->ctype)) {
-                emit_pop(ctx, "rax");
-                emit_load_from(ctx, node->ctype, "rax");
-                emit_push(ctx, "rax");
-            }
-            // if (node->symbol->ctype->kind == CTYPE_ARRAY) {
-            //     emit_line(ctx, "lea rax, [rbp-%d]", abs(node->symbol->info.var.offset));
-            //     emit_push(ctx, "rax");
-            // }
-            // else if (node->symbol->node->var_decl.is_global) {
-            //     emit_line(ctx, "mov %s, [rel %s] ", reg_for_type(node->ctype), node->symbol->name);
-            //     emit_push(ctx, "rax");
-            // } else {
-            //     int offset = node->symbol->info.var.offset;
-            //     emit_line(ctx, "mov %s, [rbp%+d]", reg_for_type(node->ctype), offset);
-            //     emit_push(ctx, "rax");
-            // }
-            break;
-        }
-        case AST_UNARY_EXPR:
-            emit_unary(ctx, node);
-            break;
-        case AST_BINARY_EXPR:
-            emit_binary_expr(ctx, node);
-            break;
-        case AST_FUNCTION_CALL_EXPR:
-            emit_function_call(ctx, node);
-            break;
-        case AST_ARRAY_ACCESS:
-            emit_line(ctx, "; emitting array access");
-            emit_addr(ctx, node);
-
-            if (node->ctype->kind != CTYPE_ARRAY) {
-                emit_pop(ctx, "rcx");
-                emit_line(ctx, "; emitting array element value");
-                emit_load_from(ctx, node->ctype, "rcx");                    // load
-                emit_push(ctx, "rax");
-            }
-
-            break;
-        case AST_CAST_EXPR:
-            emit_cast(ctx, node);
-            break;
-        case AST_STRING_LITERAL: {
-            emit_addr(ctx, node);
-            // char * label = node->string_literal.label;
-            // emit_line(ctx, "lea rax, [%s]", label);
-            // emit_push(ctx, "rax");
-
-            break;
-        }
-        default:
-            error("Unexpected node type %d", get_ast_node_name(node));
-    }
-
-}
-
-void emit_binary_expr(EmitterContext * ctx, ASTNode *node) {
-    switch (node->binary.op) {
-        case BINOP_EQ:
-        case BINOP_NE:
-        case BINOP_GT:
-        case BINOP_GE:
-        case BINOP_LT:
-        case BINOP_LE:
-            emit_binary_comparison(ctx, node);
-            break;
-        case BINOP_ADD:
-            emit_binary_add(ctx, node);
-            break;
-        case BINOP_SUB:
-            emit_binary_sub(ctx, node);
-            break;
-        case BINOP_MUL:
-            emit_binary_multi(ctx, node);
-   //          emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-   // //         emit_line(ctx, "push rax");                     // push lhs result
-   //          emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-   //          emit_line(ctx, "pop rcx");                      // pop lhs to ECX
-   //          emit_line(ctx, "pop rax");
-   //          emit_binary_op(ctx, node->binary.op);        // emit proper for op
-            break;
-        case BINOP_DIV:
-            emit_binary_div(ctx, node);
-            break;
-        case BINOP_MOD:
-            emit_binary_mod(ctx, node);
-            break;
-        case BINOP_LOGICAL_AND:
-            emit_logical_and(ctx, node);
-            break;
-
-        case BINOP_LOGICAL_OR:
-            emit_logical_or(ctx, node);
-            break;
-        case BINOP_ASSIGNMENT:
-            emit_assignment(ctx, node);
-            break;
-        case BINOP_COMPOUND_ADD_ASSIGN:
-            emit_add_assignment(ctx, node);
-            break;
-        case BINOP_COMPOUND_SUB_ASSIGN:
-            emit_sub_assignment(ctx, node);
-            break;
-        default:
-            error("Unknown binary operator");
-    }
-}
-
-void emit_logical_and(EmitterContext * ctx, ASTNode * node) {
-    int label_false = get_label_id(ctx);
-    int label_end = get_label_id(ctx);
-
-    //lhs 
-    emit_expr(ctx, node->binary.lhs);
-    emit_pop(ctx, "rax");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "je", "false", label_false);
-
-    //rhs
-    emit_expr(ctx, node->binary.rhs);
-    emit_pop(ctx, "rax");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "je", "false", label_false);
-
-    // both true
-    emit_line(ctx, "mov eax, 1");
-    emit_jump(ctx, "jmp", "end", label_end);
-
-    emit_label(ctx, "false", label_false);
-    emit_line(ctx, "mov eax, 0");
-
-    emit_push(ctx, "rax");
-
-    emit_label(ctx, "end", label_end);
-}
-
-void emit_logical_or(EmitterContext * ctx, ASTNode* node) {
-    int label_true = get_label_id(ctx);
-    int label_end = get_label_id(ctx);
-
-    // lhs
-    emit_expr(ctx, node->binary.lhs);
-    emit_pop(ctx, "rax");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "jne", "true", label_true);
-
-    // rhs
-    emit_expr(ctx, node->binary.rhs);
-    emit_pop(ctx, "rax");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "jne", "true", label_true);
-
-    emit_label(ctx, "true", label_true);
-    emit_line(ctx, "mov eax, 1");
-    emit_push(ctx, "rax");
-
-    emit_label(ctx, "end", label_end);
-}
-
-void emit_binary_div(EmitterContext * ctx, ASTNode * node) {
-    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-    // emit_line(ctx, "pop rcx");           // pop rhs to rCX
-    // emit_line(ctx, "pop rax");           // pop lhs to rax
-    emit_pop(ctx, "rcx");
-    emit_pop(ctx, "rax");
-
-
-    // emit_line(ctx, "mov ecx, eax");                 // move denominator to ecx
-    // emit_line(ctx, "pop rax");                      // restore numerator to eax
-    emit_line(ctx, "cdq");
-    emit_line(ctx, "idiv ecx");
-//    emit_line(ctx, "push rax");
-    emit_push(ctx, "rax");
-
-
-}
-
-void emit_binary_mod(EmitterContext * ctx, ASTNode * node) {
-
-    emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
-    // emit_line(ctx, "pop rcx");           // pop rhs to rCX
-    // emit_line(ctx, "pop rax");           // pop lhs to rax
-    emit_pop(ctx, "rcx");
-    emit_pop(ctx, "rax");
-
-    emit_line(ctx, "cdq");
-    emit_line(ctx, "idiv ecx");               // divide eax by ecx. result goes to eax, remainder to edx
-    emit_line(ctx, "mov eax, edx");           // move remainer in edx to eax
-
-//    emit_line(ctx, "push rax");
-    emit_push(ctx, "rax");
-
-}
-
-void emit_binary_comparison(EmitterContext * ctx, ASTNode * node) {
-    // eval left-hand side -> result in eax -> push results onto the stack
-    emit_expr(ctx, node->binary.lhs);
-    emit_expr(ctx, node->binary.rhs);
-
-    // emit_line(ctx, "pop rcx");
-    // emit_line(ctx, "pop rax");
-    emit_pop(ctx, "rcx");
-    emit_pop(ctx, "rax");
-
-    // eval right-hand side -> reult in eax
-
-
-    // restore lhs into rcx
-    emit_line(ctx, "mov ecx, ecx");   // zero upper bits
-    emit_line(ctx, "mov eax, eax");   // zero upper bits
-
-    // compare rax (lhs) with ecx (rhs), cmp rcx, eax means rcx - eax
-    emit_line(ctx, "cmp eax, ecx");
-
-    // emit proper setX based on operator type
-    switch (node->binary.op) {
-        case BINOP_EQ:
-            emit_line(ctx, "sete al");
-            break;
-
-        case BINOP_NE:
-            emit_line(ctx, "setne al");
-            break;
-
-        case BINOP_LT:
-            emit_line(ctx, "setl al");
-            break;
-
-        case BINOP_LE:
-            emit_line(ctx, "setle al");
-            break;
-
-        case BINOP_GT:
-            emit_line(ctx, "setg al");
-            break;
-
-        case BINOP_GE:
-            emit_line(ctx, "setge al");
-            break;
-
-        default:
-            error("Unsupported comparison type in codegen.");
-    }
-
-    // zero-extend result to full eax
-    emit_line(ctx, "movzx eax, al");
-    emit_push(ctx, "rax");
-
-}
-
-
-void emit_binary_op(EmitterContext * ctx, BinaryOperator op) {
-    switch(op) {
-        case BINOP_ADD:
-            emit_line(ctx, "add eax, ecx");
-            break;
-        case BINOP_SUB:
-              emit_line(ctx, "sub ecx, eax");
-              emit_line(ctx, "mov eax, ecx");
-            break;
-        case BINOP_MUL:
-            emit_line(ctx, "imul eax, ecx");
-            break;
-        default:
-            error("Unsupported binary operator: %s", token_type_name(op));
-    }
-}
-
-void emit_unary(EmitterContext * ctx, ASTNode * node) {
-    switch (node->unary.op) {
-        case UNARY_NEGATE:
-            emit_expr(ctx, node->unary.operand);
-//            emit_line(ctx, "pop rax");
-            emit_pop(ctx, "rax");
-
-            emit_line(ctx, "neg eax");
-//            emit_line(ctx, "push rax");
-            emit_push(ctx, "rax");
-
-            break;
-        case UNARY_PLUS:
-            // noop
-            break;
-        case UNARY_NOT:
-            // !x becomes (x == 0) -> 1 else 0
-            emit_expr(ctx, node->unary.operand);
-            emit_line(ctx, "cmp eax, 0");
-            emit_line(ctx, "sete al");
-            emit_line(ctx, "movzx eax, al");
-            break;
-        case UNARY_PRE_INC: {
-            char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "mov eax, %s", reference_label);
-            emit_line(ctx, "add eax, 1");
-            emit_line(ctx, "mov %s, eax", reference_label);
-            free(reference_label);
-            break;
-        }
-        case UNARY_PRE_DEC: {
-            char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "mov eax, %s", reference_label);
-            emit_line(ctx, "sub eax, 1");
-            emit_line(ctx, "mov %s, eax", reference_label);
-            free(reference_label);
-        break;
-        }
-        case UNARY_POST_INC: {
-            char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "mov eax, %s", reference_label);
-            emit_line(ctx, "mov ecx, eax");
-            emit_line(ctx, "add eax, 1");
-            emit_line(ctx, "mov %s, eax", reference_label);
-            emit_line(ctx, "mov eax, ecx");
-            free(reference_label);
-            break;
-        }
-        case UNARY_POST_DEC: {
-            char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "mov eax, %s", reference_label);
-            emit_line(ctx, "mov ecx, eax");
-            emit_line(ctx, "sub eax, 1");
-            emit_line(ctx, "mov %s, eax", reference_label);
-            emit_line(ctx, "mov eax, ecx");
-            free(reference_label);
-            break;
-        }
-        case UNARY_ADDRESS: {
-            char * reference_label = create_variable_reference(ctx, node->unary.operand);
-            emit_line(ctx, "lea rax, %s", reference_label);
-//            emit_line(ctx, "push rax");
-            emit_push(ctx, "rax");
-
-            free(reference_label);
-            break;
-        }
-        case UNARY_DEREF: {
-            emit_expr(ctx, node->unary.operand);
-//            emit_line(ctx, "pop rax");
-            emit_pop(ctx, "rax");
-
-            if (node->ctype->kind == CTYPE_CHAR) {
-                emit_line(ctx, "movzx eax, BYTE [rax]");
-            } else if (node->ctype->kind == CTYPE_SHORT) {
-                emit_line(ctx, "movzx eax, WORD [rax]");
-            } else if (node->ctype->kind == CTYPE_INT) {
-                emit_line(ctx, "mov eax, [rax]");
-            }
-            else if (node->ctype->kind == CTYPE_LONG) {
-                emit_line(ctx, "mov rax, [rax]");
-            }
-//            emit_line(ctx, "push rax");
-            emit_push(ctx, "rax");
-
-            break;
-        }
-        default:
-            error("Unsupported unary op in emitter");
-    }
-}
 
 
 
 void emit_if_statement(EmitterContext * ctx, ASTNode * node) {
     int id = get_label_id(ctx);
     // eval condition
-    emit_expr(ctx, node->if_stmt.cond);
+    emit_expr(ctx, node->if_stmt.cond, WANT_VALUE);
     emit_pop(ctx, "rax");
     // compare result with 0
     emit_line(ctx, "cmp eax, 0");
@@ -745,7 +193,7 @@ void emit_while_statement(EmitterContext * ctx, ASTNode * node) {
     // start label
     emit_label_from_text(ctx, loop_start_label);
     // eval cond
-    emit_expr(ctx, node->while_stmt.cond);
+    emit_expr(ctx, node->while_stmt.cond, WANT_VALUE);
     emit_pop(ctx, "rax");
     // cmp to zero
     emit_line(ctx, "cmp eax, 0");
@@ -768,7 +216,7 @@ void emit_do_while_statement(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->do_while_stmt.body);
 
     emit_line(ctx, "; emitting do_while condition expression");
-    emit_expr(ctx, node->do_while_stmt.expr);
+    emit_expr(ctx, node->do_while_stmt.expr, WANT_VALUE);
     emit_pop(ctx, "rax");
 
     emit_line(ctx, "cmp eax, 0");
@@ -852,7 +300,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 
             if (i < flattened_list->count) {
                 ASTNode * init_value = ASTNode_list_get(flattened_list, i);
-                emit_expr(ctx, init_value);
+                emit_expr(ctx, init_value, WANT_VALUE);
             }
             else {
                 emit_line(ctx, "mov eax, 0");
@@ -874,7 +322,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
         if (is_array_type(node->var_decl.init_expr->ctype)) {
             emit_addr(ctx, node->var_decl.init_expr);
         } else {
-            emit_expr(ctx, node->var_decl.init_expr);
+            emit_expr(ctx, node->var_decl.init_expr, WANT_VALUE);
         }
         emit_addr(ctx, node);
         // emit_line(ctx, "pop rcx");
@@ -903,128 +351,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
     // emit_line(ctx, "mov %s, eax\n", reference_label);
 }
 
-void emit_assignment(EmitterContext * ctx, ASTNode* node) {
-    emit_line(ctx, "; emitting assignment - LHS %s = RHS %s",
-        get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
-    // eval RHS -> rax then push
-    if (is_array_type(node->binary.rhs->ctype)) {
-        emit_addr(ctx, node->binary.rhs);
-    }
-    else {
-        emit_expr(ctx, node->binary.rhs);
-    }
-//    emit_line(ctx, "push rax");
 
-    // eval LHS addr -> rcx
-    emit_addr(ctx, node->binary.lhs);
-
-    // pop LHS into rcx
-//    emit_line(ctx, "pop rcx");
-    emit_pop(ctx, "rcx");
-
-    // pop RHS in rax
-//    emit_line(ctx, "pop rax");
-    emit_pop(ctx, "rax");
-
-    CType * ctype = node->binary.lhs->ctype;
-
-    emit_line(ctx, "mov %s [rcx], %s",
-        mem_size_for_type(ctype),
-        reg_for_type(ctype));
-
-}
-
-void emit_add_assignment(EmitterContext * ctx, ASTNode * node) {
-
-    // compute lhs address -> rcx
-    emit_addr(ctx, node->binary.lhs);
-
-    emit_pop(ctx, "rcx");               // pop rcx off the stack to load the lhs value
-    emit_push(ctx, "rcx");              // push rcx back on the stack to latter store the result
-    // load lhs into rax
-    emit_line(ctx, "mov DWORD eax, [rcx]");
-//    emit_line(ctx, "push rax");
-    emit_push(ctx, "rax");
-
-
-    // evaluate RHS into eax
-    emit_expr(ctx, node->binary.rhs);
-
-    // restore RHS into ecx
-//    emit_line(ctx, "pop rcx");
-    emit_pop(ctx, "rcx");
-
-    // restore LHS into eax
-//    emit_line(ctx, "pop rax");
-    emit_pop(ctx, "rax");
-
-
-    // add RHS to LHS
-    emit_line(ctx, "add eax, ecx");
-
-    // restore LHS address
-//    emit_line(ctx, "pop rcx");
-    emit_pop(ctx, "rcx");
-
-
-    // write back result to LHS
-    emit_line(ctx, "mov [rcx], eax");
-
-}
-
-void emit_sub_assignment(EmitterContext * ctx, ASTNode * node) {
-
-    // compute lhs address -> rcx
-    emit_addr(ctx, node->binary.lhs);
-
-    emit_pop(ctx, "rcx");               // pop rcx off the stack to load the lhs value
-    emit_push(ctx, "rcx");              // push rcx back on the stack to latter store the result
-
-    // push LHS address on stack
-    emit_line(ctx, "mov DWORD eax, [rcx]");
-//    emit_line(ctx, "push rax");
-    emit_push(ctx, "rax");
-
-
-    // // load current value into eax
-    // emit_line(ctx, "mov eax, [rcx]");
-    //
-    // // save current RHS value in eax on stack
-    // emit_line(ctx, "push rax");
-
-    // evaluate RHS into eax
-    emit_expr(ctx, node->binary.rhs);
-
-//    emit_line(ctx, "mov ecx, eax");
-
-    // restore RHS into ecx
-//    emit_line(ctx, "pop rcx");
-    emit_pop(ctx, "rcx");
-
-    // restore LHS into eax
-//    emit_line(ctx, "pop rax");
-    emit_pop(ctx, "rax");
-
-    // sub RHS from LHS
-    emit_line(ctx, "sub eax, ecx");
-
-    // restore LHS address
-//    emit_line(ctx, "pop rcx");
-    emit_pop(ctx, "rcx");
-
-
-    // write back result to LHS
-    emit_line(ctx, "mov [rcx], eax");
-
-
-    // char * reference_label  = create_variable_reference(ctx, node->binary.lhs);
-    // emit_tree_node(ctx, node->binary.rhs);
-    // emit_line(ctx, "mov ecx, eax\n");
-    // emit_line(ctx, "mov eax, %s\n", reference_label);
-    // emit_line(ctx, "sub eax, ecx\n");
-    // emit_line(ctx, "mov %s, eax\n", reference_label);
-    // free(reference_label);
-}
 
 void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
 
@@ -1055,13 +382,13 @@ void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
 
     // update expression
     if (node->for_stmt.update_expr) {
-        emit_expr(ctx, node->for_stmt.update_expr);
+        emit_expr(ctx, node->for_stmt.update_expr, WANT_VALUE);
     }
 
     // loop condition
     emit_label_from_text(ctx, condition_label);
     if (node->for_stmt.cond_expr) {
-        emit_expr(ctx, node->for_stmt.cond_expr);
+        emit_expr(ctx, node->for_stmt.cond_expr, WANT_VALUE);
         emit_pop(ctx, "rax");
         emit_line(ctx, "cmp eax, 0");
         emit_jump_from_text(ctx, "je", end_label);     // exit if false
@@ -1107,47 +434,6 @@ void emit_pass_argument(EmitterContext * ctx, CType * type, ASTNode * node) {
     free(reference_label);
 }
 
-void emit_function_call(EmitterContext * ctx, ASTNode * node) {
-    // if the call has arguments
-    // first get a reversed list
-    // then emit each arg then push it
-    //struct node_list * reversed_list = NULL;
-
-    int arg_count=0;
-    if (node->function_call.arg_list) {
-
-        // loop through in reverse order pushing arguments to the stack
-        for (int i = node->function_call.arg_list->count - 1; i >= 0; i--) {
-            ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
-            emit_expr(ctx, argNode);
-//            emit_line(ctx, "push rax");
-            arg_count++;
-        }
-
-        // for (ASTNode_list_node *n = node->function_call.arg_list->head;n;n=n->next) {
-        //     ASTNode * argNode = n->value;
-        //     emit_tree_node(ctx, argNode);
-        //     emit_line(ctx, "push rax\n");
-        //     // if (arg_count<ARG_REG_COUNT) {
-        //     //     const char * reg = ARG_REGS[arg_count];
-        //     //     emit_line(ctx, "mov %s, rax\n", reg);
-        //     // }  //TODO SUPPORT MORE THAN 6 arguments using the stack
-        // }
-
-    }
-
-    // // call the function
-    emit_line(ctx, "call %s", node->function_call.name);
-
-    // // clean up arguments
-    if (arg_count > 0) {
-        emit_add_rsp(ctx, arg_count*8);
-    }
-
-//    emit_line(ctx, "push rax");
-    emit_push(ctx, "rax");
-
-}
 
 void emit_switch_dispatch(EmitterContext * ctx, ASTNode * node) {
     assert(node->type == AST_SWITCH_STMT);
@@ -1196,7 +482,7 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
 
     char * break_label = make_label_text("switch_end", label_end);
 
-    emit_expr(ctx, node->switch_stmt.expr);
+    emit_expr(ctx, node->switch_stmt.expr, WANT_VALUE);
 //    emit_line(ctx, "push rax   ; save switch expression\n");
 //    emit_pop(ctx, "rax");
 
@@ -1274,6 +560,7 @@ void emit_continue_statement(EmitterContext * ctx, ASTNode * node) {
 
 void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
     if (!node) return;
+
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
             emit_translation_unit(ctx, node);
@@ -1285,7 +572,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_var_declaration(ctx, node);
             break;
         case AST_RETURN_STMT:
-            emit_expr(ctx, node->return_stmt.expr);
+            emit_expr(ctx, node->return_stmt.expr, WANT_VALUE);
             if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
                 emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
             }
@@ -1294,12 +581,12 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
 
             break;
         case AST_FUNCTION_CALL_EXPR:
-            emit_expr(ctx, node);
+            emit_expr(ctx, node, WANT_VALUE);
             //            emit_function_call(ctx, node);
             break;
         case AST_EXPRESSION_STMT:
             //            emit_tree_node(ctx, node->expr_stmt.expr);
-            emit_expr(ctx, node->expr_stmt.expr);
+            emit_expr(ctx, node->expr_stmt.expr, WANT_EFFECT);
             break;
         case AST_ASSERT_EXTENSION_STATEMENT:
             emit_assert_extension_statement(ctx, node);
@@ -1337,11 +624,11 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_INT_LITERAL:
         case AST_CAST_EXPR:
         case AST_VAR_REF_EXPR: {
-            emit_expr(ctx, node);
+            emit_expr(ctx, node, WANT_VALUE);
             break;
         }
         case AST_ARRAY_ACCESS: {
-            emit_expr(ctx, node);
+            emit_expr(ctx, node, WANT_VALUE);
             // int offset = get_offset(ctx, node);
             // emit_line(ctx, "mov eax, [rbp%+d]", offset);
             break;

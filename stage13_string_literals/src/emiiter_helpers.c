@@ -247,3 +247,20 @@ void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type) {
     emit_line(ctx, "add rax, rcx");
     emit_push(ctx, "rax");
 }
+
+void emit_binary_op(EmitterContext * ctx, BinaryOperator op) {
+    switch(op) {
+        case BINOP_ADD:
+            emit_line(ctx, "add eax, ecx");
+            break;
+        case BINOP_SUB:
+            emit_line(ctx, "sub ecx, eax");
+            emit_line(ctx, "mov eax, ecx");
+            break;
+        case BINOP_MUL:
+            emit_line(ctx, "imul eax, ecx");
+            break;
+        default:
+            error("Unsupported binary operator: %s", token_type_name(op));
+    }
+}

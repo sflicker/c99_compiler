@@ -6,6 +6,8 @@
 #include "emitter.h"
 #include "emitter_context.h"
 #include "emitter_helpers.h"
+#include "emit_address.h"
+#include "emit_expression.h"
 #include "error.h"
 #include "symbol.h"
 
@@ -79,7 +81,7 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
         }
         case AST_UNARY_EXPR:
             if (node->unary.op == UNARY_DEREF) {
-                emit_expr(ctx, node->unary.operand);
+                emit_expr(ctx, node->unary.operand, WANT_VALUE);
             }
             else {
                 error("Unsupported unary operator in emit_addr");
@@ -107,10 +109,10 @@ void emit_array_access_addr(EmitterContext * ctx, ASTNode * node) {
     CType * base_type = node->array_access.base->ctype;
 
     emit_line(ctx, "; emitting array base");
-    emit_expr(ctx, node->array_access.base);
+    emit_expr(ctx, node->array_access.base, WANT_VALUE);
 
     emit_line(ctx, "; emitting array index");
-    emit_expr(ctx, node->array_access.index);
+    emit_expr(ctx, node->array_access.index, WANT_VALUE);
 
     if (base_type->kind == CTYPE_PTR) {
         emit_pointer_arithmetic(ctx, node->array_access.base->ctype);
