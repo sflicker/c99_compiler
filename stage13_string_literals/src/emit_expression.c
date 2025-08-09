@@ -657,19 +657,19 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             break;
         }
         case UNARY_DEREF: {
-            emit_expr(ctx, node->unary.operand, WANT_ADDRESS);
+            emit_expr(ctx, node->unary.operand, WANT_VALUE);
 //            emit_line(ctx, "pop rax");
-            emit_pop(ctx, "rcx");
+            emit_pop(ctx, "rax");
 
             if (node->ctype->kind == CTYPE_CHAR) {
-                emit_line(ctx, "movzx eax, BYTE [rcx]");
+                emit_line(ctx, "movzx eax, BYTE [rax]");
             } else if (node->ctype->kind == CTYPE_SHORT) {
-                emit_line(ctx, "movzx eax, WORD [rcx]");
+                emit_line(ctx, "movzx eax, WORD [rax]");
             } else if (node->ctype->kind == CTYPE_INT) {
-                emit_line(ctx, "mov eax, [rcx]");
+                emit_line(ctx, "mov eax, [rax]");
             }
             else if (node->ctype->kind == CTYPE_LONG) {
-                emit_line(ctx, "mov rax, [rcx]");
+                emit_line(ctx, "mov rax, [rax]");
             }
 //            emit_line(ctx, "push rax");
             if (mode == WANT_VALUE) {
