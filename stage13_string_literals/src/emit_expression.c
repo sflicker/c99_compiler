@@ -170,12 +170,12 @@ INTERNAL void emit_binary_add_expr(EmitterContext * ctx, ASTNode * node, EvalMod
     CType *rhs_type = node->binary.rhs->ctype;
 
     if (lhs_type->kind == CTYPE_PTR && is_integer_type(rhs_type)) {
-        int elem_size = sizeof_type(rhs_type);
+        int elem_size = sizeof_type(lhs_type->base_type);
         emit_line(ctx, "imul rcx, %d", elem_size);
         emit_line(ctx, "add rax, rcx");
     }
     else if (is_integer_type(lhs_type) && rhs_type->kind == CTYPE_PTR) {
-        int elem_size = sizeof_type(lhs_type);
+        int elem_size = sizeof_type(rhs_type->base_type);
         emit_line(ctx, "imul rax, %d", elem_size);
         emit_line(ctx, "add rax, rcx");
     }
