@@ -1,0 +1,306 @@
+//
+// Created by scott on 7/31/25.
+//
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <string.h>
+#include <assert.h>
+#include "list_util.h"
+#include "c_type.h"
+#include "ast.h"
+#include "emitter.h"
+
+#include "token.h"
+#include "util.h"
+#include "error.h"
+#include "emitter_context.h"
+#include "emit_extensions.h"
+#include "symbol.h"
+#include "emitter_helpers.h"
+
+char * escaped_string(const char * s) {
+    size_t len = strlen(s);
+    char *output = malloc(len * 4 + 3);  // over allocate
+    char *out = output;
+
+    *out++ = '"';           // start with quote
+    for (const char * p = s; *p; p++) {
+        unsigned char c = (unsigned char) *p;
+        switch (c) {
+            case '\n': *out++ = '\\'; *out++ = 'n'; break;
+            case '\r': *out++ = '\\'; *out++ = 'r'; break;
+            case '\t': *out++ = '\\'; *out++ = 't'; break;
+            case '\\': *out++ = '\\'; *out++ = '\\'; break;
+            case '\"': *out++ = '\\'; *out++ = '\"'; break;
+            default:
+                if (c < 32 || c >= 127) {
+                    sprintf(out, "\\x%02x", c);
+                    out += 4;
+                } else {
+                    *out++ = c;
+                }
+        }
+    }
+
+    *out++ = '"';    // closing quote
+    *out = '\0';
+    return output;
+}
+
+void emit_load_from(EmitterContext * ctx, CType * t, const char * reg) {
+    switch (t->kind) {
+        case CTYPE_CHAR:
+            emit_line(ctx, "movsx eax, byte [%s]", reg);
+            break;
+        case CTYPE_SHORT:
+            emit_line(ctx, "movsx eax, word [%s]", reg);
+            break;
+        case CTYPE_INT:
+            emit_line(ctx, "mov eax, [%s]", reg);
+            break;
+        case CTYPE_LONG:
+        case CTYPE_PTR:
+            emit_line(ctx, "mov rax, [%s]", reg);
+            break;
+        default: error("Unsupported type %s for load from ");
+    }
+}
+
+void emit_store_to(EmitterContext * ctx, CType * t, const char * addr_reg, const char * value_reg) {
+    switch (t->kind) {
+        case CTYPE_CHAR:
+            emit_line(ctx, "mov byte [%s], %s", addr_reg, value_reg);
+            break;
+        case CTYPE_SHORT:
+            emit_line(ctx, "mov word [%s], %s", addr_reg, value_reg);
+            break;
+        case CTYPE_INT:
+            emit_line(ctx, "mov dword [%s], %s", addr_reg, value_reg);
+            break;
+        case CTYPE_LONG:
+            emit_line(ctx, "mov qword [%s], %s", addr_reg, value_reg);
+            break;
+        default:
+            error("Unsupported type in emit_store_to: %d", t->kind);
+    }
+}
+
+
+
+const char * reg_for_type(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "al";
+        case CTYPE_SHORT: return "ax";
+        case CTYPE_INT: return "eax";
+        case CTYPE_LONG: return "rax";
+        case CTYPE_PTR: return "rax";
+        default: error("Unsupported type");
+    }
+    return NULL;
+}
+
+const char * mem_size_for_type(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "BYTE";
+        case CTYPE_SHORT: return "WORD";
+        case CTYPE_INT: return "DWORD";
+        case CTYPE_LONG: return "QWORD";
+        case CTYPE_PTR:  return "QWORD";
+        default:
+            error("Unsupported type");
+    }
+    return NULL;
+}
+
+void emit_line(EmitterContext * ctx, const char* fmt, ...) {
+    va_list args;
+
+    // --- 1. Write to the file
+    va_start(args, fmt);
+    vfprintf(ctx->out, fmt, args);
+    va_end(args);
+    fputc('\n', ctx->out);
+
+    // --- 2. Echo to stdout (re-initialize args)
+    va_start(args, fmt);
+    vfprintf(stdout, fmt, args);
+    va_end(args);
+    fputc('\n', stdout);
+}
+
+char * make_label_text(const char * prefix, int num) {
+    size_t buffer_size = strlen(prefix) + 20;
+    char * label = malloc(buffer_size);
+    snprintf(label, buffer_size, "%s%d", prefix, num);
+    return label;
+}
+
+void emit_label(EmitterContext * ctx, const char * prefix, int num) {
+    emit_line(ctx, "L%s%d:", prefix, num);
+}
+
+void emit_label_from_text(EmitterContext *ctx, const char * label) {
+    emit_line(ctx, "L%s:", label);
+}
+
+char * get_data_directive(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR:   return "db";
+        case CTYPE_SHORT:  return "dw";
+        case CTYPE_INT:    return "dd";
+        case CTYPE_LONG:   return "dq";
+        case CTYPE_PTR:    return "dq";
+        case CTYPE_ARRAY:  return get_data_directive(ctype->base_type);
+        default:
+            error("Unsupported data type for data directive: %s", ctype->kind);
+    }
+    return NULL;
+}
+
+char * get_reservation_directive(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "resb";
+        case CTYPE_SHORT: return "resw";
+        case CTYPE_INT: return "resd";
+        case CTYPE_LONG: return "resq";
+        case CTYPE_PTR: return "resq";
+        case CTYPE_ARRAY: return get_reservation_directive(ctype->base_type);
+        default:
+            error("Unsupported data type");
+    }
+    return NULL;
+}
+
+void strip_comments(char *src, char *dst) {
+    while (*src) {
+        // Skip leading whitespace to peek at first non-whitespace
+        char *line_start = src;
+        while (*src == ' ' || *src == '\t') src++;
+
+        if (*src == ';') {
+            // full line comment: skip to end of line
+            while (*src && *src != '\n') src++;
+            if (*src == '\n') src++;  // skip newline too
+            continue;
+        }
+
+        // copy line while stripping inline comments and trailing spaces before ;
+        while (*line_start && *line_start != '\n') {
+            if (*line_start == ';') {
+                // backtrack over spaces in dst
+                while (dst > src && (dst[-1] == ' ' || dst[-1] == '\t'))
+                    dst--;
+                // skip to end of line
+                while (*line_start && *line_start != '\n') line_start++;
+                break;
+            } else {
+                *dst++ = *line_start++;
+            }
+        }
+
+        // copy newline if present
+        if (*line_start == '\n') {
+            *dst++ = *line_start++;
+        }
+
+        src = line_start;
+    }
+
+    *dst = '\0';
+}
+
+void emit_push(EmitterContext * ctx, const char * reg) {
+    emit_line(ctx, "push %s          ; stack += 8 (depth now %d)", reg, ctx->stack_depth + 8);
+    ctx->stack_depth += 8;
+}
+void emit_pop(EmitterContext * ctx, const char * reg) {
+    emit_line(ctx, "pop %s           ; stack -= 8 (depth now %d)", reg, ctx->stack_depth - 8);
+    ctx->stack_depth -= 8;
+
+}
+void emit_add_rsp(EmitterContext * ctx, int amount) {
+    emit_line(ctx, "add rsp, %d    ; stack -= %d (depth now %d)", amount, amount, ctx->stack_depth - amount);
+    ctx->stack_depth -= amount;
+}
+void emit_sub_rsp(EmitterContext * ctx, int amount) {
+    emit_line(ctx, "sub rsp, %d    ; stack += %d (depth now %d)", amount, amount, ctx->stack_depth + amount);
+    ctx->stack_depth += amount;
+}
+
+void emit_leave(EmitterContext *ctx) {
+    emit_line(ctx, "leave      ; restore rbp; stack -= 8 (depth now %d)", ctx->stack_depth - 8);
+    ctx->stack_depth -= 8;
+}
+
+void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type) {
+    emit_line(ctx, "; emitting pointer arithmetic");
+    int size = c_type->base_type ? c_type->base_type->size : 1;
+    emit_pop(ctx, "rcx");     // offset
+    emit_pop(ctx, "rax");     // base
+    if (size >= 1) {
+        emit_line(ctx, "imul rcx, %d", size);
+    }
+    emit_line(ctx, "add rax, rcx");
+    emit_push(ctx, "rax");
+}
+
+void emit_binary_op(EmitterContext * ctx, BinaryOperator op) {
+    switch(op) {
+        case BINOP_ADD:
+            emit_line(ctx, "add eax, ecx");
+            break;
+        case BINOP_SUB:
+            emit_line(ctx, "sub ecx, eax");
+            emit_line(ctx, "mov eax, ecx");
+            break;
+        case BINOP_MUL:
+            emit_line(ctx, "imul eax, ecx");
+            break;
+        default:
+            error("Unsupported binary operator: %s", token_type_name(op));
+    }
+}
+
+void emit_string_literal(EmitterContext * ctx, const char * label, const char * literal) {
+    size_t literal_len = strlen(literal);
+    char buffer[1024];
+    buffer[0] = '\0';
+    int written = snprintf(buffer, 1024, "%s: db ", label);
+    bool in_quotes = false;
+    for (int i = 0; i < literal_len; i++) {
+        char c = literal[i];
+
+        bool printable = (c >= 32 && c <= 126 && c != '"');
+
+        if (printable) {
+            if (!in_quotes) {
+                if (i > 0) {
+                    written += snprintf(buffer + written, 1024 - written, ", ");
+                }
+                written += snprintf(buffer + written, 1024 - written, "\"");
+                in_quotes = true;
+            }
+            written += snprintf(buffer + written, 1024 - written, "%c", c);
+        } else {
+            if (in_quotes) {
+                written += snprintf(buffer + written, 1024 - written, "\"");
+                in_quotes = false;
+            }
+            if (i > 0) {
+                written += snprintf(buffer + written, 1024 - written, ", ");
+            }
+            written += snprintf(buffer + written, 1024 - written, "%u", c);
+        }
+    }
+
+    if (in_quotes) {
+        written += snprintf(buffer + written, 1024 - written, "\"");
+    }
+
+    written += snprintf(buffer + written, 1024 - written, ", 0");
+    emit_line(ctx, "%s", buffer);
+}
