@@ -264,3 +264,43 @@ void emit_binary_op(EmitterContext * ctx, BinaryOperator op) {
             error("Unsupported binary operator: %s", token_type_name(op));
     }
 }
+
+void emit_string_literal(EmitterContext * ctx, const char * label, const char * literal) {
+    size_t literal_len = strlen(literal);
+    char buffer[1024];
+    buffer[0] = '\0';
+    int written = snprintf(buffer, 1024, "%s: db ", label);
+    bool in_quotes = false;
+    for (int i = 0; i < literal_len; i++) {
+        char c = literal[i];
+
+        bool printable = (c >= 32 && c <= 126 && c != '"');
+
+        if (printable) {
+            if (!in_quotes) {
+                if (i > 0) {
+                    written += snprintf(buffer + written, 1024 - written, ", ");
+                }
+                written += snprintf(buffer + written, 1024 - written, "\"");
+                in_quotes = true;
+            }
+            written += snprintf(buffer + written, 1024 - written, "%c", c);
+        } else {
+            if (in_quotes) {
+                written += snprintf(buffer + written, 1024 - written, "\"");
+                in_quotes = false;
+            }
+            if (i > 0) {
+                written += snprintf(buffer + written, 1024 - written, ", ");
+            }
+            written += snprintf(buffer + written, 1024 - written, "%u", c);
+        }
+    }
+
+    if (in_quotes) {
+        written += snprintf(buffer + written, 1024 - written, "\"");
+    }
+
+    written += snprintf(buffer + written, 1024 - written, ", 0");
+    emit_line(ctx, "%s", buffer);
+}

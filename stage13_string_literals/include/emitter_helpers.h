@@ -31,4 +31,6 @@ void emit_leave(EmitterContext *ctx);
 void emit_pointer_arithmetic(EmitterContext * ctx, CType * c_type);
 void emit_binary_op(EmitterContext * ctx, BinaryOperator op);
 
+void emit_string_literal(EmitterContext * ctx, const char * label, const char * literal);
+
 #endif //EMITTER_HELPERS_H

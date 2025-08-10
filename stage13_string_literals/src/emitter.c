@@ -40,7 +40,8 @@ void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals) {
 
     for (ASTNode_list_node * n = string_literals->head; n; n = n->next) {
         ASTNode * str_literal = n->value;
-        emit_line(ctx, "%s: db %s, 0", str_literal->string_literal.label, escaped_string(str_literal->string_literal.value));
+        emit_string_literal(ctx, str_literal->string_literal.label, str_literal->string_literal.value);
+//        emit_line(ctx, "%s: db %s, 0", str_literal->string_literal.label, escaped_string(str_literal->string_literal.value));
     }
 }
 
@@ -83,7 +84,15 @@ void emit_jump_from_text(EmitterContext * ctx, const char * op, const char * lab
     emit_line(ctx, "%s L%s", op, label);
 }
 
-
+char * get_string_literal_label(ASTNode* node, char * literal) {
+    for (ASTNode_list_node * n = node->translation_unit.string_literals->head; n; n = n->next) {
+        ASTNode * str_literal = n->value;
+        if (strcmp(str_literal->string_literal.value, literal) == 0) {
+            return str_literal->string_literal.label;
+        }
+    }
+    return "\0";
+}
 
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     emit_data_section_header(ctx);
@@ -127,6 +136,10 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
                 // global_var->ctype->array_len < global_var->var_decl.init_expr ? 1 : 0;
                 // for (int i=0;global_var->)
             }
+            else if (is_pointer_type(global_var->ctype) && global_var->ctype->base_type->kind == CTYPE_CHAR ) {
+                char * literal_label = get_string_literal_label(node, global_var->var_decl.init_expr->string_literal.value);
+                emit_line(ctx, "%s: %s %s", global_var->var_decl.name, data_directive, literal_label);
+            }
             else {
                 emit_line(ctx, "%s: %s %d", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->int_value);
             }
@@ -150,11 +163,6 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     }
     emit_rodata(ctx, node->translation_unit.string_literals);
 }
-
-
-
-
-
 
 void emit_if_statement(EmitterContext * ctx, ASTNode * node) {
     int id = get_label_id(ctx);
