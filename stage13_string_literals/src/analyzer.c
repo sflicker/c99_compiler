@@ -146,7 +146,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                     }
                     CType * param_type = Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype;
                     if (!ctype_equal_or_compatible( param_type, arg_type)) {
-                        error("Type mismatch for function %s", node->function_call.name);
+                        warning("Type mismatch for function %s", node->function_call.name);
                         return;
                     }
 

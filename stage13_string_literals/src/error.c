@@ -34,9 +34,13 @@ void error(const char* fmt, ...) {
 
     error_flag = true;
 
+    error_message_buf[0] = '\0';
+    int written = snprintf(error_message_buf, 1024, "ERROR: ");
+
     // --- 1. Write error message to buffer
     va_start(args, fmt);
-    vsnprintf(error_message_buf, 1024, fmt, args);
+
+    written += vsnprintf(error_message_buf+written, 1024-written, fmt, args);
     va_end(args);
 
     fprintf(stderr, "%s\n", error_message_buf);
@@ -45,4 +49,20 @@ void error(const char* fmt, ...) {
     if (exit_on_error) {
         exit(1);
     }
+}
+
+void warning(const char* fmt, ...) {
+    va_list args;
+
+    error_message_buf[0] = '\0';
+    int written = snprintf(error_message_buf, 1024, "WARNING: ");
+
+    // --- 1. Write error message to buffer
+    va_start(args, fmt);
+    written += vsnprintf(error_message_buf+written, 1024-written, fmt, args);
+    va_end(args);
+
+    fprintf(stderr, "%s\n", error_message_buf);
+    fprintf(stdout, "%s\n", error_message_buf);
+
 }
