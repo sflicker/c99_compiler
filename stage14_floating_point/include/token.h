@@ -8,6 +8,8 @@ typedef enum {
     TOKEN_CHAR,
     TOKEN_SHORT,
     TOKEN_LONG,
+    TOKEN_FLOAT,
+    TOKEN_DOUBLE,
     TOKEN_RETURN,
     TOKEN_IF,
     TOKEN_ELSE,
