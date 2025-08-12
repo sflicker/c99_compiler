@@ -93,6 +93,8 @@ const char * token_type_name(TokenType type) {
         case TOKEN_CHAR: return "CHAR";
         case TOKEN_SHORT: return "SHORT";
         case TOKEN_LONG: return "LONG";
+        case TOKEN_FLOAT: return "FLOAT";
+        case TOKEN_DOUBLE: return "DOUBLE";
         case TOKEN_RETURN: return "RETURN";
         case TOKEN_WHILE: return "WHILE";
         case TOKEN_FOR: return "FOR";
