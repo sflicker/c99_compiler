@@ -68,7 +68,7 @@ foreach(ASM_FILE ${ASM_FILES})
 
     # Define the object file name in the build directory
     set(ASM_OBJ ${CMAKE_BINARY_DIR}/${ASM_NAME}.o
-            include/string_builder.h)
+         )
 
     # Custom command to assemble .asm → .o
     add_custom_command(
