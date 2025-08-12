@@ -235,7 +235,7 @@ tokenlist * tokenize(const char * text) {
         else if (isdigit(ctx->curr_char)) {
             tokenize_number(ctx, tokens, true);
         }
-        else if (ctx->curr_char == '.' && isdigit(ctx->next_char)) {
+        else if (ctx->curr_char == '.' || isdigit(ctx->next_char)) {
             tokenize_number(ctx, tokens, false);
         }
         else if ((matched_tok = match_two_char_operator(ctx, ctx->curr_char, ctx->next_char)) != NULL) {

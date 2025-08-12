@@ -117,7 +117,7 @@ void add_eof_token(tokenlist * tokens, int line, int col) {
     add_token(tokens, eofToken);
 }
 
-void tokenize_number(TokenizerContext * ctx, tokenlist * tokens) {
+void tokenize_number(TokenizerContext * ctx, tokenlist * tokens, bool leading_digit_present) {
     char buffer[128];
     int i=0;
     int line = ctx->line;
@@ -233,7 +233,10 @@ tokenlist * tokenize(const char * text) {
 
         }
         else if (isdigit(ctx->curr_char)) {
-            tokenize_number(ctx, tokens);
+            tokenize_number(ctx, tokens, true);
+        }
+        else if (ctx->curr_char == '.' || isdigit(ctx->next_char)) {
+            tokenize_number(ctx, tokens, false);
         }
         else if ((matched_tok = match_two_char_operator(ctx, ctx->curr_char, ctx->next_char)) != NULL) {
             add_token(tokens, matched_tok);
