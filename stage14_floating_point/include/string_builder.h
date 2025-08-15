@@ -6,7 +6,6 @@
 #define _STRING_BUILDER_H
 #include <stddef.h>
 
-int DEFAULT_CAPACITY = 128;
 
 typedef struct String_Builder{
     char * buffer;

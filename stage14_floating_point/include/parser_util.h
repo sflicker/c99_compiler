@@ -18,6 +18,7 @@ ASTNode * create_switch_statement(ASTNode * expr, ASTNode * stmt);
 ASTNode * create_break_statement_node();
 ASTNode * create_continue_statement_node();
 ASTNode * create_int_literal_node(int value);
+ASTNode * create_float_literal_node(float value);
 ASTNode * create_function_call_node(const char * name, ASTNode_list * args);
 ASTNode * create_var_ref_node(const char * name);
 ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_expr);

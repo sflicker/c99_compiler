@@ -35,7 +35,7 @@
 
    <parameter_declaration> ::= <type-specifier> <identifier>                        
 
-   <type-specifier> ::= "char" | "short" | "int" | "long"
+   <type-specifier> ::= "char" | "short" | "int" | "long" | "float" | "double"
 
    <type_name> ::= <type_specifier> { <abstract_declarator> }
 
@@ -418,6 +418,8 @@ CType * parse_type_specifier(ParserContext * ctx) {
         case TOKEN_CHAR: advance_parser(ctx); return &CTYPE_CHAR_T;
         case TOKEN_SHORT: advance_parser(ctx); return &CTYPE_SHORT_T;
         case TOKEN_LONG: advance_parser(ctx); return &CTYPE_LONG_T;
+        case TOKEN_FLOAT: advance_parser(ctx); return &CTYPE_FLOAT_T;
+        case TOKEN_DOUBLE: advance_parser(ctx); return &CTYPE_DOUBLE_T;
         default: error("Invalid Type - %s", token_type_name(type)); return NULL;
     }
 }
@@ -454,6 +456,8 @@ ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, c
             initializer_expr = parse_expression(parserContext);
         }
     }
+
+    // TODO. FIX - THIS IS BROKEN IF COMMA IS NEXT INSTEAD OF SEMICOLON
     expect_token(parserContext, TOKEN_SEMICOLON);
 
     ASTNode * node = create_var_decl_node(id, ctype, initializer_expr);
@@ -1039,6 +1043,12 @@ ASTNode * parse_primary(ParserContext * parserContext) {
         Token * tok = peek(parserContext);
         advance_parser(parserContext);
         ASTNode * node = create_int_literal_node(tok->int_value);
+        return node;
+    }
+    if (is_current_token(parserContext, TOKEN_FLOAT_LITERAL)) {
+        Token * tok = peek(parserContext);
+        advance_parser(parserContext);
+        ASTNode * node = create_float_literal_node(tok->float_value);
         return node;
     }
     // handle paren blocks

@@ -95,7 +95,9 @@ bool is_current_token_a_ctype(ParserContext * parserContext) {
     return is_current_token(parserContext, TOKEN_INT) ||
         is_current_token(parserContext, TOKEN_CHAR) ||
         is_current_token(parserContext, TOKEN_SHORT) ||
-        is_current_token(parserContext, TOKEN_LONG);
+        is_current_token(parserContext, TOKEN_LONG) ||
+        is_current_token(parserContext, TOKEN_FLOAT) ||
+        is_current_token(parserContext, TOKEN_DOUBLE);
 }
 
 bool is_next_token_a_ctype(ParserContext * parserContext) {
@@ -103,7 +105,9 @@ bool is_next_token_a_ctype(ParserContext * parserContext) {
     return is_next_token(parserContext, TOKEN_INT) ||
         is_next_token(parserContext, TOKEN_CHAR) ||
         is_next_token(parserContext, TOKEN_SHORT) ||
-        is_next_token(parserContext, TOKEN_LONG);
+        is_next_token(parserContext, TOKEN_LONG) ||
+        is_next_token(parserContext, TOKEN_FLOAT) ||
+        is_next_token(parserContext, TOKEN_DOUBLE);
 }
 
 Token* expect_token(ParserContext * parserContext, TokenType expected) {

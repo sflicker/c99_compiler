@@ -26,6 +26,8 @@ typedef enum {
     TOKEN_PRINT_EXTENSION,
     TOKEN_IDENTIFIER,
     TOKEN_INT_LITERAL,
+    TOKEN_FLOAT_LITERAL,
+    TOKEN_DOUBLE_LITERAL,
     TOKEN_LPAREN,
     TOKEN_RPAREN,
     TOKEN_LBRACE,
@@ -64,6 +66,8 @@ typedef struct {
     char * text;
     int length;
     int int_value;
+    float float_value;
+    double double_value;
     int line;
     int col;
 } Token;
@@ -77,6 +81,8 @@ void cleanup_token_list(tokenlist * tokenList);
 void add_token(tokenlist * list, Token * token);
 Token * make_token(TokenType type, const char * text, int line, int col);
 Token * make_int_token(char * numberText, int line, int col);
+Token * make_float_token(char * numberText, int line, int col);
+Token * make_double_token(char * numberText, int line, int col);
 Token * make_eof_token(int line, int col);
 Token * make_identifier_token(const char * id, int line, int col);
 Token * make_string_literal_token(char * buf, int line, int col);

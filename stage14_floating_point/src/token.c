@@ -40,6 +40,36 @@ Token * make_int_token(char * numberText, int line, int col) {
     return token;
 }
 
+Token * make_float_token(char * numberText, int line, int col) {
+    Token * token = malloc(sizeof(Token));
+    token->type = TOKEN_FLOAT_LITERAL;
+    int numberTextLen = strlen(numberText);
+    char * numberTextCopy = malloc(numberTextLen + 1);
+    memcpy(numberTextCopy, numberText, numberTextLen);
+    numberTextCopy[numberTextLen] = '\0';
+    token->text = numberTextCopy;
+    token->length = numberTextLen;
+    token->float_value = strtof(numberText, NULL);
+    token->line = line;
+    token->col = col;
+    return token;
+}
+
+Token * make_double_token(char * numberText, int line, int col) {
+    Token * token = malloc(sizeof(Token));
+    token->type = TOKEN_DOUBLE_LITERAL;
+    int numberTextLen = strlen(numberText);
+    char * numberTextCopy = malloc(numberTextLen + 1);
+    memcpy(numberTextCopy, numberText, numberTextLen);
+    numberTextCopy[numberTextLen] = '\0';
+    token->text = numberTextCopy;
+    token->length = numberTextLen;
+    token->double_value = strtof(numberText, NULL);
+    token->line = line;
+    token->col = col;
+    return token;
+}
+
 Token * make_identifier_token(const char * id, int line, int col) {
     Token * token = malloc(sizeof(Token));
     token->type = TOKEN_IDENTIFIER;
@@ -105,6 +135,8 @@ const char * token_type_name(TokenType type) {
         case TOKEN_DEFAULT: return "DEFAULT";
         case TOKEN_IDENTIFIER: return "IDENTIFIER";
         case TOKEN_INT_LITERAL: return "LITERAL_INT";
+        case TOKEN_FLOAT_LITERAL: return "FLOAT_LITERAL";
+        case TOKEN_DOUBLE_LITERAL: return "DOUBLE_LITERAL";
         case TOKEN_LPAREN: return "LPAREN";
         case TOKEN_RPAREN: return "RPAREN";
         case TOKEN_LBRACE: return "LBRACE";

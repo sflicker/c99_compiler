@@ -216,6 +216,15 @@ ASTNode * create_int_literal_node(int value) {
     return node;
 }
 
+ASTNode * create_float_literal_node(float value) {
+    ASTNode * node = create_ast();
+    node->type = AST_FLOAT_LITERAL;
+    node->int_value = value;
+    node->ctype = &CTYPE_FLOAT_T;
+    node->symbol = NULL;
+    return node;
+}
+
 ASTNode * create_function_declaration_node(const char * name, CType * func_type,
         ASTNode_list * param_list, ASTNode * body, bool declaration_only) {
     ASTNode * func = create_ast();

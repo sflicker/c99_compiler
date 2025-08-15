@@ -44,6 +44,24 @@ CType CTYPE_LONG_T = {
     .array_len = 0
 };
 
+CType CTYPE_FLOAT_T = {
+    .kind = CTYPE_FLOAT,
+    .base_type = NULL,
+    .size = 4,
+    .is_signed = 1,
+    .rank = RANK_FLOAT,
+    .array_len = 0
+};
+
+CType CTYPE_DOUBLE_T = {
+    .kind = CTYPE_DOUBLE,
+    .base_type = NULL,
+    .size = 8,
+    .is_signed = 1,
+    .rank = RANK_DOUBLE,
+    .array_len = 0
+};
+
 CType * make_type() {
     return calloc(1, sizeof(CType));
 }
@@ -79,6 +97,24 @@ CType * make_long_type(bool is_signed) {
     CType * t = make_type();
     t->is_signed = is_signed;
     t->kind = CTYPE_LONG;
+    t->size = 8;
+    print_c_type(t, 0);
+    return t;
+}
+
+CType * make_float_type(bool is_signed) {
+    CType * t = make_type();
+    t->is_signed = is_signed;
+    t->kind = CTYPE_FLOAT;
+    t->size = 8;
+    print_c_type(t, 0);
+    return t;
+}
+
+CType * make_double_type(bool is_signed) {
+    CType * t = make_type();
+    t->is_signed = is_signed;
+    t->kind = CTYPE_DOUBLE;
     t->size = 8;
     print_c_type(t, 0);
     return t;
@@ -144,6 +180,12 @@ void ctype_to_description(CType * ctype, char * buf, size_t buflen) {
         case CTYPE_LONG:
             strncat(buf, "long", buflen - strlen(buf) - 1);
             break;
+        case CTYPE_FLOAT:
+            strncat(buf, "float", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_DOUBLE:
+            strncat(buf, "double", buflen - strlen(buf) - 1);
+            break;
         case CTYPE_PTR: {
             ctype_to_description(ctype->base_type, inner, 128);
 
@@ -187,6 +229,12 @@ void ctype_to_cdecl(CType * ctype, char * buf, size_t buflen) {
             break;
         case CTYPE_LONG:
             strncat(buf, "long", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_FLOAT:
+            strncat(buf, "float", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_DOUBLE:
+            strncat(buf, "double", buflen - strlen(buf) - 1);
             break;
         case CTYPE_PTR: {
             char inner[64];
@@ -321,6 +369,8 @@ char * c_type_kind_to_string(CTypeKind kind) {
         case CTYPE_SHORT: return "SHORT_T";
         case CTYPE_INT: return "INT_T";
         case CTYPE_LONG: return "LONG_T";
+        case CTYPE_FLOAT: return "FLOAT_T";
+        case CTYPE_DOUBLE: return "DOUBLE_T";
         case CTYPE_PTR: return "PTR_T";
         case CTYPE_ARRAY: return "ARRAY_T";
         case CTYPE_FUNCTION: return "FUNCTION_T";
@@ -334,6 +384,8 @@ int sizeof_type(CType * ctype) {
         case CTYPE_SHORT:    return 2;
         case CTYPE_INT:      return 4;
         case CTYPE_LONG:     return 8;
+        case CTYPE_FLOAT:    return 4;
+        case CTYPE_DOUBLE:   return 8;
         case CTYPE_PTR:      return 8;
         case CTYPE_ARRAY:    return ctype->array_len * sizeof_type(ctype->base_type);
         case CTYPE_FUNCTION: error("Cannot apply sizeof to function type"); return 0;
@@ -347,6 +399,8 @@ int sizeof_basetype(CType * ctype) {
         case CTYPE_SHORT:    return 2;
         case CTYPE_INT:      return 4;
         case CTYPE_LONG:     return 8;
+        case CTYPE_FLOAT:    return 4;
+        case CTYPE_DOUBLE:   return 8;
         case CTYPE_PTR:      return 8;
         case CTYPE_ARRAY:    return sizeof_basetype(ctype->base_type);
         case CTYPE_FUNCTION: error("Cannot apply sizeof to function type"); return 0;

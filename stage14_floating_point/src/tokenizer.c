@@ -11,6 +11,7 @@
 #include "tokenizer_context.h"
 #include "util.h"
 #include "error.h"
+#include "string_builder.h"
 
 typedef struct {
     const char* text;
@@ -22,6 +23,8 @@ TokenMapEntry keyword_map[] = {
     { "char", TOKEN_CHAR },
     { "short", TOKEN_SHORT },
     { "long", TOKEN_LONG },
+    {"float", TOKEN_FLOAT},
+    {"double", TOKEN_DOUBLE},
     { "return", TOKEN_RETURN },
     { "if", TOKEN_IF },
     { "else", TOKEN_ELSE },
@@ -118,16 +121,71 @@ void add_eof_token(tokenlist * tokens, int line, int col) {
 }
 
 void tokenize_number(TokenizerContext * ctx, tokenlist * tokens, bool leading_digit_present) {
-    char buffer[128];
-    int i=0;
+
+    String_Builder * string_builder = create_string_builder();
+
+//    char buffer[128];
+    //int i=0;
     int line = ctx->line;
     int col = ctx->col;
-    while(isdigit(ctx->curr_char)) {
-        buffer[i++] = ctx->curr_char;
-        advance(ctx);
+    bool is_floating_point = false;
+    bool is_double = false;
+
+    // main number
+    if (leading_digit_present) {
+        while(isdigit(ctx->curr_char)) {
+            append_char(string_builder, ctx->curr_char);
+            //        buffer[i++] = ctx->curr_char;
+            advance(ctx);
+        }
     }
-    buffer[i++] = '\0';
-    add_token(tokens, make_int_token(buffer, line, col));
+    // match dot for floating point
+    if (ctx->curr_char == '.') {
+        append_char(string_builder, ctx->curr_char);
+        advance(ctx);
+        is_floating_point = true;
+        while(isdigit(ctx->curr_char)) {
+            append_char(string_builder, ctx->curr_char);
+            advance(ctx);
+        }
+    }
+    // optional exponent
+    if (ctx->curr_char == 'e' || ctx->curr_char == 'E') {
+        is_floating_point = true;
+        append_char(string_builder, ctx->curr_char);
+        advance(ctx);
+        if (ctx->curr_char == '+' || ctx->curr_char == '-') {
+            append_char(string_builder, ctx->curr_char);
+            advance(ctx);
+            while(isdigit(ctx->curr_char)) {
+                append_char(string_builder, ctx->curr_char);
+                advance(ctx);
+            }
+        }
+    }
+
+    // suffix
+    if (is_floating_point) {
+        if (ctx->curr_char == 'f' || ctx->curr_char == 'F') {
+            advance(ctx);
+        } else {
+            is_double = true;
+        }
+    }
+
+    // build proper number token
+    //
+    char * num_str = build_string(string_builder);
+//    buffer[i++] = '\0';
+    if (is_floating_point) {
+        if (is_double) {
+            add_token(tokens, make_double_token(num_str, line, col));
+        } else {
+            add_token(tokens, make_float_token(num_str, line, col));
+        }
+    } else {
+        add_token(tokens, make_int_token(num_str, line, col));
+    }
 
 }
 
@@ -235,7 +293,7 @@ tokenlist * tokenize(const char * text) {
         else if (isdigit(ctx->curr_char)) {
             tokenize_number(ctx, tokens, true);
         }
-        else if (ctx->curr_char == '.' || isdigit(ctx->next_char)) {
+        else if (ctx->curr_char == '.' && isdigit(ctx->next_char)) {
             tokenize_number(ctx, tokens, false);
         }
         else if ((matched_tok = match_two_char_operator(ctx, ctx->curr_char, ctx->next_char)) != NULL) {

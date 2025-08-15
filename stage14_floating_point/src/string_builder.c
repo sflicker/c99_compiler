@@ -1,13 +1,16 @@
 
-#include "string_builder.h"
 
 #include <stdlib.h>
 #include <string.h>
 
+#include "string_builder.h"
+
+int STRING_BUILDER_DEFAULT_CAPACITY = 128;
+
 String_Builder * create_string_builder() {
     String_Builder * builder = (String_Builder *)malloc(sizeof(String_Builder));
     builder->length = 0;
-    builder->capacity = DEFAULT_CAPACITY;
+    builder->capacity = STRING_BUILDER_DEFAULT_CAPACITY;
     builder->buffer = (char *)malloc(builder->capacity);
     memset(builder->buffer, 0, builder->capacity);
     return builder;
