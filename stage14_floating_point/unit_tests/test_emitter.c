@@ -9,6 +9,7 @@
 #include "tokenizer.h"
 #include "analyzer.h"
 #include "parser.h"
+#include "parse_expression.h"
 #include "parser_context.h"
 #include "parser_util.h"
 #include "ast_printer.h"
