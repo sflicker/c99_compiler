@@ -32,13 +32,11 @@ ASTNode * parse_return_statement(ParserContext * parserContext);
 ASTNode * parse_block(ParserContext* parserContext);
 ASTNode * parse_if_statement(ParserContext * parserContext);
 ASTNode * parse_expression_statement(ParserContext * parserContext);
-ASTNode * parse_local_declaration(ParserContext * parserContext);
 ASTNode * parse_assignment_statement(ParserContext * parserContext);
 ASTNode * parse_while_statement(ParserContext * parserContext);
 ASTNode * parse_for_statement(ParserContext * parserContext);
 ASTNode * parse_assert_extension_statement(ParserContext * parserContext);
 ASTNode * parse_print_extension_statement(ParserContext * parserContext);
-ASTNode * parse_initializer_list(ParserContext * parserContext);
 
 ParamInfo_list * parse_parameter_type_list(ParserContext * ctx/*, ASTNode_list ** out_params*/);
 

@@ -172,3 +172,61 @@ ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, c
 
     return node;
 }
+
+ASTNode*  parse_local_declaration(ParserContext * parserContext) {
+    CType * base_type = parse_type_specifier(parserContext);
+    print_c_type(base_type, 0);
+
+    Declarator * declarator = make_declarator();
+    declarator->type = base_type;
+    //    char * name = NULL;
+    declarator = parse_declarator(parserContext, declarator/* , &name, NULL, NULL*/);
+    //const char * name = get_current_decl_name(parserContext);
+
+    return parse_declaration_tail(parserContext, declarator->type, declarator->name);
+    //    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
+    // ASTNode * init_expr = NULL;
+    // if (is_current_token(parserContext, TOKEN_ASSIGN)) {
+    //     advance_parser(parserContext);
+    //
+    //     if (is_current_token(parserContext, TOKEN_LBRACE)) {
+    //         init_expr = parse_initializer_list(parserContext);
+    //     }
+    //     else {
+    //         init_expr = parse_expression(parserContext);
+    //     }
+    // }
+    // expect_token(parserContext, TOKEN_SEMICOLON);
+    //
+    // ASTNode * node = create_var_decl_node(name, full_type, init_expr);
+    //
+    // return node;
+}
+
+ASTNode * parse_initializer_list(ParserContext * parserContext) {
+    expect_token(parserContext, TOKEN_LBRACE);
+
+    ASTNode_list * items = create_node_list();
+
+    while (!is_current_token(parserContext, TOKEN_RBRACE)) {
+        ASTNode * item = NULL;
+        if (is_current_token(parserContext, TOKEN_LBRACE)) {
+            item = parse_initializer_list(parserContext);
+        }
+        else {
+            item = parse_expression(parserContext);
+        }
+        ASTNode_list_append(items, item);
+
+        if (is_current_token(parserContext, TOKEN_COMMA)) {
+            advance_parser(parserContext);
+        }
+        else {
+            break;
+        }
+    }
+
+    expect_token(parserContext, TOKEN_RBRACE);
+
+    return create_initializer_list(items);
+}
