@@ -13,6 +13,7 @@
 #include "test_assert.h"
 #include "ast_printer.h"
 #include "parse_expression.h"
+#include "parse_declaration.h"
 #include "error.h"
 #include "parser_util.h"
 

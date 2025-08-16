@@ -18,6 +18,7 @@
 #include "c_type.h"
 #include "c_type_printer.h"
 #include "parse_expression.h"
+#include "parse_declaration.h"
 
 ////////////////////////////////////////////////////////////
 ////  EXPRESSIONS

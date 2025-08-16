@@ -13,6 +13,7 @@ include_directories(include)
 # Glob all source files in src/
 file(GLOB SRC_FILES src/*.c)
 set(MAIN_SRC src/main.c
+        src/parse_declaration.c
 )
 list(REMOVE_DUPLICATES SRC_FILES)
 
