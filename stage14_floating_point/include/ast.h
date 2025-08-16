@@ -80,6 +80,7 @@ typedef enum {
     AST_TRANSLATION_UNIT,
     AST_BLOCK_STMT,
     AST_EXPRESSION_STMT,
+    AST_DECLARATION_STMT,
     AST_VAR_DECL,
     AST_VAR_REF_EXPR,
     AST_BINARY_EXPR,
@@ -213,6 +214,10 @@ typedef struct ASTNode {
             ASTNode_list * items;
         } initializer_list;
 
+        struct {
+            CType * declaration_type;
+            ASTNode_list * init_declarator_list;
+        } declaration;
     };
 } ASTNode;
 

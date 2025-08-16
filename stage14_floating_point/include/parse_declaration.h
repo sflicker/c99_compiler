@@ -17,8 +17,8 @@ CType * parse_type_specifier(ParserContext * ctx);
 Declarator * parse_direct_declarator(ParserContext * ctx, Declarator * declarator);
 Declarator * parse_postfix_declarator(ParserContext * ctx, Declarator * declarator);
 CType * parse_abstract_declarator(ParserContext * ctx, CType * base);
-ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, const char * name);
-ASTNode * parse_local_declaration(ParserContext * parserContext);
+ASTNode*  parse_declaration_initializer(ParserContext * parserContext, CType * ctype, const char * name);
+ASTNode * parse_declaration(ParserContext * parserContext);
 ASTNode * parse_initializer_list(ParserContext * parserContext);
 
 

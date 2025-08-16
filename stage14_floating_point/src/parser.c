@@ -461,7 +461,7 @@ ASTNode * parse_continue_statement(ParserContext * parserContext) {
 
 ASTNode * parse_statement(ParserContext* parserContext) {
     if (is_current_token_a_ctype(parserContext)) {
-        return parse_local_declaration(parserContext);
+        return parse_declaration(parserContext);
     }
     if (is_current_token(parserContext, TOKEN_RETURN)) {
         return parse_return_statement(parserContext);
@@ -547,7 +547,7 @@ ASTNode * parse_for_statement(ParserContext * parserContext) {
 
     if (!is_current_token(parserContext, TOKEN_SEMICOLON)) {
         if (is_current_token(parserContext, TOKEN_INT)) {
-            init_expr = parse_local_declaration(parserContext);
+            init_expr = parse_declaration(parserContext);
         }
         else if (is_current_token(parserContext, TOKEN_IDENTIFIER)) {
             init_expr = parse_assignment_expression(parserContext);

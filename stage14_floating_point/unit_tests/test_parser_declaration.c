@@ -190,6 +190,34 @@ void test_declarator__function_with_pointer_return() {
 
 }
 
+void test_declaration__with_comma() {
+    tokenlist * tokens = tokenize("{ int a, b; }");
+    ParserContext * ctx = create_parser_context(tokens);
+
+    ASTNode * node = parse_block(ctx);
+
+    TEST_ASSERT("Verifying node is not null", node != NULL);
+    TEST_ASSERT("Verifying node is a block", node->type == AST_BLOCK_STMT);
+
+    ASTNode * declaration_node = node->block.statements->head->value;
+    TEST_ASSERT("Verifying declaration_node is not null", declaration_node != NULL);
+    TEST_ASSERT("Verifying declaration_node is a declaration", declaration_node->type == AST_DECLARATION_STMT);
+
+    TEST_ASSERT("Verifying declaration_node has correct number of init_declaration", declaration_node->declaration.init_declarator_list->count == 2);
+
+    ASTNode * init_declaration = ASTNode_list_get(declaration_node->declaration.init_declarator_list, 0);
+    TEST_ASSERT("Verifying init_declaration is not null", init_declaration != NULL);
+    TEST_ASSERT("Verifying init_declaration has correct type", init_declaration->type == AST_VAR_DECL);
+    TEST_ASSERT("Verifying init_declaration has correct ctype", init_declaration->ctype == &CTYPE_INT_T);
+    TEST_ASSERT("Verifying init_declaration has correct identifier", strcmp(init_declaration->var_decl.name, "a") == 0);
+
+    init_declaration = ASTNode_list_get(declaration_node->declaration.init_declarator_list, 1);
+    TEST_ASSERT("Verifying init_declaration is not null", init_declaration != NULL);
+    TEST_ASSERT("Verifying init_declaration has correct type", init_declaration->type == AST_VAR_DECL);
+    TEST_ASSERT("Verifying init_declaration has correct ctype", init_declaration->ctype == &CTYPE_INT_T);
+    TEST_ASSERT("Verifying init_declaration has correct identifier", strcmp(init_declaration->var_decl.name, "b") == 0);
+
+}
 
 int main() {
 
@@ -202,5 +230,5 @@ int main() {
     RUN_TEST(test_declarator__scalar_var_pointer_to_pointer);
     RUN_TEST(test_declarator__array_of_int_pointers);
     RUN_TEST(test_declarator__function_with_pointer_return);
-
+    RUN_TEST(test_declaration__with_comma);
 }

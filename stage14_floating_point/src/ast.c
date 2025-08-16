@@ -207,6 +207,7 @@ const char * get_ast_node_name(ASTNode * node) {
         case AST_FUNCTION_DECL: return "FunctionDecl";
         case AST_FUNCTION_CALL_EXPR: return "FunctionCallExpr";
         case AST_VAR_DECL: return "VarDecl";
+        case AST_DECLARATION_STMT: return "DeclStmt";
         case AST_VAR_REF_EXPR: return "VarRefExpr";
         case AST_TRANSLATION_UNIT: return "TranslationUnit";
         case AST_BLOCK_STMT: return "BlockStmt";

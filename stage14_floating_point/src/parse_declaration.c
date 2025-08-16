@@ -55,7 +55,7 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
             return create_function_declaration_node(name, declarator->type, param_list, NULL, true);
         }
     }
-    ASTNode * declaration = parse_declaration_tail(parserContext, declarator->type, name);
+    ASTNode * declaration = parse_declaration_initializer(parserContext, declarator->type, name);
     declaration->var_decl.is_global = true;
 
     //    free(name);
@@ -150,7 +150,7 @@ Declarator * parse_postfix_declarator(ParserContext * ctx, Declarator * declarat
     return declarator;
 }
 
-ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, const char * id) {
+ASTNode*  parse_declaration_initializer(ParserContext * parserContext, CType * ctype, const char * id) {
     //    CType * ctype = parse_ctype(parserContext);
     //    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     ASTNode * initializer_expr = NULL;
@@ -165,7 +165,7 @@ ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, c
     }
 
     // TODO. FIX - THIS IS BROKEN IF COMMA IS NEXT INSTEAD OF SEMICOLON
-    expect_token(parserContext, TOKEN_SEMICOLON);
+   // expect_token(parserContext, TOKEN_SEMICOLON);
 
     ASTNode * node = create_var_decl_node(id, ctype, initializer_expr);
     //    node->var_decl.is_global = true;
@@ -173,17 +173,29 @@ ASTNode*  parse_declaration_tail(ParserContext * parserContext, CType * ctype, c
     return node;
 }
 
-ASTNode*  parse_local_declaration(ParserContext * parserContext) {
+ASTNode*  parse_declaration(ParserContext * parserContext) {
+
     CType * base_type = parse_type_specifier(parserContext);
     print_c_type(base_type, 0);
 
-    Declarator * declarator = make_declarator();
-    declarator->type = base_type;
-    //    char * name = NULL;
-    declarator = parse_declarator(parserContext, declarator/* , &name, NULL, NULL*/);
-    //const char * name = get_current_decl_name(parserContext);
+    ASTNode * declaration = create_declaration_node(base_type);
 
-    return parse_declaration_tail(parserContext, declarator->type, declarator->name);
+    do {
+        Declarator * declarator = make_declarator();
+        declarator->type = base_type;
+        //    char * name = NULL;
+        declarator = parse_declarator(parserContext, declarator/* , &name, NULL, NULL*/);
+        //const char * name = get_current_decl_name(parserContext);
+
+        ASTNode * init_declaration = parse_declaration_initializer(parserContext, declarator->type, declarator->name);
+        ASTNode_list_append(declaration->declaration.init_declarator_list, init_declaration);
+
+    } while (match_token(parserContext, TOKEN_COMMA));
+
+    expect_token(parserContext, TOKEN_SEMICOLON);
+
+    return declaration;
+
     //    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     // ASTNode * init_expr = NULL;
     // if (is_current_token(parserContext, TOKEN_ASSIGN)) {
