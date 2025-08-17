@@ -212,6 +212,12 @@ void print_ast(ASTNode * node, int indent) {
         case AST_STRING_LITERAL:
             printf("StringLiteral: %s\n", node->string_literal.value);
             break;
+        case AST_DECLARATION_STMT:
+            printf("DeclarationStmt:\n");
+            for (ASTNode_list_node * n = node->declaration.init_declarator_list->head; n; n = n->next) {
+                print_ast(n->value, indent+1);
+            }
+            break;
         default:
             error("Unknown AST Node Type: %d\n", get_ast_node_name(node));
             break;

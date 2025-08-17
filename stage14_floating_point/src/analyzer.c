@@ -358,6 +358,14 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             analyze(ctx, node->expr_stmt.expr);
             break;
 
+        case AST_DECLARATION_STMT: {
+            for (ASTNode_list_node * n = node->declaration.init_declarator_list->head; n; n = n->next) {
+                analyze(ctx, n->value);
+            }
+            break;
+        }
+
+
         case AST_GOTO_STMT:
         case AST_INT_LITERAL:
         case AST_BREAK_STMT:

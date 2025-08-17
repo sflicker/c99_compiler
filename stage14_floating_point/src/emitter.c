@@ -664,6 +664,13 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_label(ctx, node->labeled_stmt.label, 0);
             emit_tree_node(ctx, node->labeled_stmt.stmt);
             break;
+
+        case AST_DECLARATION_STMT: {
+            for (ASTNode_list_node * n = node->declaration.init_declarator_list->head; n; n = n->next) {
+                emit_tree_node(ctx, n->value);
+            }
+            break;
+        }
         // case AST_CAST_EXPR:
         //     emit_expr(ctx, node->cast_expr.expr);
         //     emit_cast(ctx, node->cast_expr.expr->ctype, node->cast_expr.target_type);
