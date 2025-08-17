@@ -151,7 +151,13 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
         ASTNode * external_decl = parse_external_declaration(parserContext);
         if (external_decl->type == AST_VAR_DECL) {
             ASTNode_list_append(globals_list, external_decl);
-        } else {
+        } else if (external_decl->type == AST_DECLARATION_STMT) {
+            for (ASTNode_list_node * n = external_decl->declaration.init_declarator_list->head; n != NULL; n = n->next) {
+                ASTNode * init_declarator = n->value;
+                ASTNode_list_append(globals_list, init_declarator);
+            }
+        }
+        else {
             ASTNode_list_append(functions_list, external_decl);
         }
     }

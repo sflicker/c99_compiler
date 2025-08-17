@@ -20,6 +20,9 @@
 #include "parse_expression.h"
 #include "parse_declaration.h"
 
+
+ASTNode * parse_declaration_ongoing(ParserContext * parserContext, CType * base_type, ASTNode * declaration);
+
 CType * parse_type_specifier(ParserContext * ctx) {
     TokenType type = peek(ctx)->type;
     switch (type) {
@@ -36,7 +39,8 @@ CType * parse_type_specifier(ParserContext * ctx) {
 ASTNode * parse_external_declaration(ParserContext * parserContext) {
 
     Declarator *declarator = make_declarator();
-    declarator->type = parse_type_specifier(parserContext);
+    CType * base_type = parse_type_specifier(parserContext);
+    declarator->type = base_type;
     print_c_type(declarator->type, 0);
 
     //    declarator->type = base_type;
@@ -44,23 +48,46 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
     declarator = parse_declarator(parserContext, declarator);
     const char * name = declarator->name;
     ASTNode_list * param_list = declarator->param_list;
+    ASTNode * first_init_declaration = NULL;
 
     if (declarator->type->kind == CTYPE_FUNCTION) {
         if (is_current_token(parserContext, TOKEN_LBRACE)) {
             return parse_function_definition(parserContext, name, declarator->type, param_list );
         }
-        if (is_current_token(parserContext, TOKEN_SEMICOLON)) {
-            // handle forward function declaration
-            expect_token(parserContext, TOKEN_SEMICOLON);
-            return create_function_declaration_node(name, declarator->type, param_list, NULL, true);
+        else {
+            first_init_declaration = create_function_declaration_node(name, declarator->type, declarator->param_list, NULL, true);
         }
     }
-    ASTNode * declaration = parse_declaration_initializer(parserContext, declarator->type, name);
-    declaration->var_decl.is_global = true;
+    else {
+        first_init_declaration = parse_declaration_initializer(parserContext, declarator->type, name);
+    }
 
-    //    free(name);
+    ASTNode * declaration = create_declaration_node(base_type);
 
-    return declaration;
+    ASTNode_list_append(declaration->declaration.init_declarator_list, first_init_declaration);
+
+    if (is_current_token(parserContext, TOKEN_SEMICOLON)) {
+        expect_token(parserContext, TOKEN_SEMICOLON);
+        return declaration;
+    } else if (is_current_token(parserContext, TOKEN_COMMA)) {
+        expect_token(parserContext, TOKEN_COMMA);
+        return parse_declaration_ongoing(parserContext, base_type, declaration);
+    }
+    error("Invalid external declaration - %s", name);
+    return NULL;
+//    return parse_declaration_ongoing(parserContext , base_type, declaration);
+    //     if (is_current_token(parserContext, TOKEN_SEMICOLON)) {
+    //         // handle forward function declaration
+    //         expect_token(parserContext, TOKEN_SEMICOLON);
+    //         return create_function_declaration_node(name, declarator->type, param_list, NULL, true);
+    //     }
+    // }
+    // ASTNode * declaration = parse_declaration_initializer(parserContext, declarator->type, name);
+    // declaration->var_decl.is_global = true;
+    //
+    // //    free(name);
+    //
+    // return declaration;
 }
 
 Declarator * parse_declarator(ParserContext * ctx, Declarator * declarator /*,
@@ -173,12 +200,7 @@ ASTNode*  parse_declaration_initializer(ParserContext * parserContext, CType * c
     return node;
 }
 
-ASTNode*  parse_declaration(ParserContext * parserContext) {
-
-    CType * base_type = parse_type_specifier(parserContext);
-    print_c_type(base_type, 0);
-
-    ASTNode * declaration = create_declaration_node(base_type);
+ASTNode * parse_declaration_ongoing(ParserContext * parserContext, CType * base_type, ASTNode * declaration) {
 
     do {
         Declarator * declarator = make_declarator();
@@ -195,6 +217,16 @@ ASTNode*  parse_declaration(ParserContext * parserContext) {
     expect_token(parserContext, TOKEN_SEMICOLON);
 
     return declaration;
+}
+
+ASTNode*  parse_declaration(ParserContext * parserContext) {
+
+    CType * base_type = parse_type_specifier(parserContext);
+    print_c_type(base_type, 0);
+
+    ASTNode * declaration = create_declaration_node(base_type);
+
+    return parse_declaration_ongoing(parserContext, base_type, declaration);
 
     //    Token * name = expect_token(parserContext, TOKEN_IDENTIFIER);
     // ASTNode * init_expr = NULL;
