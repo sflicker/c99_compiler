@@ -60,6 +60,7 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
     }
     else {
         first_init_declaration = parse_declaration_initializer(parserContext, declarator->type, name);
+        first_init_declaration->var_decl.is_global = true;
     }
 
     ASTNode * declaration = create_declaration_node(base_type);
