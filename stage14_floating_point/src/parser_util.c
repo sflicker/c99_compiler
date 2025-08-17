@@ -226,22 +226,38 @@ ASTNode * create_float_literal_node(float value) {
 }
 
 ASTNode * create_function_declaration_node(const char * name, CType * func_type,
-        ASTNode_list * param_list, ASTNode * body, bool declaration_only) {
+        ASTNode_list * param_list) {
     ASTNode * func = create_ast();
     func->symbol = NULL;
     func->type = AST_FUNCTION_DECL;
     func->function_decl.name = strdup(name);
     func->ctype = func_type->base_type;
-    func->function_decl.body = body;
+//    func->function_decl.body = body;
     func->function_decl.param_list = param_list;
     func->function_decl.func_type = func_type;
-    func->function_decl.declaration_only = declaration_only;
-    if (func->function_decl.body != NULL) {
-        func->function_decl.body->block.introduce_scope = false;
-    }
+//    func->function_decl.declaration_only = declaration_only;
+    // if (func->function_decl.body != NULL) {
+    //     func->function_decl.body->block.introduce_scope = false;
+    // }
     return func;
 }
 
+ASTNode * create_function_definition_node(const char * name, CType * func_type,
+        ASTNode_list * param_list, ASTNode * body) {
+    ASTNode * func = create_ast();
+    func->symbol = NULL;
+    func->type = AST_FUNCTION_DEF;
+    func->function_def.name = strdup(name);
+    func->ctype = func_type->base_type;
+    func->function_def.body = body;
+    func->function_def.param_list = param_list;
+    func->function_def.func_type = func_type;
+    // func->function_decl.declaration_only = declaration_only;
+//    if (func->function_decl.body != NULL) {
+        func->function_def.body->block.introduce_scope = false;
+//    }
+    return func;
+}
 ASTNode * create_function_call_node(const char * name, ASTNode_list * args) {
     ASTNode * node = create_ast();
     node->type = AST_FUNCTION_CALL_EXPR;

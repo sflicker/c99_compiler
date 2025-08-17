@@ -42,7 +42,7 @@ void emit_if_statement(EmitterContext * ctx, ASTNode * node);
 void emit_while_statement(EmitterContext * ctx, ASTNode * node);
 void emit_do_while_statement(EmitterContext * ctx, ASTNode * node);
 void emit_block(EmitterContext * ctx, ASTNode * node, bool enterNewScope);
-void emit_function(EmitterContext * ctx, ASTNode * node);
+void emit_function_definition(EmitterContext * ctx, ASTNode * node);
 void emit_var_declaration(EmitterContext * ctx, ASTNode * node);
 //void emit_assignment(EmitterContext * ctx, ASTNode* node);
 // void emit_add_assignment(EmitterContext * ctx, ASTNode * node);

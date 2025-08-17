@@ -22,7 +22,7 @@ void test_create_translation_unit_node() {
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * func = create_function_declaration_node("main", &CTYPE_INT_T, NULL, body, false);
+    ASTNode * func = create_function_definition_node("main", &CTYPE_INT_T, NULL, body);
 
     ASTNode_list * functions = create_node_list();
     ASTNode_list_append(functions, func);
@@ -309,21 +309,17 @@ void test_create_function_declaration_node__declaration_only() {
     ASTNode_list * param_list = NULL;
     CType * func_type = make_function_type(return_type, param_types);
 
-    ASTNode * body = NULL;
-    bool declaration_only = true;
-
-    ASTNode * node = create_function_declaration_node(label, func_type, param_list, body, declaration_only);
+    ASTNode * node = create_function_declaration_node(label, func_type, param_list);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
     TEST_ASSERT("Verify correct identifier", strcmp(label, node->function_decl.name) == 0);
-    TEST_ASSERT("Verify declaration only", node->function_decl.declaration_only);
     TEST_ASSERT("Verify node ctype is CType_int", ctype_equals(node->ctype, &CTYPE_INT_T));
 
     free_ast(node);
 }
 
-void test_create_function_declaration_node__with_body() {
+void test_create_function_definition_node__with_body() {
     const char * label = "main";
 
     CType * return_type = &CTYPE_INT_T;
@@ -337,19 +333,19 @@ void test_create_function_declaration_node__with_body() {
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * node = create_function_declaration_node(label, func_type, NULL, body, false);
+    ASTNode * node = create_function_definition_node(label, func_type, NULL, body);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
     TEST_ASSERT("Verify correct identifier", strcmp(label, node->function_decl.name) == 0);
-    TEST_ASSERT("Verify is not declaration only", !node->function_decl.declaration_only);
-    TEST_ASSERT("Verify function body contains 1 statement", node->function_decl.body->block.count == 1);
+//    TEST_ASSERT("Verify is not declaration only", !node->function_decl.declaration_only);
+    TEST_ASSERT("Verify function body contains 1 statement", node->function_def.body->block.count == 1);
     TEST_ASSERT("Verify node ctype is CTYPE_INT", ctype_equals(node->ctype, &CTYPE_INT_T));
 
     free_ast(node);
 }
 
-void test_create_function_declaration_node__with_body_and_param_list() {
+void test_create_function_definition_node__with_body_and_param_list() {
     const char * label = "main";
     const char * param_label = "a";
 
@@ -368,13 +364,13 @@ void test_create_function_declaration_node__with_body_and_param_list() {
     
     ASTNode * body = create_block_node(statements);
 
-    ASTNode * node = create_function_declaration_node(label, func_type, param_list, body, false);
+    ASTNode * node = create_function_definition_node(label, func_type, param_list, body);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
     TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
     TEST_ASSERT("Verify correct identifier", strcmp(label, node->function_decl.name) == 0);
-    TEST_ASSERT("Verify is not declaration only", !node->function_decl.declaration_only);
-    TEST_ASSERT("Verify function body contains 1 statement", node->function_decl.body->block.count == 1);
+//    TEST_ASSERT("Verify is not declaration only", !node->function_decl.declaration_only);
+    TEST_ASSERT("Verify function body contains 1 statement", node->function_def.body->block.count == 1);
     TEST_ASSERT("Verify function contains 1 param", node->function_decl.param_list->count == 1);
     TEST_ASSERT("Verify node ctype is CTYPE_INT", ctype_equals(node->ctype, &CTYPE_INT_T));
 
@@ -487,8 +483,8 @@ int main() {
     RUN_TEST(test_create_var_decl_node);
     RUN_TEST(test_create_for_statement_node);
     RUN_TEST(test_create_function_declaration_node__declaration_only);
-    RUN_TEST(test_create_function_declaration_node__with_body);
-    RUN_TEST(test_create_function_declaration_node__with_body_and_param_list);
+    RUN_TEST(test_create_function_definition_node__with_body);
+    RUN_TEST(test_create_function_definition_node__with_body_and_param_list);
     RUN_TEST(test_create_return_statement_node);
     RUN_TEST(test_create_expression_statement_node);
     RUN_TEST(test_create_block_node);

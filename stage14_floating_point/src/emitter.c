@@ -242,12 +242,12 @@ void emit_block(EmitterContext * ctx, ASTNode * node, bool enterNewScope) {
 
 }
 
-void emit_function(EmitterContext * ctx, ASTNode * node) {
+void emit_function_definition(EmitterContext * ctx, ASTNode * node) {
 
-    // skip forward declarations (only codegen for function definitions that include the body)
-    if (node->function_decl.body == NULL) {
-        return;
-    }
+    // // skip forward declarations (only codegen for function definitions that include the body)
+    // if (node->function_decl.body == NULL) {
+    //     return;
+    // }
     int prev_stack_depth = ctx->stack_depth;
     ctx->stack_depth = 0;
 
@@ -255,9 +255,9 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
     push_function_exit_context(ctx, func_end_label);
 
 //    emit_text_section_header(ctx);
-    int local_space = node->function_decl.size;
+    int local_space = node->function_def.size;
 
-    emit_line(ctx, "%s:", node->function_decl.name);
+    emit_line(ctx, "%s:", node->function_def.name);
     //emit_line(ctx, "push rbp           ; creating stack frame");
     emit_push(ctx, "rbp");
     emit_line(ctx,  "mov rbp, rsp");
@@ -268,13 +268,13 @@ void emit_function(EmitterContext * ctx, ASTNode * node) {
         emit_line(ctx, "sub rsp, %d        ; allocating space for locals", aligned_space);
     }
 
-    if (node->function_decl.param_list) {
-        for (const ASTNode_list_node * n = node->function_decl.param_list->head;n;n=n->next) {
+    if (node->function_def.param_list) {
+        for (const ASTNode_list_node * n = node->function_def.param_list->head;n;n=n->next) {
             emit_var_declaration(ctx, n->value);
         }
     }
 
-    emit_block(ctx, node->function_decl.body, false);
+    emit_block(ctx, node->function_def.body, false);
 
     emit_label_from_text(ctx, func_end_label);
     emit_leave(ctx);
@@ -574,7 +574,11 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_translation_unit(ctx, node);
             break;
         case AST_FUNCTION_DECL:
-            emit_function(ctx, node);
+            //emit_function(ctx, node);
+            // noop
+            break;
+        case AST_FUNCTION_DEF:
+            emit_function_definition(ctx, node);
             break;
         case AST_VAR_DECL:
             emit_var_declaration(ctx, node);

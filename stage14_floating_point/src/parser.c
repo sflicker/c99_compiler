@@ -154,7 +154,11 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
         } else if (external_decl->type == AST_DECLARATION_STMT) {
             for (ASTNode_list_node * n = external_decl->declaration.init_declarator_list->head; n != NULL; n = n->next) {
                 ASTNode * init_declarator = n->value;
-                ASTNode_list_append(globals_list, init_declarator);
+                if (init_declarator->type == AST_VAR_DECL) {
+                    ASTNode_list_append(globals_list, init_declarator);
+                } else if (init_declarator->type == AST_FUNCTION_DECL) {
+                    ASTNode_list_append(functions_list, init_declarator);
+                }
             }
         }
         else {
@@ -312,8 +316,11 @@ ASTNode * parse_function_definition(ParserContext * parserContext, const char * 
 
     body = parse_block(parserContext);
 
-    ASTNode * func = create_function_declaration_node(name, full_type, params
-        ,body, false);
+    ASTNode * func = create_function_definition_node(name, full_type,
+            params,body);
+
+    // ASTNode * func = create_function_declaration_node(name, full_type, params
+    //     ,body, false);
 
     return func;
 

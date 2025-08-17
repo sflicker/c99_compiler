@@ -29,7 +29,16 @@ void free_ast(ASTNode * node) {
                 ASTNode_list_free(node->function_decl.param_list);
                 free(node->function_decl.param_list);
             }
-            free_ast(node->function_decl.body);
+//            free_ast(node->function_decl.body);
+            break;
+
+        case AST_FUNCTION_DEF:
+            free(node->function_def.name);
+            if (node->function_def.param_list != NULL) {
+                ASTNode_list_free(node->function_def.param_list);
+                free(node->function_def.param_list);
+            }
+            free_ast(node->function_def.body);
             break;
 
         case AST_FUNCTION_CALL_EXPR:
@@ -209,6 +218,7 @@ const char * get_ast_node_name(ASTNode * node) {
         case AST_CASE_STMT: return "CaseStmt";
         case AST_DEFAULT_STMT: return "DefaultStmt";
         case AST_FUNCTION_DECL: return "FunctionDecl";
+        case AST_FUNCTION_DEF:  return "FunctionDef";
         case AST_FUNCTION_CALL_EXPR: return "FunctionCallExpr";
         case AST_VAR_DECL: return "VarDecl";
         case AST_DECLARATION_STMT: return "DeclStmt";

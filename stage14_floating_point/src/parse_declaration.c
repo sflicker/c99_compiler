@@ -55,7 +55,8 @@ ASTNode * parse_external_declaration(ParserContext * parserContext) {
             return parse_function_definition(parserContext, name, declarator->type, param_list );
         }
         else {
-            first_init_declaration = create_function_declaration_node(name, declarator->type, declarator->param_list, NULL, true);
+//            first_init_declaration = create_function_declaration_node(name, declarator->type, declarator->param_list, NULL, true);
+            first_init_declaration = create_function_declaration_node(name, declarator->type, declarator->param_list);
         }
     }
     else {

@@ -58,15 +58,14 @@ int astNodeListLength(ASTNode_list * ast_nodes) {
     return (ast_nodes != NULL) ? ast_nodes->count : 0;
 }
 
-void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
-
+void handle_function_definition(AnalyzerContext *ctx, ASTNode * node) {
     enter_scope();
     reset_size_and_offsets();
     Symbol_list * symbol_list = NULL;
-    if (node->function_decl.param_list != NULL) {
+    if (node->function_def.param_list != NULL) {
         symbol_list = malloc(sizeof(Symbol_list));
         Symbol_list_init(symbol_list, free_symbol);;
-        for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
+        for (ASTNode_list_node * n = node->function_def.param_list->head; n != NULL; n = n->next) {
             const char * name = n->value->var_decl.name;
             ASTNode * param = n->value;
 
@@ -78,18 +77,53 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
             Symbol_list_append(symbol_list, symbol);
         }
     }
-    Symbol * symbol = create_symbol(node->function_decl.name, SYMBOL_FUNC, node->ctype, node);
-    symbol->info.func.num_params = astNodeListLength(node->function_decl.param_list);
+    Symbol * symbol = create_symbol(node->function_def.name, SYMBOL_FUNC, node->ctype, node);
+    symbol->info.func.num_params = astNodeListLength(node->function_def.param_list);
     symbol->info.func.params_symbol_list = symbol_list;
     add_global_symbol(symbol);
     node->symbol = symbol;
 
     CType * saved = ctx->current_function_return_type;
     ctx->current_function_return_type = node->ctype;
-    analyze(ctx, node->function_decl.body);
+    analyze(ctx, node->function_def.body);
     ctx->current_function_return_type = saved;
-    node->function_decl.size = function_local_storage;
+    node->function_def.size = function_local_storage;
     exit_scope();
+
+}
+
+void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
+
+    // enter_scope();
+    // reset_size_and_offsets();
+    Symbol_list * symbol_list = NULL;
+    if (node->function_decl.param_list != NULL) {
+        symbol_list = malloc(sizeof(Symbol_list));
+        Symbol_list_init(symbol_list, free_symbol);;
+        for (ASTNode_list_node * n = node->function_decl.param_list->head; n != NULL; n = n->next) {
+            const char * name = n->value->var_decl.name;
+            ASTNode * param = n->value;
+
+            Symbol * symbol = create_storage_param_symbol(name, param, param->ctype, &param_offset);
+
+//            add_symbol(symbol);
+
+            param->symbol = symbol;
+            Symbol_list_append(symbol_list, symbol);
+        }
+    }
+    Symbol * symbol = create_symbol(node->function_decl.name, SYMBOL_FUNC, node->ctype, node);
+    symbol->info.func.num_params = astNodeListLength(node->function_decl.param_list);
+    symbol->info.func.params_symbol_list = symbol_list;
+    add_global_symbol(symbol);
+    node->symbol = symbol;
+
+//     CType * saved = ctx->current_function_return_type;
+//     ctx->current_function_return_type = node->ctype;
+// //    analyze(ctx, node->function_decl.body);
+//     ctx->current_function_return_type = saved;
+//     node->function_decl.size = function_local_storage;
+//     exit_scope();
 }
 
 bool is_assignment(ASTNode * node) {
@@ -123,6 +157,9 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
         }
 
+        case AST_FUNCTION_DEF: {
+            handle_function_definition(ctx, node);
+        }
         case AST_FUNCTION_CALL_EXPR: {
             Symbol * functionSymbol = lookup_table_symbol(getGlobalScope(), node->function_call.name);
             if (!functionSymbol) {

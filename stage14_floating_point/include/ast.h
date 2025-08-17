@@ -76,6 +76,7 @@ typedef enum {
     AST_INT_LITERAL,
     AST_FLOAT_LITERAL,
     AST_FUNCTION_DECL,
+    AST_FUNCTION_DEF,
     AST_FUNCTION_CALL_EXPR,
     AST_TRANSLATION_UNIT,
     AST_BLOCK_STMT,
@@ -115,10 +116,20 @@ typedef struct ASTNode {
             ASTNode_list * param_list;
             CType * func_type;
             int param_count;
-            ASTNode* body;
-            bool declaration_only;
+            // ASTNode* body;
+            // bool declaration_only;
             int size;
         } function_decl;
+
+        struct {
+            char* name;
+            ASTNode_list * param_list;
+            CType * func_type;
+            int param_count;
+            ASTNode* body;
+//            bool declaration_only;
+            int size;
+        } function_def;
 
         struct {
             char * name;

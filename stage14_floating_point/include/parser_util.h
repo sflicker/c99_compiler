@@ -25,8 +25,12 @@ ASTNode * create_var_ref_node(const char * name);
 ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_expr);
 ASTNode * create_for_statement_node(ASTNode * init_expr, ASTNode * cond_expr,
             ASTNode * update_expr, ASTNode * body);
-ASTNode * create_function_declaration_node(const char * name, CType * returnType,
-        ASTNode_list * param_list, ASTNode * body, bool declaration_only);
+// ASTNode * create_function_declaration_node(const char * name, CType * returnType,
+//         ASTNode_list * param_list, ASTNode * body, bool declaration_only);
+ASTNode * create_function_declaration_node(const char * name, CType * func_type,
+        ASTNode_list * param_list);
+ASTNode * create_function_definition_node(const char * name, CType * func_type,
+        ASTNode_list * param_list, ASTNode * body);
 ASTNode * create_return_statement_node(ASTNode * expr);
 ASTNode * create_expression_statement_node(ASTNode * expr);
 ASTNode * create_block_node(ASTNode_list * stmts);

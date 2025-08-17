@@ -51,10 +51,24 @@ void print_ast(ASTNode * node, int indent) {
                     print_ast(n->value, indent+2);
                 }
             }
-            if (node->function_decl.body) {
-                print_ast(node->function_decl.body, indent+1);
-            }
+            // if (node->function_decl.body) {
+            //     print_ast(node->function_decl.body, indent+1);
+            // }
             break;
+
+    case AST_FUNCTION_DEF:
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+
+            printf("FunctionDef: %s, type: %s\n", node->function_def.name, buf);
+            if (node->function_def.param_list) {
+                print_indent(indent+1); printf("ParameterList:\n");
+                for (ASTNode_list_node * n = node->function_def.param_list->head;n;n=n->next) {
+                    print_ast(n->value, indent+2);
+                }
+            }
+            print_ast(node->function_def.body, indent+1);
+            break;
+
         case AST_FUNCTION_CALL_EXPR:
             ctype_to_cdecl(node->ctype, buf, sizeof(buf));
             printf("FunctionCall: %s, type: %s\n", node->function_call.name, buf);
