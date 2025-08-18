@@ -60,6 +60,16 @@ typedef struct {
     char * label;
 } StringLiteral;
 
+typedef struct {
+    float value;
+    char * label;
+} FloatLiteral;
+
+typedef struct {
+    double value;
+    char * label;
+} DoubleLiteral;
+
 typedef enum {
     AST_RETURN_STMT,
     AST_IF_STMT,
@@ -75,6 +85,7 @@ typedef enum {
     AST_CONTINUE_STMT,
     AST_INT_LITERAL,
     AST_FLOAT_LITERAL,
+    AST_DOUBLE_LITERAL,
     AST_FUNCTION_DECL,
     AST_FUNCTION_DEF,
     AST_FUNCTION_CALL_EXPR,
@@ -100,14 +111,19 @@ typedef struct ASTNode {
     CType * ctype;
     union {
         int int_value;
+        FloatLiteral float_literal;
+        DoubleLiteral double_literal;
+        StringLiteral string_literal;
+
         BinaryExpr binary;
         UnaryExpr unary;
-        StringLiteral string_literal;
 
         struct {
             ASTNode_list * functions;
             ASTNode_list * globals;
             ASTNode_list * string_literals;
+            ASTNode_list * float_literals;
+            ASTNode_list * double_literals;
             int count;
         } translation_unit;
 

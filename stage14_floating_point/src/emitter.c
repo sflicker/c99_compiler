@@ -33,7 +33,7 @@ void emit_header(EmitterContext * ctx) {
     emit_line(ctx, "");
 }
 
-void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals) {
+void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals, ASTNode_list * float_literals, ASTNode_list * double_literals) {
     emit_line(ctx, "");
     emit_line(ctx, "section .rodata");
     emit_line(ctx, "assert_fail_msg: db \"Assertion failed!\", 10");
@@ -43,6 +43,19 @@ void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals) {
         emit_string_literal(ctx, str_literal->string_literal.label, str_literal->string_literal.value);
 //        emit_line(ctx, "%s: db %s, 0", str_literal->string_literal.label, escaped_string(str_literal->string_literal.value));
     }
+
+    for (ASTNode_list_node * n = float_literals->head; n; n = n->next) {
+        ASTNode * float_literal = n->value;
+        emit_float_literal(ctx, float_literal->float_literal.label, float_literal->float_literal.value);
+        //        emit_line(ctx, "%s: db %s, 0", str_literal->string_literal.label, escaped_string(str_literal->string_literal.value));
+    }
+
+    for (ASTNode_list_node * n = double_literals->head; n; n = n->next) {
+        ASTNode * double_literal = n->value;
+        emit_double_literal(ctx, double_literal->double_literal.label, double_literal->double_literal.value);
+        //        emit_line(ctx, "%s: db %s, 0", str_literal->string_literal.label, escaped_string(str_literal->string_literal.value));
+    }
+
 }
 
 void emit_text_section_header(EmitterContext * ctx) {
@@ -103,6 +116,18 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
         str_literal->string_literal.label = label;
     }
 
+    for (ASTNode_list_node * n = node->translation_unit.float_literals->head; n; n = n->next) {
+        ASTNode * float_literal = n->value;
+        char * label = make_label_text("Flt", get_label_id(ctx));
+        float_literal->float_literal.label = label;
+    }
+
+    for (ASTNode_list_node * n = node->translation_unit.double_literals->head; n; n = n->next) {
+        ASTNode * double_literal = n->value;
+        char * label = make_label_text("Dbl", get_label_id(ctx));
+        double_literal->float_literal.label = label;
+    }
+
     for (ASTNode_list_node * n = node->translation_unit.globals->head; n; n = n->next) {
         ASTNode * global_var = n->value;
         if (global_var->var_decl.init_expr) {
@@ -161,7 +186,7 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
     for (ASTNode_list_node * n = node->translation_unit.functions->head; n; n = n->next) {
         emit_tree_node(ctx, n->value);
     }
-    emit_rodata(ctx, node->translation_unit.string_literals);
+    emit_rodata(ctx, node->translation_unit.string_literals, node->translation_unit.float_literals, node->translation_unit.double_literals);
 }
 
 void emit_if_statement(EmitterContext * ctx, ASTNode * node) {
@@ -336,9 +361,13 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
         // emit_line(ctx, "pop rcx");
         // emit_line(ctx, "pop rax");
         emit_pop(ctx, "rcx");
-        emit_pop(ctx, "rax");
+        //emit_pop(ctx, "rax");
+        emit_pop_for_type(ctx, node->ctype);
 
-        emit_line(ctx, "mov %s [rcx], %s",
+        // emit a line to copy register value to proper address
+        // example: mov [rcx], eax
+        emit_line(ctx, "%s %s [rcx], %s",
+            mov_instruction_for_type(node->ctype),
             mem_size_for_type(node->ctype),
             reg_for_type(node->ctype));
         // if (node->ctype->kind == CTYPE_CHAR) {

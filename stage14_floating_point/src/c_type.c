@@ -285,6 +285,11 @@ bool is_integer_type(CType * ctype) {
             ctype->kind == CTYPE_CHAR;
 }
 
+bool is_floating_point_type(CType * ctype) {
+    return ctype->kind == CTYPE_FLOAT ||
+        ctype->kind == CTYPE_DOUBLE;
+}
+
 bool is_array_type(CType * ctype) {
     return ctype->kind == CTYPE_ARRAY;
 }

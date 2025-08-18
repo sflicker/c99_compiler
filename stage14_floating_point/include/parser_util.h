@@ -5,7 +5,8 @@
 #include "parser_context.h"
 #include "parse_declaration.h"
 
-ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals, ASTNode_list * string_literals);
+ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals,
+    ASTNode_list * string_literals, ASTNode_list * float_literals, ASTNode_list * double_literals) ;
 ASTNode * create_unary_node(UnaryOperator op, ASTNode * operand);
 ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator  op, ASTNode *rhs);
 ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * thenStatement, ASTNode * elseStatement);
@@ -20,6 +21,7 @@ ASTNode * create_break_statement_node();
 ASTNode * create_continue_statement_node();
 ASTNode * create_int_literal_node(int value);
 ASTNode * create_float_literal_node(float value);
+ASTNode * create_double_literal_node(double value);
 ASTNode * create_function_call_node(const char * name, ASTNode_list * args);
 ASTNode * create_var_ref_node(const char * name);
 ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_expr);

@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 #include <assert.h>
 #include "list_util.h"
 #include "c_type.h"
@@ -21,6 +22,8 @@
 #include "emit_extensions.h"
 #include "symbol.h"
 #include "emitter_helpers.h"
+
+
 
 char * escaped_string(const char * s) {
     size_t len = strlen(s);
@@ -66,6 +69,12 @@ void emit_load_from(EmitterContext * ctx, CType * t, const char * reg) {
         case CTYPE_PTR:
             emit_line(ctx, "mov rax, [%s]", reg);
             break;
+        case CTYPE_FLOAT:
+            emit_line(ctx, "movss xmm0, [%s], reg)");
+            break;
+        case CTYPE_DOUBLE:
+            emit_line(ctx, "movsd xmm0, [%s], reg)");
+            break;
         default: error("Unsupported type %s for load from ");
     }
 }
@@ -84,6 +93,12 @@ void emit_store_to(EmitterContext * ctx, CType * t, const char * addr_reg, const
         case CTYPE_LONG:
             emit_line(ctx, "mov qword [%s], %s", addr_reg, value_reg);
             break;
+        case CTYPE_FLOAT:
+            emit_line(ctx, "movss [%s], %s", addr_reg, value_reg);
+            break;
+        case CTYPE_DOUBLE:
+            emit_line(ctx, "movsd [%s], %s", addr_reg, value_reg);
+            break;
         default:
             error("Unsupported type in emit_store_to: %d", t->kind);
     }
@@ -97,7 +112,22 @@ const char * reg_for_type(CType * ctype) {
         case CTYPE_SHORT: return "ax";
         case CTYPE_INT: return "eax";
         case CTYPE_LONG: return "rax";
+        case CTYPE_FLOAT: return "xmm0";
+        case CTYPE_DOUBLE: return "xmm0";
         case CTYPE_PTR: return "rax";
+        default: error("Unsupported type");
+    }
+    return NULL;
+}
+
+const char * mov_instruction_for_type(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "mov";
+        case CTYPE_SHORT: return "mov";
+        case CTYPE_INT: return "mov";
+        case CTYPE_LONG: return "mov";
+        case CTYPE_FLOAT: return "movss";
+        case CTYPE_DOUBLE: return "movsd";
         default: error("Unsupported type");
     }
     return NULL;
@@ -109,6 +139,8 @@ const char * mem_size_for_type(CType * ctype) {
         case CTYPE_SHORT: return "WORD";
         case CTYPE_INT: return "DWORD";
         case CTYPE_LONG: return "QWORD";
+        case CTYPE_FLOAT: return "DWORD";
+        case CTYPE_DOUBLE: return "QWORD";
         case CTYPE_PTR:  return "QWORD";
         default:
             error("Unsupported type");
@@ -217,11 +249,45 @@ void emit_push(EmitterContext * ctx, const char * reg) {
     emit_line(ctx, "push %s          ; stack += 8 (depth now %d)", reg, ctx->stack_depth + 8);
     ctx->stack_depth += 8;
 }
+
+void emit_fpush(EmitterContext * ctx, const char * xmm, FPWidth width) {
+    emit_line(ctx, "sub rsp, 16      ; fpush %s (reserve 16)", xmm);
+    if (width == FP64) {
+        emit_line(ctx, "movsd [rsp], %s   ; store low 64 bits (double)", xmm);
+    } else {
+        emit_line(ctx, "movss [rsp], %s   ; store low 32 bits (float)", xmm);
+    }
+    ctx->stack_depth += 16;
+}
+
+void emit_pop_for_type(EmitterContext * ctx, CType * ctype) {
+    const char * reg = reg_for_type(ctype);
+    if (is_integer_type(ctype)) {
+        emit_pop(ctx, reg);
+    } else if (ctype->kind == CTYPE_FLOAT) {
+        emit_fpop(ctx, reg, FP32);
+    } else if (ctype->kind == CTYPE_DOUBLE) {
+        emit_fpop(ctx, reg, FP64);
+    } else {
+        error("Unsupported data type for data directive: %s", ctype->kind);
+    }
+}
+
 void emit_pop(EmitterContext * ctx, const char * reg) {
     emit_line(ctx, "pop %s           ; stack -= 8 (depth now %d)", reg, ctx->stack_depth - 8);
     ctx->stack_depth -= 8;
-
 }
+
+void emit_fpop(EmitterContext * ctx, const char * xmm, FPWidth width) {
+    if (width == FP64) {
+        emit_line(ctx, "movsd %s, [rsp]   ; load low 64 bits (double)", xmm);
+    } else {
+        emit_line(ctx, "movss %s, [rsp]   ; load low 32 bits (float)", xmm);
+    }
+    emit_line(ctx, "add rsp, 16    ; fpop %s (free 16)", xmm);
+    ctx->stack_depth -= 16;
+}
+
 void emit_add_rsp(EmitterContext * ctx, int amount) {
     emit_line(ctx, "add rsp, %d    ; stack -= %d (depth now %d)", amount, amount, ctx->stack_depth - amount);
     ctx->stack_depth -= amount;
@@ -263,6 +329,26 @@ void emit_binary_op(EmitterContext * ctx, BinaryOperator op) {
         default:
             error("Unsupported binary operator: %s", token_type_name(op));
     }
+}
+
+void emit_float_literal(EmitterContext * ctx, const char * label, float value) {
+    uint32_t bits;
+    memcpy(&bits, &value, sizeof(bits));
+
+    emit_line(ctx, "align 4");
+
+    // Emit the labeled constant. NASM/YASM syntax: dd = 32-bit data.
+    // We use hex to lock the exact bit pattern. Include a comment for readability.
+    emit_line(ctx, "%s: dd 0x%08X    ; %g", label, bits, (double)value);
+}
+
+void emit_double_literal(EmitterContext *ctx, const char *label, double value) {
+    uint64_t bits;
+    memcpy(&bits, &value, sizeof(bits));
+
+    emit_line(ctx, "align 8");
+    emit_line(ctx, "%s: dq 0x%016llX    ; %g",
+              label, (unsigned long long)bits, value);
 }
 
 void emit_string_literal(EmitterContext * ctx, const char * label, const char * literal) {

@@ -226,6 +226,12 @@ void print_ast(ASTNode * node, int indent) {
         case AST_STRING_LITERAL:
             printf("StringLiteral: %s\n", node->string_literal.value);
             break;
+        case AST_FLOAT_LITERAL:
+            printf("FloatLiteral: %f\n", node->float_literal.value);
+            break;
+        case AST_DOUBLE_LITERAL:
+            printf("DoubleLiteral: %lf\n", node->double_literal.value);
+            break;
         case AST_DECLARATION_STMT:
             printf("DeclarationStmt:\n");
             for (ASTNode_list_node * n = node->declaration.init_declarator_list->head; n; n = n->next) {

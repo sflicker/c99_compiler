@@ -145,6 +145,8 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
     ASTNode_list * functions_list = create_node_list();
     ASTNode_list * globals_list = create_node_list();
     ASTNode_list * string_literals = create_node_list();
+    ASTNode_list * float_literals = create_node_list();
+    ASTNode_list * double_literals = create_node_list();
 
     while (!is_current_token(parserContext, TOKEN_EOF)) {
         // currently only supporting functions as topmost. will need to add file level variables.
@@ -166,7 +168,7 @@ ASTNode* parse_translation_unit(ParserContext * parserContext) {
         }
     }
 
-    return create_translation_unit_node(functions_list, globals_list, string_literals);
+    return create_translation_unit_node(functions_list, globals_list, string_literals, float_literals, double_literals);
 }
 
 

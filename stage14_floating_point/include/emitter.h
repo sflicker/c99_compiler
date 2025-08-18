@@ -10,6 +10,8 @@ typedef enum {
     WANT_ADDRESS
 } EvalMode;
 
+typedef enum {FP32, FP64} FPWidth;
+
 const char * get_break_label(EmitterContext * ctx);
 const char * get_continue_label(EmitterContext * ctx);
 const char * reg_for_type(CType * ctype);
@@ -20,7 +22,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node);
 //void emit_addr(EmitterContext * ctx, ASTNode * node);
 void emit_translation_unit(EmitterContext * ctx, ASTNode * node);
 void emit_header(EmitterContext * ctx);
-void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals);
+void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals, ASTNode_list * float_literals, ASTNode_list * double_literals);
 void emit_text_section_header(EmitterContext * ctx);
 void emit_data_section_header(EmitterContext * ctx);
 void emit_bss_section_header(EmitterContext * ctx);

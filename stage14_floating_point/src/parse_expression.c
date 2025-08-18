@@ -269,6 +269,13 @@ ASTNode * parse_primary_expression(ParserContext * parserContext) {
         ASTNode * node = create_float_literal_node(tok->float_value);
         return node;
     }
+    if (is_current_token(parserContext, TOKEN_DOUBLE_LITERAL)) {
+        Token * tok = peek(parserContext);
+        advance_parser(parserContext);
+        ASTNode * node = create_double_literal_node(tok->double_value);
+        return node;
+
+    }
     // handle paren blocks
     if (is_current_token(parserContext, TOKEN_LPAREN)) {
         expect_token(parserContext, TOKEN_LPAREN);

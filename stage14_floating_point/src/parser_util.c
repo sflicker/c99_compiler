@@ -16,13 +16,16 @@
 #include "parser_context.h"
 #include "parser_util.h"
 
-ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals, ASTNode_list * string_literals) {
+ASTNode * create_translation_unit_node(ASTNode_list * functions, ASTNode_list * globals,
+    ASTNode_list * string_literals, ASTNode_list * float_literals, ASTNode_list * double_literals) {
     ASTNode * node = create_ast();
     node->type = AST_TRANSLATION_UNIT;
     node->translation_unit.globals = globals;
     node->translation_unit.functions = functions;
     node->translation_unit.count = functions->count;
     node->translation_unit.string_literals = string_literals;
+    node->translation_unit.float_literals = float_literals;
+    node->translation_unit.double_literals = double_literals;
     node->symbol = NULL;
     return node;
 }
@@ -219,7 +222,16 @@ ASTNode * create_int_literal_node(int value) {
 ASTNode * create_float_literal_node(float value) {
     ASTNode * node = create_ast();
     node->type = AST_FLOAT_LITERAL;
-    node->int_value = value;
+    node->float_literal.value = value;
+    node->ctype = &CTYPE_FLOAT_T;
+    node->symbol = NULL;
+    return node;
+}
+
+ASTNode * create_double_literal_node(double value) {
+    ASTNode * node = create_ast();
+    node->type = AST_DOUBLE_LITERAL;
+    node->double_literal.value = value;
     node->ctype = &CTYPE_FLOAT_T;
     node->symbol = NULL;
     return node;

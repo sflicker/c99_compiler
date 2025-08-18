@@ -233,6 +233,7 @@ const char * get_ast_node_name(ASTNode * node) {
         case AST_LABELED_STMT: return "LabelledStmt";
         case AST_INT_LITERAL: return "IntLiteral";
         case AST_FLOAT_LITERAL: return "FloatLiteral";
+        case AST_DOUBLE_LITERAL: return "DoubleLiteral";
         case AST_ARRAY_ACCESS: return "ArrayAccess";
         case AST_INITIALIZER_LIST: return "InitializerList";
         case AST_STRING_LITERAL: return "StringLiteral";

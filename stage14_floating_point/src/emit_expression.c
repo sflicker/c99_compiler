@@ -700,13 +700,36 @@ void emit_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
                 emit_push(ctx, "rax");
             }
             break;
+        case AST_FLOAT_LITERAL:
+            emit_line(ctx, "movss xmm0, [rel %s]", node->float_literal.label);  // need label
+            if (mode == WANT_VALUE) {
+                emit_fpush(ctx, "xmm0", FP32);
+            }
+            break;
+
+        case AST_DOUBLE_LITERAL:
+            emit_line(ctx, "movsd xmm0, [rel %s]", node->double_literal.label);  // need label
+            if (mode == WANT_VALUE) {
+                emit_fpush(ctx, "xmm0", FP64);
+            }
+            break;
+
         case AST_VAR_REF_EXPR: {
             emit_addr(ctx, node);
             if (!is_array_type(node->ctype)) {
-                emit_pop(ctx, "rax");
-                emit_load_from(ctx, node->ctype, "rax");
-                if (mode == WANT_VALUE) {
-                    emit_push(ctx, "rax");
+                if (is_floating_point_type(node->ctype)) {
+                    //emit_fpop(ctx, "xmm0", FP32);
+                    emit_pop(ctx, "rax");
+                    emit_load_from(ctx, node->ctype, "rax");
+                    if (mode == WANT_VALUE) {
+                        emit_push(ctx, "xmm0");
+                    }
+                } else {
+                    emit_pop(ctx, "rax");
+                    emit_load_from(ctx, node->ctype, "rax");
+                    if (mode == WANT_VALUE) {
+                        emit_push(ctx, "rax");
+                    }
                 }
             }
             // if (node->symbol->ctype->kind == CTYPE_ARRAY) {

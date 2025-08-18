@@ -389,6 +389,16 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
         }
 
+        case AST_FLOAT_LITERAL: {
+            ASTNode_list_append(getTranslationUnit(ctx)->translation_unit.float_literals, node);
+            break;
+        }
+
+        case AST_DOUBLE_LITERAL: {
+            ASTNode_list_append(getTranslationUnit(ctx)->translation_unit.double_literals, node);
+        }
+
+
         case AST_EXPRESSION_STMT:
         case AST_ASSERT_EXTENSION_STATEMENT:
         case AST_PRINT_EXTENSION_STATEMENT:
