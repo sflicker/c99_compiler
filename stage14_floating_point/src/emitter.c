@@ -192,7 +192,7 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
 void emit_if_statement(EmitterContext * ctx, ASTNode * node) {
     int id = get_label_id(ctx);
     // eval condition
-    emit_expr(ctx, node->if_stmt.cond, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->if_stmt.cond, WANT_VALUE);
     emit_pop(ctx, "rax");
     // compare result with 0
     emit_line(ctx, "cmp eax, 0");
@@ -226,7 +226,7 @@ void emit_while_statement(EmitterContext * ctx, ASTNode * node) {
     // start label
     emit_label_from_text(ctx, loop_start_label);
     // eval cond
-    emit_expr(ctx, node->while_stmt.cond, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->while_stmt.cond, WANT_VALUE);
     emit_pop(ctx, "rax");
     // cmp to zero
     emit_line(ctx, "cmp eax, 0");
@@ -249,7 +249,7 @@ void emit_do_while_statement(EmitterContext * ctx, ASTNode * node) {
     emit_tree_node(ctx, node->do_while_stmt.body);
 
     emit_line(ctx, "; emitting do_while condition expression");
-    emit_expr(ctx, node->do_while_stmt.expr, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->do_while_stmt.expr, WANT_VALUE);
     emit_pop(ctx, "rax");
 
     emit_line(ctx, "cmp eax, 0");
@@ -333,7 +333,7 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 
             if (i < flattened_list->count) {
                 ASTNode * init_value = ASTNode_list_get(flattened_list, i);
-                emit_expr(ctx, init_value, WANT_VALUE);
+                emit_int_expr_to_rax(ctx, init_value, WANT_VALUE);
             }
             else {
                 emit_line(ctx, "mov eax, 0");
@@ -353,11 +353,11 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
     else {
         emit_line(ctx,"; initializing variable");
         if (is_array_type(node->var_decl.init_expr->ctype)) {
-            emit_addr(ctx, node->var_decl.init_expr);
+            emit_addr_to_rax(ctx, node->var_decl.init_expr);
         } else {
-            emit_expr(ctx, node->var_decl.init_expr, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, node->var_decl.init_expr, WANT_VALUE);
         }
-        emit_addr(ctx, node);
+        emit_addr_to_rax(ctx, node);
         // emit_line(ctx, "pop rcx");
         // emit_line(ctx, "pop rax");
         emit_pop(ctx, "rcx");
@@ -419,13 +419,13 @@ void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
 
     // update expression
     if (node->for_stmt.update_expr) {
-        emit_expr(ctx, node->for_stmt.update_expr, WANT_VALUE);
+        emit_int_expr_to_rax(ctx, node->for_stmt.update_expr, WANT_VALUE);
     }
 
     // loop condition
     emit_label_from_text(ctx, condition_label);
     if (node->for_stmt.cond_expr) {
-        emit_expr(ctx, node->for_stmt.cond_expr, WANT_VALUE);
+        emit_int_expr_to_rax(ctx, node->for_stmt.cond_expr, WANT_VALUE);
         emit_pop(ctx, "rax");
         emit_line(ctx, "cmp eax, 0");
         emit_jump_from_text(ctx, "je", end_label);     // exit if false
@@ -519,7 +519,7 @@ void emit_switch_statement(EmitterContext * ctx, ASTNode * node) {
 
     char * break_label = make_label_text("switch_end", label_end);
 
-    emit_expr(ctx, node->switch_stmt.expr, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->switch_stmt.expr, WANT_VALUE);
 //    emit_line(ctx, "push rax   ; save switch expression\n");
 //    emit_pop(ctx, "rax");
 
@@ -613,7 +613,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_var_declaration(ctx, node);
             break;
         case AST_RETURN_STMT:
-            emit_expr(ctx, node->return_stmt.expr, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, node->return_stmt.expr, WANT_VALUE);
             if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
                 emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
             }
@@ -622,12 +622,12 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
 
             break;
         case AST_FUNCTION_CALL_EXPR:
-            emit_expr(ctx, node, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, node, WANT_VALUE);
             //            emit_function_call(ctx, node);
             break;
         case AST_EXPRESSION_STMT:
             //            emit_tree_node(ctx, node->expr_stmt.expr);
-            emit_expr(ctx, node->expr_stmt.expr, WANT_EFFECT);
+            emit_int_expr_to_rax(ctx, node->expr_stmt.expr, WANT_EFFECT);
             break;
         case AST_ASSERT_EXTENSION_STATEMENT:
             emit_assert_extension_statement(ctx, node);
@@ -665,11 +665,11 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_INT_LITERAL:
         case AST_CAST_EXPR:
         case AST_VAR_REF_EXPR: {
-            emit_expr(ctx, node, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, node, WANT_VALUE);
             break;
         }
         case AST_ARRAY_ACCESS: {
-            emit_expr(ctx, node, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, node, WANT_VALUE);
             // int offset = get_offset(ctx, node);
             // emit_line(ctx, "mov eax, [rbp%+d]", offset);
             break;

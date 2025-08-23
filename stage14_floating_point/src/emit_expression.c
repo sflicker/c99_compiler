@@ -25,7 +25,7 @@ INTERNAL void emit_function_call_expr(EmitterContext * ctx, ASTNode * node, Eval
         // loop through in reverse order pushing arguments to the stack
         for (int i = node->function_call.arg_list->count - 1; i >= 0; i--) {
             ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
-            emit_expr(ctx, argNode, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, argNode, WANT_VALUE);
             //            emit_line(ctx, "push rax");
             arg_count++;
         }
@@ -58,9 +58,9 @@ INTERNAL void emit_function_call_expr(EmitterContext * ctx, ASTNode * node, Eval
 }
 
 
-INTERNAL void emit_cast_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
-    emit_expr(ctx, node->cast_expr.expr, WANT_VALUE);     // eval inner expression
+    emit_int_expr_to_rax(ctx, node->cast_expr.expr, WANT_VALUE);     // eval inner expression
 
     CType * from_type = node->cast_expr.expr->ctype;
     CType * to_type = node->cast_expr.target_type;
@@ -125,20 +125,20 @@ INTERNAL void emit_cast_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode
     }
 }
 
-INTERNAL void emit_assignment_expr(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
+INTERNAL void emit_int_assignment_expr_to_rax(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
     emit_line(ctx, "; emitting assignment - LHS %s = RHS %s",
         get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
     // eval RHS -> rax then push
     if (is_array_type(node->binary.rhs->ctype)) {
-        emit_addr(ctx, node->binary.rhs);
+        emit_addr_to_rax(ctx, node->binary.rhs);
     }
     else {
-        emit_expr(ctx, node->binary.rhs, WANT_VALUE);
+        emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
     }
     //    emit_line(ctx, "push rax");
 
     // eval LHS addr -> rcx
-    emit_expr(ctx, node->binary.lhs, WANT_ADDRESS);
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_ADDRESS);
 
     // pop LHS into rcx
     //    emit_line(ctx, "pop rcx");
@@ -156,9 +156,9 @@ INTERNAL void emit_assignment_expr(EmitterContext * ctx, ASTNode* node, EvalMode
 
 }
 
-INTERNAL void emit_binary_add_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
-    emit_expr(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
+INTERNAL void emit_int_add_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
 
 //    emit_line(ctx, "pop rcx");                      // pop rhs to RCX
 //    emit_line(ctx, "pop rax");                      // pop lhs to RAX
@@ -211,9 +211,9 @@ INTERNAL void emit_binary_add_expr(EmitterContext * ctx, ASTNode * node, EvalMod
 
 }
 
-INTERNAL void emit_binary_sub_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
-    emit_expr(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
+INTERNAL void emit_int_sub_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
 
     // emit_line(ctx, "pop rcx");                      // pop rhs to RCX
     // emit_line(ctx, "pop rax");                      // pop lhs to RAX
@@ -267,9 +267,9 @@ INTERNAL void emit_binary_sub_expr(EmitterContext * ctx, ASTNode * node, EvalMod
 }
 
 
-INTERNAL void emit_binary_multi_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
-    emit_expr(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
+INTERNAL void emit_int_multi_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
 
     emit_pop(ctx, "rcx");
     emit_pop(ctx, "rax");
@@ -281,9 +281,9 @@ INTERNAL void emit_binary_multi_expr(EmitterContext * ctx, ASTNode * node, EvalM
     }
 }
 
-void emit_binary_div_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
-    emit_expr(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
+void emit_int_div_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
     // emit_line(ctx, "pop rcx");           // pop rhs to rCX
     // emit_line(ctx, "pop rax");           // pop lhs to rax
     emit_pop(ctx, "rcx");
@@ -302,10 +302,10 @@ void emit_binary_div_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
 }
 
-INTERNAL void emit_binary_mod_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+INTERNAL void emit_int_mod_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
-    emit_expr(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
     // emit_line(ctx, "pop rcx");           // pop rhs to rCX
     // emit_line(ctx, "pop rax");           // pop lhs to rax
     emit_pop(ctx, "rcx");
@@ -322,18 +322,18 @@ INTERNAL void emit_binary_mod_expr(EmitterContext * ctx, ASTNode * node, EvalMod
 
 }
 
-void emit_logical_and_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+INTERNAL void emit_int_logical_and_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     int label_false = get_label_id(ctx);
     int label_end = get_label_id(ctx);
 
     //lhs
-    emit_expr(ctx, node->binary.lhs, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
     emit_pop(ctx, "rax");
     emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "je", "false", label_false);
 
     //rhs
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
     emit_pop(ctx, "rax");
     emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "je", "false", label_false);
@@ -352,18 +352,18 @@ void emit_logical_and_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) 
     emit_label(ctx, "end", label_end);
 }
 
-void emit_logical_or_expr(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
+INTERNAL void emit_int_logical_or_expr_to_rax(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
     int label_true = get_label_id(ctx);
     int label_end = get_label_id(ctx);
 
     // lhs
-    emit_expr(ctx, node->binary.lhs, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
     emit_pop(ctx, "rax");
     emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "jne", "true", label_true);
 
     // rhs
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
     emit_pop(ctx, "rax");
     emit_line(ctx, "cmp eax, 0");
     emit_jump(ctx, "jne", "true", label_true);
@@ -378,10 +378,10 @@ void emit_logical_or_expr(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
     emit_label(ctx, "end", label_end);
 }
 
-INTERNAL void emit_add_assignment_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+INTERNAL void emit_int_add_assignment_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
     // compute lhs address -> rcx
-    emit_expr(ctx, node->binary.lhs, WANT_ADDRESS);
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_ADDRESS);
 
     emit_pop(ctx, "rcx");               // pop rcx off the stack to load the lhs value
     emit_push(ctx, "rcx");              // push rcx back on the stack to latter store the result
@@ -392,7 +392,7 @@ INTERNAL void emit_add_assignment_expr(EmitterContext * ctx, ASTNode * node, Eva
 
 
     // evaluate RHS into eax
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
 
     // restore RHS into ecx
 //    emit_line(ctx, "pop rcx");
@@ -414,12 +414,15 @@ INTERNAL void emit_add_assignment_expr(EmitterContext * ctx, ASTNode * node, Eva
     // write back result to LHS
     emit_line(ctx, "mov [rcx], eax");
 
+    if (mode == WANT_VALUE) {
+        emit_push(ctx, "rax");
+    }
 }
 
-INTERNAL void emit_sub_assignment_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+INTERNAL void emit_int_sub_assignment_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
     // compute lhs address -> rcx
-    emit_expr(ctx, node->binary.lhs, WANT_ADDRESS);
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_ADDRESS);
 
     emit_pop(ctx, "rcx");               // pop rcx off the stack to load the lhs value
     emit_push(ctx, "rcx");              // push rcx back on the stack to latter store the result
@@ -437,7 +440,7 @@ INTERNAL void emit_sub_assignment_expr(EmitterContext * ctx, ASTNode * node, Eva
     // emit_line(ctx, "push rax");
 
     // evaluate RHS into eax
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
 
 //    emit_line(ctx, "mov ecx, eax");
 
@@ -466,12 +469,16 @@ INTERNAL void emit_sub_assignment_expr(EmitterContext * ctx, ASTNode * node, Eva
     // emit_line(ctx, "sub eax, ecx\n");
     // emit_line(ctx, "mov %s, eax\n", reference_label);
     // free(reference_label);
+
+    if (mode == WANT_VALUE) {
+        emit_push(ctx, "rax");
+    }
 }
 
-INTERNAL void emit_binary_comparison_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+INTERNAL void emit_int_comparison_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     // eval left-hand side -> result in eax -> push results onto the stack
-    emit_expr(ctx, node->binary.lhs, WANT_VALUE);
-    emit_expr(ctx, node->binary.rhs, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
 
     // emit_line(ctx, "pop rcx");
     // emit_line(ctx, "pop rax");
@@ -526,7 +533,7 @@ INTERNAL void emit_binary_comparison_expr(EmitterContext * ctx, ASTNode * node, 
 }
 
 
-INTERNAL void emit_binary_expr(EmitterContext * ctx, ASTNode *node, EvalMode mode) {
+INTERNAL void emit_int_binary_expr_to_rax(EmitterContext * ctx, ASTNode *node, EvalMode mode) {
     switch (node->binary.op) {
         case BINOP_EQ:
         case BINOP_NE:
@@ -534,16 +541,16 @@ INTERNAL void emit_binary_expr(EmitterContext * ctx, ASTNode *node, EvalMode mod
         case BINOP_GE:
         case BINOP_LT:
         case BINOP_LE:
-            emit_binary_comparison_expr(ctx, node, mode);
+            emit_int_comparison_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_ADD:
-            emit_binary_add_expr(ctx, node, mode);
+            emit_int_add_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_SUB:
-            emit_binary_sub_expr(ctx, node, mode);
+            emit_int_sub_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_MUL:
-            emit_binary_multi_expr(ctx, node, mode);
+            emit_int_multi_expr_to_rax(ctx, node, mode);
             //          emit_expr(ctx, node->binary.lhs);       // codegen to eval lhs with result in EAX
             // //         emit_line(ctx, "push rax");                     // push lhs result
             //          emit_expr(ctx, node->binary.rhs);       // codegen to eval rhs with result in EAX
@@ -552,26 +559,26 @@ INTERNAL void emit_binary_expr(EmitterContext * ctx, ASTNode *node, EvalMode mod
             //          emit_binary_op(ctx, node->binary.op);        // emit proper for op
             break;
         case BINOP_DIV:
-            emit_binary_div_expr(ctx, node, mode);
+            emit_int_div_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_MOD:
-            emit_binary_mod_expr(ctx, node, mode);
+            emit_int_mod_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_LOGICAL_AND:
-            emit_logical_and_expr(ctx, node, mode);
+            emit_int_logical_and_expr_to_rax(ctx, node, mode);
             break;
 
         case BINOP_LOGICAL_OR:
-            emit_logical_or_expr(ctx, node, mode);
+            emit_int_logical_or_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_ASSIGNMENT:
-            emit_assignment_expr(ctx, node, mode);
+            emit_int_assignment_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_COMPOUND_ADD_ASSIGN:
-            emit_add_assignment_expr(ctx, node, mode);
+            emit_int_add_assignment_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_COMPOUND_SUB_ASSIGN:
-            emit_sub_assignment_expr(ctx, node, mode);
+            emit_int_sub_assignment_expr_to_rax(ctx, node, mode);
             break;
         default:
             error("Unknown binary operator");
@@ -585,7 +592,7 @@ INTERNAL void emit_binary_expr(EmitterContext * ctx, ASTNode *node, EvalMode mod
 INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     switch (node->unary.op) {
         case UNARY_NEGATE:
-            emit_expr(ctx, node->unary.operand, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, node->unary.operand, WANT_VALUE);
 //            emit_line(ctx, "pop rax");
             emit_pop(ctx, "rax");
 
@@ -601,7 +608,7 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             break;
         case UNARY_NOT:
             // !x becomes (x == 0) -> 1 else 0
-            emit_expr(ctx, node->unary.operand, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, node->unary.operand, WANT_VALUE);
             emit_pop(ctx, "rax");
             emit_line(ctx, "cmp eax, 0");
             emit_line(ctx, "sete al");
@@ -647,7 +654,7 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             break;
         }
         case UNARY_ADDRESS: {
-            emit_expr(ctx, node->unary.operand, WANT_ADDRESS);
+            emit_int_expr_to_rax(ctx, node->unary.operand, WANT_ADDRESS);
 //             char * reference_label = create_variable_reference(ctx, node->unary.operand);
 //             emit_line(ctx, "lea rax, %s", reference_label);
 // //            emit_line(ctx, "push rax");
@@ -657,7 +664,7 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             break;
         }
         case UNARY_DEREF: {
-            emit_expr(ctx, node->unary.operand, WANT_VALUE);
+            emit_int_expr_to_rax(ctx, node->unary.operand, WANT_VALUE);
 //            emit_line(ctx, "pop rax");
             emit_pop(ctx, "rax");
 
@@ -688,9 +695,9 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
 // emit_expr.
 // generate code to eval the expression storing the final result in eax or rax
-void emit_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     if (mode == WANT_ADDRESS) {
-        emit_addr(ctx, node);
+        emit_addr_to_rax(ctx, node);
         return;
     }
     switch (node->type) {
@@ -715,7 +722,7 @@ void emit_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             break;
 
         case AST_VAR_REF_EXPR: {
-            emit_addr(ctx, node);
+            emit_addr_to_rax(ctx, node);
             if (!is_array_type(node->ctype)) {
                 if (is_floating_point_type(node->ctype)) {
                     //emit_fpop(ctx, "xmm0", FP32);
@@ -750,14 +757,14 @@ void emit_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             emit_unary(ctx, node, mode);
             break;
         case AST_BINARY_EXPR:
-            emit_binary_expr(ctx, node, mode);
+            emit_int_binary_expr_to_rax(ctx, node, mode);
             break;
         case AST_FUNCTION_CALL_EXPR:
             emit_function_call_expr(ctx, node, mode);
             break;
         case AST_ARRAY_ACCESS:
             emit_line(ctx, "; emitting array access");
-            emit_addr(ctx, node);
+            emit_addr_to_rax(ctx, node);
 
             if (node->ctype->kind != CTYPE_ARRAY) {
                 emit_pop(ctx, "rcx");
@@ -770,10 +777,10 @@ void emit_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
             break;
         case AST_CAST_EXPR:
-            emit_cast_expr(ctx, node, mode);
+            emit_int_cast_expr_to_rax(ctx, node, mode);
             break;
         case AST_STRING_LITERAL: {
-            emit_addr(ctx, node);
+            emit_addr_to_rax(ctx, node);
             // char * label = node->string_literal.label;
             // emit_line(ctx, "lea rax, [%s]", label);
             // emit_push(ctx, "rax");

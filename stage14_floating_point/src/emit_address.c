@@ -13,35 +13,7 @@
 
 void emit_array_access_addr(EmitterContext * ctx, ASTNode * node);
 
-int get_offset(EmitterContext * ctx, ASTNode * node) {
-    if (node->type == AST_VAR_DECL || node->type == AST_VAR_REF_EXPR) {
-        return node->symbol->info.var.offset;
-    }
-    if (node->type == AST_ARRAY_ACCESS) {
-        return get_offset(ctx, node->array_access.base);
-        //       return node->array_access.base->symbol->info.var.offset;
-    }
-    return 0;
-}
-
-char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
-    if (is_global_var(ctx, node)) {
-        const char * name = get_var_name(ctx, node);
-        int size = snprintf(NULL, 0, "[rel %s]", name) + 1;
-        char * label = malloc(size);
-        snprintf(label, size, "[rel %s]", name);
-        return label;
-    }
-    else {
-        int offset = get_offset(ctx, node);
-        int size = snprintf(NULL, 0, "[rbp%+d]", offset) + 1;
-        char * label = malloc(size);
-        snprintf(label, size, "[rbp%+d]", offset);
-        return label;
-    }
-}
-
-void emit_addr(EmitterContext * ctx, ASTNode * node) {
+void emit_addr_to_rax(EmitterContext * ctx, ASTNode * node) {
     switch (node->type) {
         case AST_VAR_DECL:
         case AST_VAR_REF_EXPR: {
@@ -81,7 +53,7 @@ void emit_addr(EmitterContext * ctx, ASTNode * node) {
         }
         case AST_UNARY_EXPR:
             if (node->unary.op == UNARY_DEREF) {
-                emit_expr(ctx, node->unary.operand, WANT_VALUE);
+                emit_int_expr_to_rax(ctx, node->unary.operand, WANT_VALUE);
             }
             else {
                 error("Unsupported unary operator in emit_addr");
@@ -109,10 +81,10 @@ void emit_array_access_addr(EmitterContext * ctx, ASTNode * node) {
     CType * base_type = node->array_access.base->ctype;
 
     emit_line(ctx, "; emitting array base");
-    emit_expr(ctx, node->array_access.base, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->array_access.base, WANT_VALUE);
 
     emit_line(ctx, "; emitting array index");
-    emit_expr(ctx, node->array_access.index, WANT_VALUE);
+    emit_int_expr_to_rax(ctx, node->array_access.index, WANT_VALUE);
 
     if (base_type->kind == CTYPE_PTR) {
         emit_pointer_arithmetic(ctx, node->array_access.base->ctype);

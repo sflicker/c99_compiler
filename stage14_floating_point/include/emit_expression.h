@@ -5,6 +5,9 @@
 #ifndef _EMIT_EXPRESSION_H
 #define _EMIT_EXPRESSION_H
 
-void emit_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode);
+#include "ast.h"
+#include "emitter_context.h"
+
+void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode);
 
 #endif //_EMIT_EXPRESSION_H

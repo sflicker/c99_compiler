@@ -70,10 +70,13 @@ void test_expression_statement() {
 }
 
 void test_for_statement() {
-    ASTNode * init_expr = create_var_decl_node(
+    ASTNode * init_expr = create_declaration_node(&CTYPE_INT_T);
+    ASTNode * init_expr_var = create_var_decl_node(
             "i",
             &CTYPE_INT_T,
             create_int_literal_node(0));
+    ASTNode_list_append(init_expr->declaration.init_declarator_list, init_expr_var);
+
     ASTNode * cond_expr = create_binary_node(
         create_var_ref_node("i"),
         BINOP_LT,
@@ -218,10 +221,11 @@ void test_array_with_initializer() {
     TEST_ASSERT("Verify node is a BLOOK", astNode->type == AST_BLOCK_STMT);
     TEST_ASSERT("Verify block has one child node", astNode->block.statements->count == 1);
 
-    ASTNode * array_decl = astNode->block.statements->head->value;
-    TEST_ASSERT("Verify array decl is not NULL", array_decl != NULL);
-    TEST_ASSERT("Verify array decl has correct type", array_decl->type == AST_VAR_DECL);
-    ASTNode * initializer = array_decl->var_decl.init_expr;
+    ASTNode * array_decl_stmt = astNode->block.statements->head->value;
+    TEST_ASSERT("Verify array decl is not NULL", array_decl_stmt != NULL);
+    TEST_ASSERT("Verify array decl has correct type", array_decl_stmt->type == AST_DECLARATION_STMT);
+    ASTNode_list * init_declarator_list = array_decl_stmt->declaration.init_declarator_list;
+    ASTNode * initializer = init_declarator_list->head->value->var_decl.init_expr;
     TEST_ASSERT("Verify initializer is not NULL", initializer != NULL);
     TEST_ASSERT("Verify initializer is of type AST_INITIALIZER_LIST", initializer->type == AST_INITIALIZER_LIST);
     TEST_ASSERT("Verify initializer has 3 items", initializer->initializer_list.items->count == 3);

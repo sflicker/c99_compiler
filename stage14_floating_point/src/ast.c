@@ -270,6 +270,17 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
         return false;
     }
     switch (a->type) {
+        case AST_DECLARATION_STMT: {
+            if (!ctype_equals(a->declaration.declaration_type, b->declaration.declaration_type))
+                return false;
+            for (int i=0;i<a->declaration.init_declarator_list->count;i++) {
+                ASTNode * a_init_decl = ASTNode_list_get(a->declaration.init_declarator_list, i);
+                ASTNode * b_init_decl = ASTNode_list_get(b->declaration.init_declarator_list, i);
+                if (!ast_equal(a_init_decl, b_init_decl)) return false;
+            }
+            return true;
+            break;
+        }
         case AST_VAR_DECL:
             if (!strcmp(a->var_decl.name, b->var_decl.name) == 0) {
                 fprintf(stderr, "ast variable names do not match - %s, %s\n",
@@ -316,6 +327,7 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
                 ast_equal(a->for_stmt.update_expr, b->for_stmt.update_expr) &&
                     ast_equal(a->for_stmt.cond_expr, b->for_stmt.cond_expr) &&
                     ast_equal(a->for_stmt.body, b->for_stmt.body);
+            break;
         case AST_BLOCK_STMT: {
 
             for (int i=0;i<a->block.statements->count;i++) {

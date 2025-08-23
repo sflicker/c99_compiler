@@ -390,3 +390,31 @@ void emit_string_literal(EmitterContext * ctx, const char * label, const char * 
     written += snprintf(buffer + written, 1024 - written, ", 0");
     emit_line(ctx, "%s", buffer);
 }
+
+int get_offset(EmitterContext * ctx, ASTNode * node) {
+    if (node->type == AST_VAR_DECL || node->type == AST_VAR_REF_EXPR) {
+        return node->symbol->info.var.offset;
+    }
+    if (node->type == AST_ARRAY_ACCESS) {
+        return get_offset(ctx, node->array_access.base);
+        //       return node->array_access.base->symbol->info.var.offset;
+    }
+    return 0;
+}
+char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
+    if (is_global_var(ctx, node)) {
+        const char * name = get_var_name(ctx, node);
+        int size = snprintf(NULL, 0, "[rel %s]", name) + 1;
+        char * label = malloc(size);
+        snprintf(label, size, "[rel %s]", name);
+        return label;
+    }
+    else {
+        int offset = get_offset(ctx, node);
+        int size = snprintf(NULL, 0, "[rbp%+d]", offset) + 1;
+        char * label = malloc(size);
+        snprintf(label, size, "[rbp%+d]", offset);
+        return label;
+    }
+}
+

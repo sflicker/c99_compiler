@@ -40,4 +40,7 @@ void emit_string_literal(EmitterContext * ctx, const char * label, const char * 
 void emit_float_literal(EmitterContext * ctx, const char * label, float value);
 void emit_double_literal(EmitterContext * ctx, const char * label, double value);
 
+int get_offset(EmitterContext * ctx, ASTNode * node);
+char * create_variable_reference(EmitterContext * ctx, ASTNode * node);
+
 #endif //EMITTER_HELPERS_H
