@@ -304,7 +304,7 @@ void test_create_for_statement_node() {
     free_ast(init_expr);
 }
 
-void test_create_function_declaration_node__declaration_only() {
+void test_create_function_declaration_node() {
     const char * label = "myfunc";
     CType * return_type = &CTYPE_INT_T;
     CType_list * param_types = NULL;
@@ -321,7 +321,7 @@ void test_create_function_declaration_node__declaration_only() {
     free_ast(node);
 }
 
-void test_create_function_definition_node__with_body() {
+void test_create_function_definition_node() {
     const char * label = "main";
 
     CType * return_type = &CTYPE_INT_T;
@@ -338,7 +338,7 @@ void test_create_function_definition_node__with_body() {
     ASTNode * node = create_function_definition_node(label, func_type, NULL, body);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
+    TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DEF);
     TEST_ASSERT("Verify correct identifier", strcmp(label, node->function_decl.name) == 0);
 //    TEST_ASSERT("Verify is not declaration only", !node->function_decl.declaration_only);
     TEST_ASSERT("Verify function body contains 1 statement", node->function_def.body->block.count == 1);
@@ -347,7 +347,7 @@ void test_create_function_definition_node__with_body() {
     free_ast(node);
 }
 
-void test_create_function_definition_node__with_body_and_param_list() {
+void test_create_function_definition_node__with_param_list() {
     const char * label = "main";
     const char * param_label = "a";
 
@@ -369,7 +369,7 @@ void test_create_function_definition_node__with_body_and_param_list() {
     ASTNode * node = create_function_definition_node(label, func_type, param_list, body);
 
     TEST_ASSERT("Verify node is not null", node != NULL);
-    TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DECL);
+    TEST_ASSERT("Verify node is AST_FUNCTION_DECL", node->type == AST_FUNCTION_DEF);
     TEST_ASSERT("Verify correct identifier", strcmp(label, node->function_decl.name) == 0);
 //    TEST_ASSERT("Verify is not declaration only", !node->function_decl.declaration_only);
     TEST_ASSERT("Verify function body contains 1 statement", node->function_def.body->block.count == 1);
@@ -484,9 +484,9 @@ int main() {
     RUN_TEST(test_create_var_ref_node);
     RUN_TEST(test_create_var_decl_node);
     RUN_TEST(test_create_for_statement_node);
-    RUN_TEST(test_create_function_declaration_node__declaration_only);
-    RUN_TEST(test_create_function_definition_node__with_body);
-    RUN_TEST(test_create_function_definition_node__with_body_and_param_list);
+    RUN_TEST(test_create_function_declaration_node);
+    RUN_TEST(test_create_function_definition_node);
+    RUN_TEST(test_create_function_definition_node__with_param_list);
     RUN_TEST(test_create_return_statement_node);
     RUN_TEST(test_create_expression_statement_node);
     RUN_TEST(test_create_block_node);
