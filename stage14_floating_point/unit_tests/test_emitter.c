@@ -69,9 +69,9 @@ void run_emitter_test(char * c_fragment, char * expected, PARSER_OP op) {
     emitter_finalize(emitter_context);
 
     printf("Generated code:\n%s\n", buffer);
-    char * normalizedOutput = malloc(strlen(buffer) + 1);
+    char * normalizedOutput = calloc(strlen(buffer) + 1, 1);
 
-    strip_comments(buffer, normalizedOutput);
+    strip_comments_multiline(buffer, normalizedOutput);
 
     TEST_ASSERT_EQ_STR("Verifying generated code is correct", expected, normalizedOutput);
 

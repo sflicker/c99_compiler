@@ -207,6 +207,29 @@ char * get_reservation_directive(CType * ctype) {
     return NULL;
 }
 
+void strip_comments_multiline(char * src, char * dst) {
+    char line[256];
+    char stripped[256];
+    char * p = src;
+    while (*p) {
+        const char * q = strchr(p, '\n');
+        if (!q) q = p + strlen(p);   // last line without newline
+        size_t len = q - p;
+        memcpy(line, p, len);
+        line[len] = '\0';
+
+        strip_comments(line, stripped);
+        if (strlen(stripped) > 0) {
+            memcpy(dst, stripped, strlen(stripped));
+            dst[strlen(stripped)] = '\n';
+            p = q + 1;
+            dst += strlen(dst);
+        } else {
+            p = q + 1;
+        }
+    }
+}
+
 void strip_comments(char *src, char *dst) {
     while (*src) {
         // Skip leading whitespace to peek at first non-whitespace

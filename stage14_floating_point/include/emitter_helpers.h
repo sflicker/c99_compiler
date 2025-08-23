@@ -23,6 +23,7 @@ void emit_label_from_text(EmitterContext *ctx, const char * label);
 char * get_data_directive(CType * ctype);
 char * get_reservation_directive(CType * ctype);
 void strip_comments(char *src, char *dst);
+void strip_comments_multiline(char *src, char *dst);
 
 void emit_pop_for_type(EmitterContext * ctx, CType * ctype);
 void emit_push(EmitterContext * ctx, const char * reg);
