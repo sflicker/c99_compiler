@@ -96,20 +96,49 @@ void print_indent(int indent) {
 
 void print_with_label(const char *label, const char *text) {
     const char *p = text;
-    printf("%s] ", label);
+    printf("%s] \n", label);
+    int line_number = 0;
     while (*p) {
+        line_number++;
         // print until next \n or \0
         const char *line_end = strchr(p, '\n');
         if (line_end && *line_end == '\n') {
-            printf("%.*s", (int)(line_end - p + 1), p);   // uses \n from text
+            printf("[%03d]  %.*s", line_number, (int)(line_end - p + 1), p);   // uses \n from text
         } else {
-            printf("%.*s\n", (int)(line_end - p), p);
+            printf("[%03d]  %.*s\n", line_number, (int)(line_end - p), p);
         }
         // print label spaces for next line including space after label
-        printf("%*s", (int)strlen(label) + 1 + 1, " ");
+        //printf("%*s", (int)strlen(label) + 1 + 1, " ");
         p = line_end + 1;
 
     }
     printf("\n");
 }
 
+void show_first_mismatch(const char *exp, const char *act) {
+    size_t i = 0, line = 1, col = 1;
+    for (; exp[i] && act[i] && exp[i] == act[i]; ++i) {
+        if (exp[i] == '\n') { line++; col = 1; } else { col++; }
+    }
+    if (exp[i] == act[i]) return; // identical
+
+    fprintf(stdout, "Mismatch at line %zu, col %zu\n", line, col);
+
+    // Print the whole differing lines with a caret
+    const char *ls = exp + i;
+    while (ls > exp && ls[-1] != '\n') ls--;
+    const char *le = ls; while (*le && *le != '\n') le++;
+
+    const char *rs = act + i;
+    while (rs > act && rs[-1] != '\n') rs--;
+    const char *re = rs; while (*re && *re != '\n') re++;
+
+    fprintf(stdout, "expected: %.*s\n", (int)(le - ls), ls);
+    fprintf(stdout, "actual  : %.*s\n", (int)(re - rs), rs);
+
+    // caret under column
+    fprintf(stdout, "          ");
+    for (size_t k = 1; k < col; ++k) fputc(' ', stdout);
+    fputc('^', stdout);
+    fputc('\n', stdout);
+}

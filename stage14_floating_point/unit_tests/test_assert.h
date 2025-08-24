@@ -63,6 +63,7 @@
             printf(COLOR_RED "FAILED\n" COLOR_RESET); \
             print_with_label("Expected", expected); \
             print_with_label("Actual", actual ); \
+            show_first_mismatch(expected, actual); \
             exit(1); \
         } else { \
             printf(COLOR_GREEN "Passed\n" COLOR_RESET); \

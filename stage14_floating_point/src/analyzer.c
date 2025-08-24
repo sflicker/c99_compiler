@@ -221,10 +221,12 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             }
             else if (node->var_decl.is_global) {
                 symbol->info.var.storage = STORAGE_GLOBAL;
+                symbol->storage = STORAGE_GLOBAL;
             }
             else {
                 symbol->info.var.offset = local_offset - node->ctype->size;
                 symbol->info.var.storage = STORAGE_LOCAL;
+                symbol->storage = STORAGE_LOCAL;
                 // local_offset -= 8;
                 // function_local_storage += 8;
                 local_offset -= node->ctype->size;
