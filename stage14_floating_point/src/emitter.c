@@ -419,7 +419,7 @@ void emit_for_statement(EmitterContext * ctx, ASTNode * node) {
 
     // update expression
     if (node->for_stmt.update_expr) {
-        emit_int_expr_to_rax(ctx, node->for_stmt.update_expr, WANT_VALUE);
+        emit_int_expr_to_rax(ctx, node->for_stmt.update_expr, WANT_EFFECT);
     }
 
     // loop condition
