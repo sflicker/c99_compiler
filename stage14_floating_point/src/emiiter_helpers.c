@@ -212,7 +212,7 @@ void strip_comments_multiline(char * src, char * dst) {
     char stripped[256];
     char * p = src;
     while (*p) {
-        const char * q = strchr(p, '\n');
+        char * q = strchr(p, '\n');
         if (!q) q = p + strlen(p);   // last line without newline
         size_t len = q - p;
         memcpy(line, p, len);
@@ -286,7 +286,7 @@ void emit_fpush(EmitterContext * ctx, const char * xmm, FPWidth width) {
 void emit_pop_for_type(EmitterContext * ctx, CType * ctype) {
     const char * reg = reg_for_type(ctype);
     if (is_integer_type(ctype)) {
-        emit_pop(ctx, reg);
+        emit_pop(ctx, "rax");
     } else if (ctype->kind == CTYPE_FLOAT) {
         emit_fpop(ctx, reg, FP32);
     } else if (ctype->kind == CTYPE_DOUBLE) {
