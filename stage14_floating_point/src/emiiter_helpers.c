@@ -128,6 +128,7 @@ const char * mov_instruction_for_type(CType * ctype) {
         case CTYPE_LONG: return "mov";
         case CTYPE_FLOAT: return "movss";
         case CTYPE_DOUBLE: return "movsd";
+        case CTYPE_PTR: return "mov";
         default: error("Unsupported type");
     }
     return NULL;
@@ -285,7 +286,7 @@ void emit_fpush(EmitterContext * ctx, const char * xmm, FPWidth width) {
 
 void emit_pop_for_type(EmitterContext * ctx, CType * ctype) {
     const char * reg = reg_for_type(ctype);
-    if (is_integer_type(ctype)) {
+    if (is_integer_type(ctype) || (is_pointer_type(ctype) && is_integer_type(ctype->base_type))) {
         emit_pop(ctx, "rax");
     } else if (ctype->kind == CTYPE_FLOAT) {
         emit_fpop(ctx, reg, FP32);
