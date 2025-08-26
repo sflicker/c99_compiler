@@ -70,10 +70,10 @@ void emit_load_from(EmitterContext * ctx, CType * t, const char * reg) {
             emit_line(ctx, "mov rax, [%s]", reg);
             break;
         case CTYPE_FLOAT:
-            emit_line(ctx, "movss xmm0, [%s], reg)");
+            emit_line(ctx, "movss xmm0, [%s]", reg);
             break;
         case CTYPE_DOUBLE:
-            emit_line(ctx, "movsd xmm0, [%s], reg)");
+            emit_line(ctx, "movsd xmm0, [%s]", reg);
             break;
         default: error("Unsupported type %s for load from ");
     }

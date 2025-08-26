@@ -354,7 +354,10 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
         emit_line(ctx,"; initializing variable");
         if (is_array_type(node->var_decl.init_expr->ctype)) {
             emit_addr_to_rax(ctx, node->var_decl.init_expr);
-        } else {
+        } else if (is_floating_point_type(node->var_decl.init_expr->ctype)) {
+            emit_fp_expr_to_xmm0(ctx, node->var_decl.init_expr, WANT_VALUE);
+        }
+        else {
             emit_int_expr_to_rax(ctx, node->var_decl.init_expr, WANT_VALUE);
         }
         emit_addr_to_rax(ctx, node);

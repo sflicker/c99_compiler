@@ -60,6 +60,18 @@ INTERNAL void emit_function_call_expr(EmitterContext * ctx, ASTNode * node, Eval
 
 INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
+    if (is_floating_point_type(node->cast_expr.expr->ctype)) {
+        emit_fp_expr_to_xmm0(ctx, node->cast_expr.expr, mode);
+        if (mode == WANT_VALUE) {
+            emit_fpop(ctx, "xmm0", FP32);
+        }
+        emit_line(ctx, "cvttsd2si, eax, xmm0");
+        if (mode == WANT_VALUE) {
+            emit_push(ctx, "rax");
+        }
+        return;
+    }
+
     emit_int_expr_to_rax(ctx, node->cast_expr.expr, WANT_VALUE);     // eval inner expression
 
     CType * from_type = node->cast_expr.expr->ctype;
@@ -76,6 +88,8 @@ INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, Ev
         // pointer to pointer or array to pointer: no-op in codegen
         return;
     }
+
+
 
     if (from_size == to_size) {
         return;  // NOOP
@@ -543,8 +557,11 @@ INTERNAL void emit_int_binary_expr_to_rax(EmitterContext * ctx, ASTNode *node, E
         case BINOP_LE:
             emit_int_comparison_expr_to_rax(ctx, node, mode);
             break;
-        case BINOP_ADD:
-            emit_int_add_expr_to_rax(ctx, node, mode);
+        case BINOP_ADD: {
+            if (is_integer_type(node->ctype)) {
+                emit_int_add_expr_to_rax(ctx, node, mode);
+            }
+        }
             break;
         case BINOP_SUB:
             emit_int_sub_expr_to_rax(ctx, node, mode);
@@ -690,8 +707,88 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     }
 }
 
+void emit_fp_add_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_fp_expr_to_xmm0(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
 
+    emit_fpop(ctx, "xmm0", FP32);  //TODO fix so either 32 or 64 is used
+    emit_fpop(ctx, "xmm1", FP32);
 
+    emit_line(ctx, "addss xmm0, xmm1");
+
+    emit_fpush(ctx, "xmm0", FP32);
+}
+
+void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    switch (node->binary.op) {
+        // case BINOP_EQ:
+        // case BINOP_NE:
+        // case BINOP_GT:
+        // case BINOP_GE:
+        // case BINOP_LT:
+        // case BINOP_LE:
+        //     emit_int_comparison_expr_to_rax(ctx, node, mode);
+        //     break;
+        case BINOP_ADD: {
+            if (is_floating_point_type(node->ctype)) {
+                emit_fp_add_expr_to_xmm0(ctx, node, mode);
+            }
+            break;
+        }
+        default:
+            error("Unexpected node type %d", get_ast_node_name(node));
+    }
+
+}
+
+void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    if (mode == WANT_ADDRESS) {
+        emit_addr_to_rax(ctx, node);
+        return;
+    }
+    switch (node->type) {
+        case AST_FLOAT_LITERAL:
+            emit_line(ctx, "movss xmm0, [rel %s]", node->float_literal.label);  // need label
+            if (mode == WANT_VALUE) {
+                emit_fpush(ctx, "xmm0", FP32);
+            }
+            break;
+
+        case AST_DOUBLE_LITERAL:
+            emit_line(ctx, "movsd xmm0, [rel %s]", node->double_literal.label);  // need label
+            if (mode == WANT_VALUE) {
+                emit_fpush(ctx, "xmm0", FP64);
+            }
+            break;
+
+        case AST_BINARY_EXPR:
+            emit_fp_binary_expr_to_xmm0(ctx, node, mode);
+            break;
+
+        case AST_VAR_REF_EXPR:
+            emit_addr_to_rax(ctx, node);
+            if (!is_array_type(node->ctype)) {
+                if (is_floating_point_type(node->ctype)) {
+                    //emit_fpop(ctx, "xmm0", FP32);
+                    emit_pop(ctx, "rax");
+                    emit_load_from(ctx, node->ctype, "rax");
+                    if (mode == WANT_VALUE) {
+                        emit_fpush(ctx, "xmm0", FP32);
+                    }
+                } else {
+                    emit_pop(ctx, "rax");
+                    emit_load_from(ctx, node->ctype, "rax");
+                    if (mode == WANT_VALUE) {
+                        emit_push(ctx, "rax");
+                    }
+                }
+            }
+            break;
+
+        default:
+            error("Unexpected node type %d", get_ast_node_name(node));
+    }
+}
 
 // emit_expr.
 // generate code to eval the expression storing the final result in eax or rax
