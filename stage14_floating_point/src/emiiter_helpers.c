@@ -442,3 +442,13 @@ char * create_variable_reference(EmitterContext * ctx, ASTNode * node) {
     }
 }
 
+FPWidth getFPWidthFromCType(CType * ctype) {
+    if (ctype->kind == CTYPE_FLOAT) {
+        return FP32;
+    }
+    else if (ctype->kind == CTYPE_DOUBLE) {
+        return FP64;
+    }
+    error("Unsupported type: %s", ctype->kind);
+    return FPWIDTHUNKN;
+}

@@ -62,10 +62,13 @@ INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, Ev
 
     if (is_floating_point_type(node->cast_expr.expr->ctype)) {
         emit_fp_expr_to_xmm0(ctx, node->cast_expr.expr, mode);
+
         if (mode == WANT_VALUE) {
-            emit_fpop(ctx, "xmm0", FP32);
+            emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
         }
-        emit_line(ctx, "cvttsd2si, eax, xmm0");
+
+        emit_line(ctx, "cvttss2si rax, xmm0");
+
         if (mode == WANT_VALUE) {
             emit_push(ctx, "rax");
         }
@@ -711,13 +714,32 @@ void emit_fp_add_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mod
     emit_fp_expr_to_xmm0(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
     emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
 
-    emit_fpop(ctx, "xmm0", FP32);  //TODO fix so either 32 or 64 is used
-    emit_fpop(ctx, "xmm1", FP32);
+    FPWidth width = getFPWidthFromCType(node->ctype);
+    const char * instruction = node->ctype->kind == CTYPE_FLOAT ? "addss" : "addsd";
 
-    emit_line(ctx, "addss xmm0, xmm1");
+    emit_fpop(ctx, "xmm0", width);
+    emit_fpop(ctx, "xmm1", width);
 
-    emit_fpush(ctx, "xmm0", FP32);
+    emit_line(ctx, "%s xmm0, xmm1", instruction);
+
+    emit_fpush(ctx, "xmm0", width);
 }
+
+void emit_fp_multi_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_fp_expr_to_xmm0(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
+
+    FPWidth width = getFPWidthFromCType(node->ctype);
+    const char * instruction = node->ctype->kind == CTYPE_FLOAT ? "mulss" : "mulsd";
+
+    emit_fpop(ctx, "xmm0", width);
+    emit_fpop(ctx, "xmm1", width);
+
+    emit_line(ctx, "%s xmm0, xmm1", instruction);
+
+    emit_fpush(ctx, "xmm0", width);
+}
+
 
 void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     switch (node->binary.op) {
@@ -735,6 +757,10 @@ void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode 
             }
             break;
         }
+        case BINOP_MUL: {
+            emit_fp_multi_expr_to_xmm0(ctx, node, mode);
+            break;
+        }
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
     }
@@ -750,14 +776,14 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
         case AST_FLOAT_LITERAL:
             emit_line(ctx, "movss xmm0, [rel %s]", node->float_literal.label);  // need label
             if (mode == WANT_VALUE) {
-                emit_fpush(ctx, "xmm0", FP32);
+                emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
             }
             break;
 
         case AST_DOUBLE_LITERAL:
             emit_line(ctx, "movsd xmm0, [rel %s]", node->double_literal.label);  // need label
             if (mode == WANT_VALUE) {
-                emit_fpush(ctx, "xmm0", FP64);
+                emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
             }
             break;
 
@@ -773,7 +799,7 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
                     emit_pop(ctx, "rax");
                     emit_load_from(ctx, node->ctype, "rax");
                     if (mode == WANT_VALUE) {
-                        emit_fpush(ctx, "xmm0", FP32);
+                        emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
                     }
                 } else {
                     emit_pop(ctx, "rax");
@@ -807,14 +833,14 @@ void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
         case AST_FLOAT_LITERAL:
             emit_line(ctx, "movss xmm0, [rel %s]", node->float_literal.label);  // need label
             if (mode == WANT_VALUE) {
-                emit_fpush(ctx, "xmm0", FP32);
+                emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
             }
             break;
 
         case AST_DOUBLE_LITERAL:
             emit_line(ctx, "movsd xmm0, [rel %s]", node->double_literal.label);  // need label
             if (mode == WANT_VALUE) {
-                emit_fpush(ctx, "xmm0", FP64);
+                emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
             }
             break;
 

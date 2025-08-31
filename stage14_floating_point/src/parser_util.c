@@ -232,7 +232,7 @@ ASTNode * create_double_literal_node(double value) {
     ASTNode * node = create_ast();
     node->type = AST_DOUBLE_LITERAL;
     node->double_literal.value = value;
-    node->ctype = &CTYPE_FLOAT_T;
+    node->ctype = &CTYPE_DOUBLE_T;
     node->symbol = NULL;
     return node;
 }

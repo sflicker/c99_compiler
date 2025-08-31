@@ -10,7 +10,7 @@ typedef enum {
     WANT_ADDRESS
 } EvalMode;
 
-typedef enum {FP32, FP64} FPWidth;
+typedef enum {FP32, FP64, FPWIDTHUNKN} FPWidth;
 
 const char * get_break_label(EmitterContext * ctx);
 const char * get_continue_label(EmitterContext * ctx);

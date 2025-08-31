@@ -85,11 +85,6 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->return_stmt.expr, indent+1);
             break;
         }
-        case AST_INT_LITERAL: {
-            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
-            printf("IntLiteral: %d - type: %s\n", node->int_value, buf);
-            break;
-        }
         case AST_BINARY_EXPR:
             ctype_to_cdecl(node->ctype, buf, sizeof(buf));
             printf("BinaryExpr: %s - type: %s\n", get_binary_op_name(node->binary.op), buf);
@@ -223,14 +218,23 @@ void print_ast(ASTNode * node, int indent) {
             printf("]\n");
             break;
         }
+
+        case AST_INT_LITERAL: {
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("IntLiteral: %d - type: %s\n", node->int_value, buf);
+            break;
+        }
         case AST_STRING_LITERAL:
-            printf("StringLiteral: %s\n", node->string_literal.value);
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("StringLiteral: - type: %s, value: %s\n", buf, node->string_literal.value);
             break;
         case AST_FLOAT_LITERAL:
-            printf("FloatLiteral: %f\n", node->float_literal.value);
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("FloatLiteral: - type: %s, value: %f\n", buf, node->float_literal.value);
             break;
         case AST_DOUBLE_LITERAL:
-            printf("DoubleLiteral: %lf\n", node->double_literal.value);
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+            printf("DoubleLiteral: -type: %s, value: %lf\n", buf, node->double_literal.value);
             break;
         case AST_DECLARATION_STMT:
             printf("DeclarationStmt:\n");
