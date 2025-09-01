@@ -717,15 +717,26 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     }
 }
 
-void emit_fp_add_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+char * get_fp_binop(ASTNode * node) {
+    switch (node->binary.op) {
+        case BINOP_ADD: return node->ctype->kind == CTYPE_FLOAT ? "addss" : "addsd"; break;
+        case BINOP_SUB: return node->ctype->kind == CTYPE_FLOAT ? "subss" : "subsd"; break;
+        case BINOP_MUL: return node->ctype->kind == CTYPE_FLOAT ? "mulss" : "mulsd"; break;
+        case BINOP_DIV: return node->ctype->kind == CTYPE_FLOAT ? "divss" : "divsd"; break;
+        default: error("Unsupported binary op in emitter");
+            return NULL;
+    }
+}
+
+void emit_fp_arith_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     emit_fp_expr_to_xmm0(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
     emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
 
     FPWidth width = getFPWidthFromCType(node->ctype);
-    const char * instruction = node->ctype->kind == CTYPE_FLOAT ? "addss" : "addsd";
+    const char * instruction = get_fp_binop(node);
 
-    emit_fpop(ctx, "xmm0", width);
     emit_fpop(ctx, "xmm1", width);
+    emit_fpop(ctx, "xmm0", width);
 
     emit_line(ctx, "%s xmm0, xmm1", instruction);
 
@@ -733,24 +744,6 @@ void emit_fp_add_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mod
         emit_fpush(ctx, "xmm0", width);
     }
 }
-
-void emit_fp_multi_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
-    emit_fp_expr_to_xmm0(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
-    emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
-
-    FPWidth width = getFPWidthFromCType(node->ctype);
-    const char * instruction = node->ctype->kind == CTYPE_FLOAT ? "mulss" : "mulsd";
-
-    emit_fpop(ctx, "xmm0", width);
-    emit_fpop(ctx, "xmm1", width);
-
-    emit_line(ctx, "%s xmm0, xmm1", instruction);
-
-    if (mode == WANT_VALUE) {
-        emit_fpush(ctx, "xmm0", width);
-    }
-}
-
 
 void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     switch (node->binary.op) {
@@ -762,16 +755,27 @@ void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode 
         // case BINOP_LE:
         //     emit_int_comparison_expr_to_rax(ctx, node, mode);
         //     break;
-        case BINOP_ADD: {
+        case BINOP_ADD:
+        case BINOP_MUL:
+        case BINOP_DIV:
+        case BINOP_SUB: {
             if (is_floating_point_type(node->ctype)) {
-                emit_fp_add_expr_to_xmm0(ctx, node, mode);
+                emit_fp_arith_expr_to_xmm0(ctx, node, mode);
             }
             break;
         }
-        case BINOP_MUL: {
-            emit_fp_multi_expr_to_xmm0(ctx, node, mode);
-            break;
-        }
+        // case BINOP_MUL: {
+        //     emit_fp_multi_expr_to_xmm0(ctx, node, mode);
+        //     break;
+        // }
+        // case BINOP_SUB: {
+        //     emit_fp_subtraction_expr_to_xmm0(ctx, node, mode);
+        //     break;
+        // }
+        // case BINOP_DIV: {
+        //     emit_fp_divide_expr_to_xmm0(ctx, node, mode);
+        //     break;
+        // }
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
     }
