@@ -328,6 +328,9 @@ bool ctype_equal_or_compatible(CType * lhs, CType * rhs) {
     return ctype_equals(lhs, rhs) || type_is_compatible(lhs, rhs);
 }
 
+bool is_castable(CType * dest, CType * source) {
+    return true;
+}
 bool ctype_lists_equal(CTypePtr_list * lhs, CTypePtr_list * rhs) {
     if (lhs == rhs) return true;
     if (!lhs || !rhs) return false;

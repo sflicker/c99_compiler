@@ -159,7 +159,9 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
         case AST_FUNCTION_DEF: {
             handle_function_definition(ctx, node);
+            break;
         }
+
         case AST_FUNCTION_CALL_EXPR: {
             Symbol * functionSymbol = lookup_table_symbol(getGlobalScope(), node->function_call.name);
             if (!functionSymbol) {
@@ -183,8 +185,13 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                     }
                     CType * param_type = Symbol_list_get(functionSymbol->info.func.params_symbol_list, arg_index)->ctype;
                     if (!ctype_equal_or_compatible( param_type, arg_type)) {
-                        warning("Type mismatch for function %s", node->function_call.name);
-                        return;
+                        if (is_castable(param_type, arg_type)) {
+                            arg->value = create_cast_expr_node(param_type, arg->value);
+                        }
+                        else {
+                            warning("Type mismatch for function %s", node->function_call.name);
+                            return;
+                        }
                     }
 
                     arg_index++;
@@ -239,6 +246,8 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 analyze(ctx, node->var_decl.init_expr);
                 if (node->var_decl.init_expr->type == AST_INITIALIZER_LIST) {
                     //TODO check counts
+                } else if (node->var_decl.init_expr->type == AST_FUNCTION_CALL_EXPR) {
+                    //TODO
                 } else if (!ctype_equals(node->ctype, node->var_decl.init_expr->ctype)) {
                     node->var_decl.init_expr =
                         create_cast_expr_node(node->ctype, node->var_decl.init_expr);
