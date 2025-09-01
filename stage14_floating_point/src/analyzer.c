@@ -237,7 +237,9 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->symbol = symbol;
             if (node->var_decl.init_expr) {
                 analyze(ctx, node->var_decl.init_expr);
-                if (!ctype_equals(node->ctype, node->var_decl.init_expr->ctype)) {
+                if (node->var_decl.init_expr->type == AST_INITIALIZER_LIST) {
+                    //TODO check counts
+                } else if (!ctype_equals(node->ctype, node->var_decl.init_expr->ctype)) {
                     node->var_decl.init_expr =
                         create_cast_expr_node(node->ctype, node->var_decl.init_expr);
                 }
@@ -418,6 +420,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
         case AST_DOUBLE_LITERAL: {
             ASTNode_list_append(getTranslationUnit(ctx)->translation_unit.double_literals, node);
+            break;
         }
 
 
