@@ -616,13 +616,17 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_var_declaration(ctx, node);
             break;
         case AST_RETURN_STMT:
-            emit_int_expr_to_rax(ctx, node->return_stmt.expr, WANT_VALUE);
-            if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
-                emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
+            if (is_integer_type(node->ctype)) {
+                emit_int_expr_to_rax(ctx, node->return_stmt.expr, WANT_VALUE);
+                if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
+                    emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
+                }
+                //            emit_line(ctx, "pop rax");
+                emit_pop(ctx, "rax");
             }
-//            emit_line(ctx, "pop rax");
-            emit_pop(ctx, "rax");
-
+            else {
+                error("invalid return statement type");
+            }
             break;
         case AST_FUNCTION_CALL_EXPR:
             emit_int_expr_to_rax(ctx, node, WANT_VALUE);
@@ -671,6 +675,12 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_int_expr_to_rax(ctx, node, WANT_VALUE);
             break;
         }
+
+        case AST_FLOAT_LITERAL:
+        case AST_DOUBLE_LITERAL:
+            emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
+            break;
+
         case AST_ARRAY_ACCESS: {
             emit_int_expr_to_rax(ctx, node, WANT_VALUE);
             // int offset = get_offset(ctx, node);

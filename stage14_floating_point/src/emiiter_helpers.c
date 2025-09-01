@@ -282,6 +282,7 @@ void emit_fpush(EmitterContext * ctx, const char * xmm, FPWidth width) {
         emit_line(ctx, "movss [rsp], %s   ; store low 32 bits (float)", xmm);
     }
     ctx->stack_depth += 16;
+    emit_line(ctx, "; Stack depth now %d", ctx->stack_depth);
 }
 
 void emit_pop_for_type(EmitterContext * ctx, CType * ctype) {
@@ -310,6 +311,7 @@ void emit_fpop(EmitterContext * ctx, const char * xmm, FPWidth width) {
     }
     emit_line(ctx, "add rsp, 16    ; fpop %s (free 16)", xmm);
     ctx->stack_depth -= 16;
+    emit_line(ctx, "; Stack depth now %d", ctx->stack_depth);
 }
 
 void emit_add_rsp(EmitterContext * ctx, int amount) {

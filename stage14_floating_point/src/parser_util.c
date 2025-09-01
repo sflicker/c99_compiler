@@ -288,9 +288,9 @@ ASTNode * create_var_decl_node(const char * name, CType * ctype, ASTNode * init_
     // node->ctype = ((ctype->kind == CTYPE_ARRAY) ? ctype->base_type : ctype);
     node->ctype = ctype;
     node->var_decl.init_expr = init_expr;
-    if (node->var_decl.init_expr) {
-        node->var_decl.init_expr->ctype = ctype;
-    }
+    // if (node->var_decl.init_expr) {
+    //     node->var_decl.init_expr->ctype = ctype;
+    // }
     node->var_decl.is_param = false;
     node->var_decl.is_global = false;
     return node;
@@ -359,7 +359,8 @@ ASTNode * create_cast_expr_node(CType * target_type, ASTNode * expr) {
     node->type = AST_CAST_EXPR;
     node->cast_expr.target_type = target_type;
     node->cast_expr.expr = expr;
-    node->ctype = NULL;
+//    node->ctype = NULL;
+    node->ctype = target_type;
     return node;
 }
 

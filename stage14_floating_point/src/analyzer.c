@@ -237,6 +237,10 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->symbol = symbol;
             if (node->var_decl.init_expr) {
                 analyze(ctx, node->var_decl.init_expr);
+                if (!ctype_equals(node->ctype, node->var_decl.init_expr->ctype)) {
+                    node->var_decl.init_expr =
+                        create_cast_expr_node(node->ctype, node->var_decl.init_expr);
+                }
             }
             break;
 
@@ -253,18 +257,34 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             CType * lhsCType = node->binary.lhs->ctype;
             CType * rhsCType = node->binary.rhs->ctype;
 
-            CType * promoted_left = is_integer_type(lhsCType)
-                ? apply_integer_promotions(lhsCType) : lhsCType;
-            CType * promoted_right = is_integer_type(rhsCType)
-                ? apply_integer_promotions(rhsCType) : rhsCType;
-
-            if (is_comparison_op(node->binary.op)) {
-                node->ctype = make_int_type(false);
-            } else {
-                CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
-                node->ctype = result_type;
+            if (is_floating_point_type(lhsCType) || is_floating_point_type(rhsCType)) {
+                if (!ctype_equals(lhsCType, rhsCType)) {
+                    if (lhsCType->rank > rhsCType->rank) {
+                        node->binary.rhs = create_cast_expr_node(lhsCType, node->binary.rhs);
+                        node->ctype = lhsCType;
+                    }
+                    else if (lhsCType->rank < rhsCType->rank) {
+                        node->binary.lhs = create_cast_expr_node(rhsCType, node->binary.lhs);
+                        node->ctype = rhsCType;
+                    }
+                }
+                else {
+                    node->ctype = lhsCType;
+                }
             }
+            else {
+                CType * promoted_left = is_integer_type(lhsCType)
+                    ? apply_integer_promotions(lhsCType) : lhsCType;
+                CType * promoted_right = is_integer_type(rhsCType)
+                    ? apply_integer_promotions(rhsCType) : rhsCType;
 
+                if (is_comparison_op(node->binary.op)) {
+                    node->ctype = make_int_type(false);
+                } else {
+                    CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
+                    node->ctype = result_type;
+                }
+            }
             break;
 
         case AST_UNARY_EXPR:
@@ -360,7 +380,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
         case AST_CAST_EXPR:
             analyze(ctx, node->cast_expr.expr);
-            node->ctype = node->cast_expr.target_type;
+//            node->ctype = node->cast_expr.target_type;
             break;
 
         case AST_ARRAY_ACCESS:
