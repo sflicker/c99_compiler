@@ -624,6 +624,14 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
                 //            emit_line(ctx, "pop rax");
                 emit_pop(ctx, "rax");
             }
+            else if (is_floating_point_type(node->ctype)) {
+                emit_fp_expr_to_xmm0(ctx, node->return_stmt.expr, WANT_VALUE);
+                if (ctx->functionExitStack && ctx->functionExitStack->exit_label) {
+                    emit_jump_from_text(ctx, "jmp", ctx->functionExitStack->exit_label);
+                }
+                //            emit_line(ctx, "pop rax");
+                emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+            }
             else {
                 error("invalid return statement type");
             }

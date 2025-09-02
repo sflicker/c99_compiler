@@ -280,7 +280,11 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                     }
                 }
                 else {
-                    node->ctype = lhsCType;
+                    if (is_comparison_op(node->binary.op)) {
+                        node->ctype = &CTYPE_INT_T;
+                    } else {
+                        node->ctype = lhsCType;
+                    }
                 }
             }
             else {

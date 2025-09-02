@@ -234,7 +234,7 @@ void print_ast(ASTNode * node, int indent) {
             break;
         case AST_DOUBLE_LITERAL:
             ctype_to_cdecl(node->ctype, buf, sizeof(buf));
-            printf("DoubleLiteral: -type: %s, value: %lf\n", buf, node->double_literal.value);
+            printf("DoubleLiteral: - type: %s, value: %lf\n", buf, node->double_literal.value);
             break;
         case AST_DECLARATION_STMT:
             printf("DeclarationStmt:\n");

@@ -180,15 +180,14 @@ INTERNAL void emit_int_assignment_expr_to_rax(EmitterContext * ctx, ASTNode* nod
 
 }
 
-INTERNAL void emit_int_add_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+INTERNAL void emit_int_ptr_add_expr_to_rax(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
     emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
     emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
 
-//    emit_line(ctx, "pop rcx");                      // pop rhs to RCX
-//    emit_line(ctx, "pop rax");                      // pop lhs to RAX
+    //    emit_line(ctx, "pop rcx");                      // pop rhs to RCX
+    //    emit_line(ctx, "pop rax");                      // pop lhs to RAX
     emit_pop(ctx, "rcx");
     emit_pop(ctx, "rax");
-
 
     CType *lhs_type = node->binary.lhs->ctype;
     CType *rhs_type = node->binary.rhs->ctype;
@@ -203,7 +202,39 @@ INTERNAL void emit_int_add_expr_to_rax(EmitterContext * ctx, ASTNode * node, Eva
         emit_line(ctx, "imul rax, %d", elem_size);
         emit_line(ctx, "add rax, rcx");
     }
-    else if (is_integer_type(lhs_type) && is_integer_type(rhs_type)) {
+    else {
+        error("Unsupported types for binary pointer add operation");
+    }
+    if (mode == WANT_VALUE) {
+        emit_push(ctx, "rax");
+    }
+}
+
+INTERNAL void emit_int_add_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
+
+//    emit_line(ctx, "pop rcx");                      // pop rhs to RCX
+//    emit_line(ctx, "pop rax");                      // pop lhs to RAX
+    emit_pop(ctx, "rcx");
+    emit_pop(ctx, "rax");
+
+
+    CType *lhs_type = node->binary.lhs->ctype;
+    CType *rhs_type = node->binary.rhs->ctype;
+
+    // if (lhs_type->kind == CTYPE_PTR && is_integer_type(rhs_type)) {
+    //     int elem_size = sizeof_type(lhs_type->base_type);
+    //     emit_line(ctx, "imul rcx, %d", elem_size);
+    //     emit_line(ctx, "add rax, rcx");
+    // }
+    // else if (is_integer_type(lhs_type) && rhs_type->kind == CTYPE_PTR) {
+    //     int elem_size = sizeof_type(rhs_type->base_type);
+    //     emit_line(ctx, "imul rax, %d", elem_size);
+    //     emit_line(ctx, "add rax, rcx");
+    // }
+    //else
+    if (is_integer_type(lhs_type) && is_integer_type(rhs_type)) {
         emit_line(ctx, "; lhs in rax, rhs in rcx");
         if (lhs_type->kind == CTYPE_CHAR) {
             emit_line(ctx, "movsx rax, al");
@@ -568,7 +599,10 @@ INTERNAL void emit_int_binary_expr_to_rax(EmitterContext * ctx, ASTNode *node, E
             emit_int_comparison_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_ADD: {
-            if (is_integer_type(node->ctype)) {
+            if (is_pointer_type(node->binary.lhs->ctype) || is_pointer_type(node->binary.rhs->ctype)) {
+                emit_int_ptr_add_expr_to_rax(ctx, node, mode);
+            }
+            else if (is_integer_type(node->ctype)) {
                 emit_int_add_expr_to_rax(ctx, node, mode);
             }
         }
@@ -887,6 +921,9 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             }
             break;
 
+        case AST_FUNCTION_CALL_EXPR:
+            emit_function_call_expr(ctx, node, mode);
+            break;
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
     }
