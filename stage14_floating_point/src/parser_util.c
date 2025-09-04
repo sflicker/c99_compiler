@@ -46,6 +46,7 @@ ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
     node->binary.op = op;
     node->binary.lhs = lhs;
     node->binary.rhs = rhs;
+    node->binary.common_type = NULL;
     node->symbol = NULL;
     node->ctype = NULL;
     return node;

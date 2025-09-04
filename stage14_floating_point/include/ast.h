@@ -34,6 +34,7 @@ typedef struct {
     ASTNode * lhs;
     ASTNode * rhs;
     BinaryOperator op;
+    CType * common_type;
 } BinaryExpr;
 
 typedef enum {

@@ -136,6 +136,13 @@ bool is_comparison_op(BinaryOperator op) {
     return op == BINOP_EQ || op == BINOP_NE || op == BINOP_GT || op == BINOP_GE || op == BINOP_LT || op == BINOP_LE;
 }
 
+CType * get_binary_expr_return_type(CType * common, BinaryOperator op) {
+    if (is_comparison_op(op)) {
+        return  &CTYPE_INT_T;
+    }
+    return common;
+}
+
 void analyze(AnalyzerContext * ctx, ASTNode * node) {
     if (!node) return;
 
@@ -272,19 +279,17 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 if (!ctype_equals(lhsCType, rhsCType)) {
                     if (lhsCType->rank > rhsCType->rank) {
                         node->binary.rhs = create_cast_expr_node(lhsCType, node->binary.rhs);
-                        node->ctype = lhsCType;
+                        node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
+                        node->binary.common_type = lhsCType;
                     }
                     else if (lhsCType->rank < rhsCType->rank) {
                         node->binary.lhs = create_cast_expr_node(rhsCType, node->binary.lhs);
-                        node->ctype = rhsCType;
+                        node->ctype = get_binary_expr_return_type(rhsCType, node->binary.op);
+                        node->binary.common_type = rhsCType;
                     }
                 }
                 else {
-                    if (is_comparison_op(node->binary.op)) {
-                        node->ctype = &CTYPE_INT_T;
-                    } else {
-                        node->ctype = lhsCType;
-                    }
+                    node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
                 }
             }
             else {
@@ -293,12 +298,8 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 CType * promoted_right = is_integer_type(rhsCType)
                     ? apply_integer_promotions(rhsCType) : rhsCType;
 
-                if (is_comparison_op(node->binary.op)) {
-                    node->ctype = make_int_type(false);
-                } else {
-                    CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
-                    node->ctype = result_type;
-                }
+                CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
+                node->ctype = get_binary_expr_return_type(result_type, node->binary.op);
             }
             break;
 
