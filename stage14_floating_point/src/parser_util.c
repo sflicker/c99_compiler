@@ -76,18 +76,8 @@ ASTNode * create_initializer_list(ASTNode_list * list) {
     node->initializer_list.items = list;
     node->symbol = NULL;
     node->ctype = NULL;
-    if (list->count > 0) {
-
-        // ASTNode * first_item = list->head->value;
-        // CType * ctype = first_item->ctype;
-        // if (!ctype) {
-        //     ctype = get_projected_ctype(first_item);
-        // }
-        // node->ctype = ctype;
-    }
-    else {
+    if (list->count == 0) {
         error("zero size array initializers are not allowed");
-        node->ctype = NULL;
     }
     return node;
 }
