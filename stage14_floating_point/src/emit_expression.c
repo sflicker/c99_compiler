@@ -18,14 +18,21 @@ INTERNAL void emit_function_call_expr(EmitterContext * ctx, ASTNode * node, Eval
     // first get a reversed list
     // then emit each arg then push it
     //struct node_list * reversed_list = NULL;
-
+    int stack_args_size = 0;
     int arg_count=0;
     if (node->function_call.arg_list) {
 
         // loop through in reverse order pushing arguments to the stack
         for (int i = node->function_call.arg_list->count - 1; i >= 0; i--) {
             ASTNode * argNode = ASTNode_list_get(node->function_call.arg_list, i);
-            emit_int_expr_to_rax(ctx, argNode, WANT_VALUE);
+            if (is_floating_point_type(argNode->ctype)) {
+                emit_fp_expr_to_xmm0(ctx, argNode, WANT_VALUE);
+                stack_args_size += 16;
+            }
+            else {
+                emit_int_expr_to_rax(ctx, argNode, WANT_VALUE);
+                stack_args_size += 8;
+            }
             //            emit_line(ctx, "push rax");
             arg_count++;
         }
@@ -47,12 +54,18 @@ INTERNAL void emit_function_call_expr(EmitterContext * ctx, ASTNode * node, Eval
 
     // // clean up arguments
     if (arg_count > 0) {
-        emit_add_rsp(ctx, arg_count*8);
+//        emit_add_rsp(ctx, arg_count*8);
+        emit_add_rsp(ctx, stack_args_size);
     }
 
     //    emit_line(ctx, "push rax");
     if (mode == WANT_VALUE) {
-        emit_push(ctx, "rax");
+        if (is_floating_point_type(node->ctype)) {
+            emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+        }
+        else {
+            emit_push(ctx, "rax");
+        }
     }
 
 }
@@ -851,7 +864,7 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
                     default: error("Unsupported cast expression type %d", node->type);
                 }
                 if (mode == WANT_VALUE) {
-                    emit_fpush(ctx, "xmm0", FP64);
+                    emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
                 }
             }
             else if (node->ctype->kind == CTYPE_FLOAT) {
@@ -877,7 +890,7 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
                     default: error("Unsupported cast expression type %d", node->type);
                 }
                 if (mode == WANT_VALUE) {
-                    emit_fpush(ctx, "xmm0", FP32);
+                    emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
                 }
 
             }

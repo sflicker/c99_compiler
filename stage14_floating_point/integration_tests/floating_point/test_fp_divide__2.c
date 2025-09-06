@@ -1,7 +1,7 @@
 int main() {
-    double a = 14.0;
-    double b = 7.0;
-    double c = a / b;
+    float a = 14.0;
+    float b = 7.0;
+    float c = a / b;
     return (int)c;
 }
 

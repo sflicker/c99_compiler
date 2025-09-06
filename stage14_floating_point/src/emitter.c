@@ -679,20 +679,15 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_UNARY_EXPR:
         case AST_INT_LITERAL:
         case AST_CAST_EXPR:
-        case AST_VAR_REF_EXPR: {
-            emit_int_expr_to_rax(ctx, node, WANT_VALUE);
-            break;
-        }
-
+        case AST_VAR_REF_EXPR:
+        case AST_ARRAY_ACCESS:
         case AST_FLOAT_LITERAL:
-        case AST_DOUBLE_LITERAL:
-            emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
-            break;
-
-        case AST_ARRAY_ACCESS: {
-            emit_int_expr_to_rax(ctx, node, WANT_VALUE);
-            // int offset = get_offset(ctx, node);
-            // emit_line(ctx, "mov eax, [rbp%+d]", offset);
+        case AST_DOUBLE_LITERAL: {
+            if (is_floating_point_type(node->ctype)) {
+                emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
+            } else {
+                emit_int_expr_to_rax(ctx, node, WANT_VALUE);
+            }
             break;
         }
         case AST_INITIALIZER_LIST: {
