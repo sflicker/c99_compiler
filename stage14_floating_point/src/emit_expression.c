@@ -851,7 +851,7 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
                         if (mode == WANT_VALUE) {
                             emit_pop(ctx, "RAX");
                         }
-                        emit_line(ctx, "cvtsi2sd %s, %s", "eax", "xmm0    ; int -> double");
+                        emit_line(ctx, "cvtsi2sd %s, %s", "xmm0", "eax    ; int -> double");
 
                         break;
                     case CTYPE_LONG:
@@ -859,7 +859,7 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
                             emit_pop(ctx, "RAX");
                         }
 
-                        emit_line(ctx, "cvtsi2sd %s, %s", "rax", "xmm0    ; long -> double");
+                        emit_line(ctx, "cvtsi2sd %s, %s", "xmm0", "rax    ; long -> double");
                         break;
                     default: error("Unsupported cast expression type %d", node->type);
                 }
@@ -879,13 +879,13 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
                         if (mode == WANT_VALUE) {
                             emit_pop(ctx, "rax");
                         }
-                        emit_line(ctx, "cvtsi2ss %s, %s", "eax", "xmm0     ; int -> float");
+                        emit_line(ctx, "cvtsi2ss %s, %s", "xmm0", "eax     ; int -> float");
                         break;
                     case CTYPE_LONG:
                         if (mode == WANT_VALUE) {
                             emit_pop(ctx, "rax");
                         }
-                        emit_line(ctx, "cvtsi2ss %s, %s", "rax", "xmm0    ; long -> float");
+                        emit_line(ctx, "cvtsi2ss %s, %s", "xmm0", "rax    ; long -> float");
                         break;
                     default: error("Unsupported cast expression type %d", node->type);
                 }
