@@ -23,6 +23,10 @@ Symbol * create_storage_param_symbol(const char * name, ASTNode * node, CType * 
     Symbol * symbol = create_symbol(name, SYMBOL_VAR, ctype, node);
     symbol->info.var.offset = *param_offset;
     symbol->info.var.storage = STORAGE_PARAMETER;
-    *param_offset += 8;
+    if (is_floating_point_type(ctype)) {
+        *param_offset += 16;
+    } else {
+        *param_offset += 8;
+    }
     return symbol;
 }
