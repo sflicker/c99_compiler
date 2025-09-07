@@ -680,8 +680,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_VAR_REF_EXPR:
         case AST_ARRAY_ACCESS:
         case AST_FLOAT_LITERAL:
-        case AST_DOUBLE_LITERAL:
-        case AST_EXPRESSION_STMT: {
+        case AST_DOUBLE_LITERAL: {
             if (is_floating_point_type(node->ctype)) {
                 emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
             } else {
@@ -689,6 +688,17 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             }
             break;
         }
+
+        case AST_EXPRESSION_STMT: {
+            ASTNode * expr = node->expr_stmt.expr;
+            if (is_floating_point_type(expr->ctype)) {
+                emit_fp_expr_to_xmm0(ctx, expr, WANT_EFFECT);
+            } else {
+                emit_int_expr_to_rax(ctx, expr, WANT_EFFECT);
+            }
+            break;
+        }
+
         case AST_INITIALIZER_LIST: {
             for (int i=0; i<node->initializer_list.items->count;i++) {
 

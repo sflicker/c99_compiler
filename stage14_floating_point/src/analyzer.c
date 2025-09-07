@@ -2,6 +2,8 @@
 // Created by scott on 6/14/25.
 //
 
+#include <assert.h>
+
 #include "ast.h"
 #include "analyzer.h"
 #include "error.h"
@@ -54,7 +56,7 @@ bool is_lvalue(ASTNode * node) {
 }
 
 
-int astNodeListLength(ASTNode_list * ast_nodes) {
+int get_ast_node_list_length(ASTNode_list * ast_nodes) {
     return (ast_nodes != NULL) ? ast_nodes->count : 0;
 }
 
@@ -78,7 +80,7 @@ void handle_function_definition(AnalyzerContext *ctx, ASTNode * node) {
         }
     }
     Symbol * symbol = create_symbol(node->function_def.name, SYMBOL_FUNC, node->ctype, node);
-    symbol->info.func.num_params = astNodeListLength(node->function_def.param_list);
+    symbol->info.func.num_params = get_ast_node_list_length(node->function_def.param_list);
     symbol->info.func.params_symbol_list = symbol_list;
     add_global_symbol(symbol);
     node->symbol = symbol;
@@ -113,7 +115,7 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
         }
     }
     Symbol * symbol = create_symbol(node->function_decl.name, SYMBOL_FUNC, node->ctype, node);
-    symbol->info.func.num_params = astNodeListLength(node->function_decl.param_list);
+    symbol->info.func.num_params = get_ast_node_list_length(node->function_decl.param_list);
     symbol->info.func.params_symbol_list = symbol_list;
     add_global_symbol(symbol);
     node->symbol = symbol;
@@ -141,6 +143,49 @@ CType * get_binary_expr_return_type(CType * common, BinaryOperator op) {
         return  &CTYPE_INT_T;
     }
     return common;
+}
+
+void verify_expr(ASTNode * node) {
+    if (!node) return;
+
+    switch (node->type) {
+        case AST_VAR_REF_EXPR: assert(node->ctype); break;
+        case AST_INT_LITERAL: assert(node->ctype); break;
+        case AST_FLOAT_LITERAL: assert(node->ctype); break;
+        case AST_DOUBLE_LITERAL: assert(node->ctype); break;
+        case AST_UNARY_EXPR: assert(node->ctype); break;
+        case AST_BINARY_EXPR: assert(node->ctype); assert(node->binary.common_type); break;
+
+        case AST_FUNCTION_CALL_EXPR: {
+            assert(node->ctype);
+            if (node->function_call.arg_list != NULL) {
+                for (ASTNode_list_node * arg = node->function_call.arg_list->head; arg != NULL; arg = arg->next) {
+                    verify_expr(arg->value);
+                }
+            }
+            break;
+        }
+
+        case AST_BLOCK_STMT:
+        case AST_IF_STMT:
+        case AST_WHILE_STMT:
+        case AST_FOR_STMT:
+        case AST_DO_WHILE_STMT:
+        case AST_TRANSLATION_UNIT:
+        case AST_INITIALIZER_LIST:
+        case AST_GOTO_STMT:
+        case AST_LABELED_STMT:
+        case AST_CASE_STMT:
+        case AST_BREAK_STMT:
+        case AST_CONTINUE_STMT:
+        case AST_SWITCH_STMT:
+        case AST_DEFAULT_STMT:
+            // no check
+            break;
+
+        default: assert(node->ctype);
+            break;
+    }
 }
 
 void analyze(AnalyzerContext * ctx, ASTNode * node) {
@@ -444,11 +489,13 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         case AST_ASSERT_EXTENSION_STATEMENT:
         case AST_PRINT_EXTENSION_STATEMENT:
             analyze(ctx, node->expr_stmt.expr);
+            node->ctype = node->expr_stmt.expr->ctype;
             break;
 
         case AST_DECLARATION_STMT: {
             for (ASTNode_list_node * n = node->declaration.init_declarator_list->head; n; n = n->next) {
                 analyze(ctx, n->value);
+                node->ctype = n->value->ctype;
             }
             break;
         }
@@ -464,4 +511,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         default:
             error("Unrecognized node type - %s", get_ast_node_name(node));
     }
+
+    // check for null ctypes and error out
+    verify_expr(node);
 }
