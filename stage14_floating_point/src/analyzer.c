@@ -290,6 +290,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 }
                 else {
                     node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
+                    node->binary.common_type = lhsCType;
                 }
             }
             else {
@@ -300,6 +301,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
                 CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
                 node->ctype = get_binary_expr_return_type(result_type, node->binary.op);
+                node->binary.common_type = result_type;
             }
             break;
 

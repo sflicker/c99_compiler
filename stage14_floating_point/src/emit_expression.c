@@ -545,23 +545,43 @@ INTERNAL void emit_int_sub_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
 
 INTERNAL void emit_int_comparison_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     // eval left-hand side -> result in eax -> push results onto the stack
-    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
-    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
+    if (is_floating_point_type(node->binary.common_type)) {
+        emit_fp_expr_to_xmm0(ctx, node->binary.lhs, WANT_VALUE);
+        emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
+    }
+    else {
+        emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
+        emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
+    }
 
     // emit_line(ctx, "pop rcx");
     // emit_line(ctx, "pop rax");
-    emit_pop(ctx, "rcx");
-    emit_pop(ctx, "rax");
+    if (is_floating_point_type(node->binary.common_type)) {
+        emit_fpop(ctx, "xmm1", getFPWidthFromCType(node->binary.common_type));
+        emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->binary.common_type));
+    }
+    else {
+        emit_pop(ctx, "rcx");
+        emit_pop(ctx, "rax");
+    }
 
     // eval right-hand side -> reult in eax
 
-
     // restore lhs into rcx
-    emit_line(ctx, "mov ecx, ecx");   // zero upper bits
-    emit_line(ctx, "mov eax, eax");   // zero upper bits
+
+    if (!is_floating_point_type(node->binary.common_type)) {
+        emit_line(ctx, "mov ecx, ecx");   // zero upper bits
+        emit_line(ctx, "mov eax, eax");   // zero upper bits
+    }
 
     // compare rax (lhs) with ecx (rhs), cmp rcx, eax means rcx - eax
-    emit_line(ctx, "cmp eax, ecx");
+    if (node->binary.common_type->kind == CTYPE_FLOAT) {
+        emit_line(ctx, "ucomiss xmm0, xmm1     ; fp compare");
+    } else if (node->binary.common_type->kind == CTYPE_DOUBLE) {
+        emit_line(ctx, "ucomisd xmm0, xmm1     ; dbl compare");
+    } else {
+        emit_line(ctx, "cmp eax, ecx");
+    }
 
     // emit proper setX based on operator type
     switch (node->binary.op) {
@@ -978,7 +998,7 @@ void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
                     emit_pop(ctx, "rax");
                     emit_load_from(ctx, node->ctype, "rax");
                     if (mode == WANT_VALUE) {
-                        emit_push(ctx, "xmm0");
+                        emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
                     }
                 } else {
                     emit_pop(ctx, "rax");

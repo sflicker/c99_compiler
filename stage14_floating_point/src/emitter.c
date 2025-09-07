@@ -640,10 +640,6 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_int_expr_to_rax(ctx, node, WANT_VALUE);
             //            emit_function_call(ctx, node);
             break;
-        case AST_EXPRESSION_STMT:
-            //            emit_tree_node(ctx, node->expr_stmt.expr);
-            emit_int_expr_to_rax(ctx, node->expr_stmt.expr, WANT_EFFECT);
-            break;
         case AST_ASSERT_EXTENSION_STATEMENT:
             emit_assert_extension_statement(ctx, node);
             break;
@@ -682,7 +678,8 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_VAR_REF_EXPR:
         case AST_ARRAY_ACCESS:
         case AST_FLOAT_LITERAL:
-        case AST_DOUBLE_LITERAL: {
+        case AST_DOUBLE_LITERAL:
+        case AST_EXPRESSION_STMT: {
             if (is_floating_point_type(node->ctype)) {
                 emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
             } else {
