@@ -812,6 +812,33 @@ void emit_fp_arith_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode m
     }
 }
 
+void emit_fp_unary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    switch (node->unary.op) {
+        case UNARY_NEGATE:
+            emit_fp_expr_to_xmm0(ctx, node->unary.operand, WANT_VALUE);
+            //            emit_line(ctx, "pop rax");
+            emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+
+            if (node->ctype->kind == CTYPE_FLOAT) {
+//                emit_line(ctx, "movaps    xmm1, [rel mask_f32]          ; mask = 0x80000000");
+                emit_line(ctx, "movups    xmm1, [rel mask_f32]          ; mask = 0x80000000");
+                emit_line(ctx, "xorps     xmm0, xmm1                ; flips sign bit");
+            }
+            else if (node->ctype->kind == CTYPE_DOUBLE) {
+//                emit_line(ctx, "movapd    xmm1, [rel mask_f64]          ; mask = 0x8000000000000000");
+                emit_line(ctx, "movupd    xmm1, [rel mask_f64]          ; mask = 0x8000000000000000");
+                emit_line(ctx, "xorpd     xmm0, xmm1                ; flips sign bit");
+            }
+            if (mode == WANT_VALUE) {
+                emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+            }
+            break;
+        default:
+            error("Unsupported unary op in emitter");
+    }
+
+}
+
 void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     switch (node->binary.op) {
         // case BINOP_EQ:
@@ -932,6 +959,10 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
         case AST_BINARY_EXPR:
             emit_fp_binary_expr_to_xmm0(ctx, node, mode);
+            break;
+
+        case AST_UNARY_EXPR:
+            emit_fp_unary_expr_to_xmm0(ctx, node, mode);
             break;
 
         case AST_VAR_REF_EXPR:

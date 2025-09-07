@@ -37,6 +37,8 @@ void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals, ASTNode_l
     emit_line(ctx, "");
     emit_line(ctx, "section .rodata");
     emit_line(ctx, "assert_fail_msg: db \"Assertion failed!\", 10");
+    emit_line(ctx, "mask_f32:     dd    0x80000000");
+    emit_line(ctx, "mask_f64:     dq    0x8000000000000000");
 
     for (ASTNode_list_node * n = string_literals->head; n; n = n->next) {
         ASTNode * str_literal = n->value;
