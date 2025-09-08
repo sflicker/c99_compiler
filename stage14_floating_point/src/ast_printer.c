@@ -209,7 +209,18 @@ void print_ast(ASTNode * node, int indent) {
                     print_ast(node, indent+1);
                 }
                 else {
-                    printf("%d", n->value->int_value);
+                    if (n->value->type == AST_INT_LITERAL) {
+                        printf("%d", n->value->int_value);
+                    } else if (n->value->type == AST_FLOAT_LITERAL) {
+                        printf("%f", n->value->float_literal.value);
+                    } else if (n->value->type == AST_DOUBLE_LITERAL) {
+                        printf("%f", n->value->double_literal.value);
+                    } else if (n->value->type == AST_STRING_LITERAL) {
+                        printf("%s", n->value->string_literal.value);
+                    }
+                    else {
+                        error("Invalid initializer list type");
+                    }
                     if (n->next != NULL) {
                         printf(", ");
                     }
