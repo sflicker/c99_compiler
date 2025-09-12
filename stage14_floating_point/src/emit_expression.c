@@ -77,20 +77,20 @@ INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, Ev
         emit_fp_expr_to_xmm0(ctx, node->cast_expr.expr, mode);
 
         if (mode == WANT_VALUE) {
-            emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->cast_expr.expr->ctype));
+            emit_fpop(ctx, reg_for_type(node->cast_expr.expr->ctype), getFPWidthFromCType(node->cast_expr.expr->ctype));
         }
 
         if (node->cast_expr.expr->ctype->kind == CTYPE_FLOAT) {
-            emit_line(ctx, "cvttss2si rax, xmm0");
+            emit_line(ctx, "cvttss2si %s, %s", reg_for_type(node->ctype), reg_for_type(node->cast_expr.expr->ctype));
         } else if (node->cast_expr.expr->ctype->kind == CTYPE_DOUBLE) {
-            emit_line(ctx, "cvttsd2si rax, xmm0");
+            emit_line(ctx, "cvttsd2si %s, %s", reg_for_type(node->ctype), reg_for_type(node->cast_expr.expr->ctype));
         }
         else {
             error("Invalid Type");
         }
 
         if (mode == WANT_VALUE) {
-            emit_push(ctx, "rax");
+            emit_push(ctx, reg_for_type(node->ctype));
         }
         return;
     }
@@ -858,6 +858,11 @@ void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode 
             }
             break;
         }
+
+            //TODO Need something to handle the assignments include compound like
+            // a floating point version of emit_int_sub_assignment_expr_to_rax
+            // or a more general version that handles both
+
         // case BINOP_MUL: {
         //     emit_fp_multi_expr_to_xmm0(ctx, node, mode);
         //     break;

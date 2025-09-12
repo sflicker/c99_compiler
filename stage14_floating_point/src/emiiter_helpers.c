@@ -120,6 +120,19 @@ const char * reg_for_type(CType * ctype) {
     return NULL;
 }
 
+const char * aux_reg_for_type(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "cl";
+        case CTYPE_SHORT: return "cx";
+        case CTYPE_INT: return "ecx";
+        case CTYPE_LONG: return "rcx";
+        case CTYPE_FLOAT: return "xmm1";
+        case CTYPE_DOUBLE: return "xmm1";
+        case CTYPE_PTR: return "rcx";
+        default: error("Unsupported type");
+    }
+    return NULL;
+}
 const char * mov_instruction_for_type(CType * ctype) {
     switch (ctype->kind) {
         case CTYPE_CHAR: return "mov";

@@ -691,7 +691,8 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
 
         case AST_EXPRESSION_STMT: {
             ASTNode * expr = node->expr_stmt.expr;
-            if (is_floating_point_type(expr->ctype)) {
+            if (is_floating_point_type(node->expr_stmt.expr->binary.lhs->ctype) ||
+                is_floating_point_type(node->expr_stmt.expr->binary.lhs->ctype)) {
                 emit_fp_expr_to_xmm0(ctx, expr, WANT_EFFECT);
             } else {
                 emit_int_expr_to_rax(ctx, expr, WANT_EFFECT);

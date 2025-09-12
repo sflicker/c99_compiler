@@ -154,7 +154,13 @@ void verify_expr(ASTNode * node) {
         case AST_FLOAT_LITERAL: assert(node->ctype); break;
         case AST_DOUBLE_LITERAL: assert(node->ctype); break;
         case AST_UNARY_EXPR: assert(node->ctype); break;
-        case AST_BINARY_EXPR: assert(node->ctype); assert(node->binary.common_type); break;
+        case AST_BINARY_EXPR: {
+            if (!is_assignment(node)) {
+                assert(node->ctype);
+                assert(node->binary.common_type);
+            }
+            break;
+        }
 
         case AST_FUNCTION_CALL_EXPR: {
             assert(node->ctype);
@@ -166,16 +172,52 @@ void verify_expr(ASTNode * node) {
             break;
         }
 
-        case AST_BLOCK_STMT:
+        case AST_EXPRESSION_STMT:
+            verify_expr(node->expr_stmt.expr);
+            break;
+
         case AST_IF_STMT:
-        case AST_WHILE_STMT:
-        case AST_FOR_STMT:
+            verify_expr(node->if_stmt.cond);
+            verify_expr(node->if_stmt.then_stmt);
+            verify_expr(node->if_stmt.else_stmt);
+
+        case AST_BLOCK_STMT: {
+            for (ASTNode_list_node * n = node->block.statements->head; n != NULL; n = n->next) {
+                verify_expr(n->value);
+            }
+            break;
+        }
+
+        case AST_WHILE_STMT: {
+            verify_expr(node->while_stmt.cond);
+            verify_expr(node->while_stmt.body);
+            break;
+        }
+
+        case AST_FOR_STMT: {
+            verify_expr(node->for_stmt.init_expr);
+            verify_expr(node->for_stmt.cond_expr);
+            verify_expr(node->for_stmt.update_expr);
+            verify_expr(node->for_stmt.body);
+            break;
+        }
+
         case AST_DO_WHILE_STMT:
+            verify_expr(node->do_while_stmt.expr);
+            verify_expr(node->do_while_stmt.body);
+            break;
+
         case AST_TRANSLATION_UNIT:
         case AST_INITIALIZER_LIST:
         case AST_GOTO_STMT:
         case AST_LABELED_STMT:
+            break;
+
         case AST_CASE_STMT:
+            verify_expr(node->case_stmt.constExpression);
+            verify_expr(node->case_stmt.stmt);
+            break;
+
         case AST_BREAK_STMT:
         case AST_CONTINUE_STMT:
         case AST_SWITCH_STMT:
@@ -315,38 +357,47 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 if (!is_lvalue(node->binary.lhs)) {
                     error("Assignment must be to an lvalue");
                 }
-            }
-
-            CType * lhsCType = node->binary.lhs->ctype;
-            CType * rhsCType = node->binary.rhs->ctype;
-
-            if (is_floating_point_type(lhsCType) || is_floating_point_type(rhsCType)) {
-                if (!ctype_equals(lhsCType, rhsCType)) {
-                    if (lhsCType->rank > rhsCType->rank) {
-                        node->binary.rhs = create_cast_expr_node(lhsCType, node->binary.rhs);
-                        node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
-                        node->binary.common_type = lhsCType;
-                    }
-                    else if (lhsCType->rank < rhsCType->rank) {
-                        node->binary.lhs = create_cast_expr_node(rhsCType, node->binary.lhs);
-                        node->ctype = get_binary_expr_return_type(rhsCType, node->binary.op);
-                        node->binary.common_type = rhsCType;
-                    }
-                }
                 else {
-                    node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
-                    node->binary.common_type = lhsCType;
+                    if (node->binary.lhs->ctype != node->binary.rhs->ctype) {
+                        if (is_castable(node->binary.lhs->ctype, node->binary.rhs->ctype)) {
+                            node->binary.rhs = create_cast_expr_node(node->binary.lhs->ctype, node->binary.rhs);
+                        }
+                    }
+                    node->binary.common_type = node->binary.lhs->ctype;
                 }
             }
             else {
-                CType * promoted_left = is_integer_type(lhsCType)
-                    ? apply_integer_promotions(lhsCType) : lhsCType;
-                CType * promoted_right = is_integer_type(rhsCType)
-                    ? apply_integer_promotions(rhsCType) : rhsCType;
+                CType * lhsCType = node->binary.lhs->ctype;
+                CType * rhsCType = node->binary.rhs->ctype;
 
-                CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
-                node->ctype = get_binary_expr_return_type(result_type, node->binary.op);
-                node->binary.common_type = result_type;
+                if (is_floating_point_type(lhsCType) || is_floating_point_type(rhsCType)) {
+                    if (!ctype_equals(lhsCType, rhsCType)) {
+                        if (lhsCType->rank > rhsCType->rank) {
+                            node->binary.rhs = create_cast_expr_node(lhsCType, node->binary.rhs);
+                            node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
+                            node->binary.common_type = lhsCType;
+                        }
+                        else if (lhsCType->rank < rhsCType->rank) {
+                            node->binary.lhs = create_cast_expr_node(rhsCType, node->binary.lhs);
+                            node->ctype = get_binary_expr_return_type(rhsCType, node->binary.op);
+                            node->binary.common_type = rhsCType;
+                        }
+                    }
+                    else {
+                        node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
+                        node->binary.common_type = lhsCType;
+                    }
+                }
+                else {
+                    CType * promoted_left = is_integer_type(lhsCType)
+                        ? apply_integer_promotions(lhsCType) : lhsCType;
+                    CType * promoted_right = is_integer_type(rhsCType)
+                        ? apply_integer_promotions(rhsCType) : rhsCType;
+
+                    CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
+                    node->ctype = get_binary_expr_return_type(result_type, node->binary.op);
+                    node->binary.common_type = result_type;
+                }
             }
             break;
 
@@ -381,20 +432,24 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
         }
 
         case AST_RETURN_STMT: {
-
             analyze(ctx, node->return_stmt.expr);
             node->ctype = node->return_stmt.expr->ctype;
             if (!ctype_equal_or_compatible(ctx->current_function_return_type,
                 node->ctype)) {
-                char buf_expected[128];
-                buf_expected[0] = '\0';
-                ctype_to_cdecl(ctx->current_function_return_type, buf_expected, sizeof(buf_expected));
-                char buf_actual[128];
-                buf_actual[0] = '\0';
-                ctype_to_cdecl(node->ctype, buf_actual, sizeof(buf_actual));
-                error("Function return type not compatible: expected %s, got %s",
-                    buf_expected, buf_actual);
+                if (is_castable(node->ctype, ctx->current_function_return_type)) {
+                    node->return_stmt.expr = create_cast_expr_node(ctx->current_function_return_type, node->return_stmt.expr);
+                    break;
+                } else {
+                    char buf_expected[128];
+                    buf_expected[0] = '\0';
+                    ctype_to_cdecl(ctx->current_function_return_type, buf_expected, sizeof(buf_expected));
+                    char buf_actual[128];
+                    buf_actual[0] = '\0';
+                    ctype_to_cdecl(node->ctype, buf_actual, sizeof(buf_actual));
+                    error("Function return type not compatible: expected %s, got %s",
+                        buf_expected, buf_actual);
                 }
+            }
             break;
         }
 
