@@ -480,3 +480,14 @@ FPWidth getFPWidthFromCType(CType * ctype) {
     error("Unsupported type: %s", ctype->kind);
     return FPWIDTHUNKN;
 }
+
+char * get_fp_binop(ASTNode * node) {
+    switch (node->binary.op) {
+        case BINOP_ADD: return node->ctype->kind == CTYPE_FLOAT ? "addss" : "addsd"; break;
+        case BINOP_SUB: return node->ctype->kind == CTYPE_FLOAT ? "subss" : "subsd"; break;
+        case BINOP_MUL: return node->ctype->kind == CTYPE_FLOAT ? "mulss" : "mulsd"; break;
+        case BINOP_DIV: return node->ctype->kind == CTYPE_FLOAT ? "divss" : "divsd"; break;
+        default: error("Unsupported binary op in emitter");
+            return NULL;
+    }
+}

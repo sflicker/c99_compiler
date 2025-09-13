@@ -546,6 +546,48 @@ INTERNAL void emit_int_add_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     }
 }
 
+INTERNAL void emit_fp_add_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+
+    // compute lhs address -> rcx
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_ADDRESS);
+
+    emit_pop(ctx, "rcx");               // pop rcx off the stack to load the lhs value
+    emit_push(ctx, "rcx");              // push rcx back on the stack to latter store the result
+    // load lhs into rax
+    emit_line(ctx, "%s xmm0, [rcx]", mov_instruction_for_type(node->ctype));
+    //    emit_line(ctx, "push rax");
+    emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+
+
+    // evaluate RHS into eax
+    emit_expr_to_reg(ctx, node->binary.rhs, WANT_VALUE);
+
+    // restore RHS into ecx
+    //    emit_line(ctx, "pop rcx");
+    emit_fpop(ctx, "xmm1", getFPWidthFromCType(node->ctype));
+
+    // restore LHS into eax
+    //    emit_line(ctx, "pop rax");
+    emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+
+
+    // add RHS to LHS
+    emit_line(ctx, "%s xmm0, xmm1", get_fp_binop(node));
+
+    // restore LHS address
+    //    emit_line(ctx, "pop rcx");
+    emit_pop(ctx, "rcx");
+
+
+    // write back result to LHS
+    emit_line(ctx, "%s [rcx], xmm0", mov_instruction_for_type(node->ctype));
+
+    if (mode == WANT_VALUE) {
+        emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+    }
+}
+
+
 INTERNAL void emit_int_sub_assignment_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
     // compute lhs address -> rcx
@@ -843,16 +885,7 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     }
 }
 
-char * get_fp_binop(ASTNode * node) {
-    switch (node->binary.op) {
-        case BINOP_ADD: return node->ctype->kind == CTYPE_FLOAT ? "addss" : "addsd"; break;
-        case BINOP_SUB: return node->ctype->kind == CTYPE_FLOAT ? "subss" : "subsd"; break;
-        case BINOP_MUL: return node->ctype->kind == CTYPE_FLOAT ? "mulss" : "mulsd"; break;
-        case BINOP_DIV: return node->ctype->kind == CTYPE_FLOAT ? "divss" : "divsd"; break;
-        default: error("Unsupported binary op in emitter");
-            return NULL;
-    }
-}
+
 
 void emit_fp_arith_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     emit_fp_expr_to_xmm0(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
@@ -921,6 +954,16 @@ void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode 
             //TODO Need something to handle the assignments include compound like
             // a floating point version of emit_int_sub_assignment_expr_to_rax
             // or a more general version that handles both
+
+        case BINOP_ASSIGNMENT:
+            emit_int_assignment_expr_to_rax(ctx, node, mode);
+            break;
+        case BINOP_COMPOUND_ADD_ASSIGN:
+            emit_int_add_assignment_expr_to_rax(ctx, node, mode);
+            break;
+        case BINOP_COMPOUND_SUB_ASSIGN:
+            emit_int_sub_assignment_expr_to_rax(ctx, node, mode);
+            break;
 
         // case BINOP_MUL: {
         //     emit_fp_multi_expr_to_xmm0(ctx, node, mode);

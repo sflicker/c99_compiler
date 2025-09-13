@@ -48,5 +48,6 @@ char * create_variable_reference(EmitterContext * ctx, ASTNode * node);
 
 
 FPWidth getFPWidthFromCType(CType * ctype);
+char * get_fp_binop(ASTNode * node);
 
 #endif //EMITTER_HELPERS_H
