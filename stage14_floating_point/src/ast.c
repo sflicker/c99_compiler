@@ -5,8 +5,11 @@
 #include "error.h"
 #include "ast.h"
 
+int ast_id = 0;
+
 ASTNode * create_ast() {
     ASTNode * ast_node = calloc(1, sizeof(ASTNode));
+    ast_node->id = ast_id++;
     return ast_node;
 }
 
@@ -321,7 +324,7 @@ bool ast_equal(ASTNode * a, ASTNode * b) {
             return ast_equal(a->return_stmt.expr, b->return_stmt.expr);
             break;
         case AST_CAST_EXPR:
-            return ctype_equals(a->cast_expr.target_type, b->cast_expr.target_type) &&
+            return ctype_equals(a->cast_expr.target_ctype, b->cast_expr.target_ctype) &&
                 ast_equal(a->cast_expr.expr, b->cast_expr.expr);
             break;
         case AST_FOR_STMT:

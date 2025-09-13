@@ -98,9 +98,9 @@ void print_ast(ASTNode * node, int indent) {
             print_ast(node->unary.operand, indent+1);
             break;
         case AST_CAST_EXPR:
-            ctype_to_cdecl(node->cast_expr.target_type, buf, sizeof(buf));
+            ctype_to_cdecl(node->cast_expr.target_ctype, buf, sizeof(buf));
             ctype_to_cdecl(node->ctype, buf2, sizeof(buf2));
-            printf("CastExpr: target_type: %s, type: %s\n", buf, buf2);
+            printf("CastExpr: target_ctype: %s, type: %s\n", buf, buf2);
             print_ast(node->cast_expr.expr, indent+1);
             break;
 
@@ -217,6 +217,8 @@ void print_ast(ASTNode * node, int indent) {
                         printf("%f", n->value->double_literal.value);
                     } else if (n->value->type == AST_STRING_LITERAL) {
                         printf("%s", n->value->string_literal.value);
+                    } else if (n->value->type == AST_UNARY_EXPR) {
+                        printf("(unary expr)");
                     }
                     else {
                         error("Invalid initializer list type");

@@ -137,7 +137,7 @@ CType * get_binary_expr_return_type(CType * common, BinaryOperator op) {
     return common;
 }
 
-void verify_expr(ASTNode * node) {
+void verify_expr(AnalyzerContext * ctx, ASTNode * node) {
     if (!node) return;
 
     switch (node->type) {
@@ -158,45 +158,45 @@ void verify_expr(ASTNode * node) {
             assert(node->ctype);
             if (node->function_call.arg_list != NULL) {
                 for (ASTNode_list_node * arg = node->function_call.arg_list->head; arg != NULL; arg = arg->next) {
-                    verify_expr(arg->value);
+                    verify_expr(ctx, arg->value);
                 }
             }
             break;
         }
 
         case AST_EXPRESSION_STMT:
-            verify_expr(node->expr_stmt.expr);
+            verify_expr(ctx, node->expr_stmt.expr);
             break;
 
         case AST_IF_STMT:
-            verify_expr(node->if_stmt.cond);
-            verify_expr(node->if_stmt.then_stmt);
-            verify_expr(node->if_stmt.else_stmt);
+            verify_expr(ctx, node->if_stmt.cond);
+            verify_expr(ctx, node->if_stmt.then_stmt);
+            verify_expr(ctx, node->if_stmt.else_stmt);
 
         case AST_BLOCK_STMT: {
             for (ASTNode_list_node * n = node->block.statements->head; n != NULL; n = n->next) {
-                verify_expr(n->value);
+                verify_expr(ctx, n->value);
             }
             break;
         }
 
         case AST_WHILE_STMT: {
-            verify_expr(node->while_stmt.cond);
-            verify_expr(node->while_stmt.body);
+            verify_expr(ctx, node->while_stmt.cond);
+            verify_expr(ctx, node->while_stmt.body);
             break;
         }
 
         case AST_FOR_STMT: {
-            verify_expr(node->for_stmt.init_expr);
-            verify_expr(node->for_stmt.cond_expr);
-            verify_expr(node->for_stmt.update_expr);
-            verify_expr(node->for_stmt.body);
+            verify_expr(ctx, node->for_stmt.init_expr);
+            verify_expr(ctx, node->for_stmt.cond_expr);
+            verify_expr(ctx, node->for_stmt.update_expr);
+            verify_expr(ctx, node->for_stmt.body);
             break;
         }
 
         case AST_DO_WHILE_STMT:
-            verify_expr(node->do_while_stmt.expr);
-            verify_expr(node->do_while_stmt.body);
+            verify_expr(ctx, node->do_while_stmt.expr);
+            verify_expr(ctx, node->do_while_stmt.body);
             break;
 
         case AST_TRANSLATION_UNIT:
@@ -206,8 +206,8 @@ void verify_expr(ASTNode * node) {
             break;
 
         case AST_CASE_STMT:
-            verify_expr(node->case_stmt.constExpression);
-            verify_expr(node->case_stmt.stmt);
+            verify_expr(ctx, node->case_stmt.constExpression);
+            verify_expr(ctx, node->case_stmt.stmt);
             break;
 
         case AST_BREAK_STMT:
@@ -217,7 +217,41 @@ void verify_expr(ASTNode * node) {
             // no check
             break;
 
-        default: assert(node->ctype);
+        case AST_FUNCTION_DEF:
+            // TODO add verification
+            break;
+
+        case AST_CAST_EXPR:
+            assert(node->cast_expr.expr->ctype);
+            assert(node->cast_expr.target_ctype);
+            assert(node->ctype);
+            break;
+
+        case AST_RETURN_STMT:
+            verify_expr(ctx, node->return_stmt.expr);
+            assert(ctype_equals(node->ctype, ctx->current_function_return_type));
+            break;
+
+        case AST_DECLARATION_STMT: {
+            for (ASTNode_list_node * n = node->declaration.init_declarator_list->head; n; n = n->next) {
+                assert(n->value->ctype);
+            }
+        }
+        break;
+
+        case AST_VAR_DECL:
+            assert(node->symbol);
+            assert(node->symbol->ctype);
+            assert(node->ctype);
+            break;
+
+        case AST_ARRAY_ACCESS:
+            assert(node->ctype);
+            assert(node->array_access.base->ctype);
+            assert(node->array_access.index->ctype);
+            break;
+
+        default: error("Not Currently Handling ASTNode type %d", get_ast_node_name(node));
             break;
     }
 }
@@ -491,7 +525,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
         case AST_CAST_EXPR:
             analyze(ctx, node->cast_expr.expr);
-//            node->ctype = node->cast_expr.target_type;
+//            node->ctype = node->cast_expr.target_ctype;
             break;
 
         case AST_ARRAY_ACCESS:
@@ -561,5 +595,5 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
     }
 
     // check for null ctypes and error out
-    verify_expr(node);
+    verify_expr(ctx, node);
 }

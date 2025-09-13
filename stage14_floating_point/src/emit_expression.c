@@ -157,7 +157,7 @@ INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, Ev
     emit_int_expr_to_rax(ctx, node->cast_expr.expr, WANT_VALUE);     // eval inner expression
 
     CType * from_type = node->cast_expr.expr->ctype;
-    CType * to_type = node->cast_expr.target_type;
+    CType * to_type = node->cast_expr.target_ctype;
 
     int from_size = from_type->size;
     int to_size = to_type->size;
@@ -942,10 +942,10 @@ void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode 
 
 void emit_binary_expr_to_reg(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     if (is_floating_point_type(node->binary.lhs->ctype)) {
-        emit_fp_binary_expr_to_xmm0(ctx, node, WANT_EFFECT);
+        emit_fp_binary_expr_to_xmm0(ctx, node, mode);
     }
     else {
-        emit_int_binary_expr_to_rax(ctx, node, WANT_EFFECT);
+        emit_int_binary_expr_to_rax(ctx, node, mode);
     }
 }
 

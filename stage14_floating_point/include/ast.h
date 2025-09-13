@@ -110,6 +110,7 @@ typedef struct ASTNode {
     Symbol * symbol;
     ASTNodeType type;
     CType * ctype;
+    int id;
     union {
         int int_value;
         FloatLiteral float_literal;
@@ -234,7 +235,7 @@ typedef struct ASTNode {
         } switch_stmt;
 
         struct {
-            CType * target_type;
+            CType * target_ctype;
             ASTNode * expr;
         } cast_expr;
 

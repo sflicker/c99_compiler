@@ -350,7 +350,7 @@ ASTNode * create_expression_statement_node(ASTNode * expr) {
 ASTNode * create_cast_expr_node(CType * target_type, ASTNode * expr) {
     ASTNode * node = create_ast();
     node->type = AST_CAST_EXPR;
-    node->cast_expr.target_type = target_type;
+    node->cast_expr.target_ctype = target_type;
     node->cast_expr.expr = expr;
 //    node->ctype = NULL;
     node->ctype = target_type;

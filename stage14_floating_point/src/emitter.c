@@ -766,7 +766,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         }
         // case AST_CAST_EXPR:
         //     emit_expr(ctx, node->cast_expr.expr);
-        //     emit_cast(ctx, node->cast_expr.expr->ctype, node->cast_expr.target_type);
+        //     emit_cast(ctx, node->cast_expr.expr->ctype, node->cast_expr.target_ctype);
         //     break;
         default:
             error("Unhandled type %s\n", node->type);
