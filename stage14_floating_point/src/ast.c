@@ -381,3 +381,13 @@ int get_array_base_element_size(ASTNode * node) {
     }
     return node->ctype->size;
 }
+
+bool is_assignment(ASTNode * node) {
+    return node->binary.op == BINOP_ASSIGNMENT ||
+                node->binary.op == BINOP_COMPOUND_ADD_ASSIGN ||
+                node->binary.op == BINOP_COMPOUND_SUB_ASSIGN;
+}
+
+bool is_comparison_op(BinaryOperator op) {
+    return op == BINOP_EQ || op == BINOP_NE || op == BINOP_GT || op == BINOP_GE || op == BINOP_LT || op == BINOP_LE;
+}

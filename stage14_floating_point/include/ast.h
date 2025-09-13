@@ -261,4 +261,8 @@ ASTNode_list * create_node_list();
 void flatten_list(ASTNode_list * list, ASTNode_list * flattened_list);
 int get_total_nested_array_elements(ASTNode * node);
 int get_array_base_element_size(ASTNode * node);
+
+bool is_assignment(ASTNode * node);
+bool is_comparison_op(BinaryOperator op);
+
 #endif

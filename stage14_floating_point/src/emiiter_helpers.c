@@ -104,7 +104,20 @@ void emit_store_to(EmitterContext * ctx, CType * t, const char * addr_reg, const
     }
 }
 
+const char * stack_reg_for_type(CType * ctype) {
+    switch (ctype->kind) {
+        case CTYPE_CHAR: return "rax";
+        case CTYPE_SHORT: return "rax";
+        case CTYPE_INT: return "rax";
+        case CTYPE_LONG: return "rax";
+        case CTYPE_FLOAT: return "xmm0";
+        case CTYPE_DOUBLE: return "xmm0";
+        case CTYPE_PTR: return "rax";
+        default: error("Unsupported type");
+    }
+    return NULL;
 
+}
 
 const char * reg_for_type(CType * ctype) {
     switch (ctype->kind) {

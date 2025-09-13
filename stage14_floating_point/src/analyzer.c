@@ -128,15 +128,7 @@ void handle_function_declaration(AnalyzerContext * ctx, ASTNode * node) {
 //     exit_scope();
 }
 
-bool is_assignment(ASTNode * node) {
-    return node->binary.op == BINOP_ASSIGNMENT ||
-                node->binary.op == BINOP_COMPOUND_ADD_ASSIGN ||
-                node->binary.op == BINOP_COMPOUND_SUB_ASSIGN;
-}
 
-bool is_comparison_op(BinaryOperator op) {
-    return op == BINOP_EQ || op == BINOP_NE || op == BINOP_GT || op == BINOP_GE || op == BINOP_LT || op == BINOP_LE;
-}
 
 CType * get_binary_expr_return_type(CType * common, BinaryOperator op) {
     if (is_comparison_op(op)) {
@@ -433,9 +425,10 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
         case AST_RETURN_STMT: {
             analyze(ctx, node->return_stmt.expr);
-            node->ctype = node->return_stmt.expr->ctype;
+//            node->ctype = node->return_stmt.expr->ctype;
+            node->ctype = ctx->current_function_return_type;
             if (!ctype_equal_or_compatible(ctx->current_function_return_type,
-                node->ctype)) {
+                node->return_stmt.expr->ctype)) {
                 if (is_castable(node->ctype, ctx->current_function_return_type)) {
                     node->return_stmt.expr = create_cast_expr_node(ctx->current_function_return_type, node->return_stmt.expr);
                     break;

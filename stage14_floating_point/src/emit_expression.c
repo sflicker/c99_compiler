@@ -70,6 +70,65 @@ INTERNAL void emit_function_call_expr(EmitterContext * ctx, ASTNode * node, Eval
 
 }
 
+INTERNAL void emit_cast_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_line(ctx, "; emitting cast");
+    emit_tree_node(ctx, node->cast_expr.expr);
+    if (node->ctype->kind == CTYPE_DOUBLE) {
+        switch (node->cast_expr.expr->ctype->kind) {
+            case CTYPE_FLOAT:
+                if (mode == WANT_VALUE) {
+                    emit_fpop(ctx, "xmm0", FP32);
+                }
+                emit_line(ctx, "cvtss2sd %s, %s", "xmm0", "xmm0    ; float -> double");
+                break;
+            case CTYPE_INT:
+                if (mode == WANT_VALUE) {
+                    emit_pop(ctx, "RAX");
+                }
+                emit_line(ctx, "cvtsi2sd %s, %s", "xmm0", "eax    ; int -> double");
+
+                break;
+            case CTYPE_LONG:
+                if (mode == WANT_VALUE) {
+                    emit_pop(ctx, "RAX");
+                }
+
+                emit_line(ctx, "cvtsi2sd %s, %s", "xmm0", "rax    ; long -> double");
+                break;
+            default: error("Unsupported cast expression type %d", node->type);
+        }
+        if (mode == WANT_VALUE) {
+            emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+        }
+    }
+    else if (node->ctype->kind == CTYPE_FLOAT) {
+        switch (node->cast_expr.expr->ctype->kind) {
+            case CTYPE_DOUBLE:
+                if (mode == WANT_VALUE) {
+                    emit_fpop(ctx, "xmm0", FP64);
+                }
+                emit_line(ctx, "cvtsd2ss %s, %s", "xmm0", "xmm0     ; double -> float"    );
+                break;
+            case CTYPE_INT:
+                if (mode == WANT_VALUE) {
+                    emit_pop(ctx, "rax");
+                }
+                emit_line(ctx, "cvtsi2ss %s, %s", "xmm0", "eax     ; int -> float");
+                break;
+            case CTYPE_LONG:
+                if (mode == WANT_VALUE) {
+                    emit_pop(ctx, "rax");
+                }
+                emit_line(ctx, "cvtsi2ss %s, %s", "xmm0", "rax    ; long -> float");
+                break;
+            default: error("Unsupported cast expression type %d", node->type);
+        }
+        if (mode == WANT_VALUE) {
+            emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+        }
+
+    }
+}
 
 INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
@@ -77,7 +136,7 @@ INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, Ev
         emit_fp_expr_to_xmm0(ctx, node->cast_expr.expr, mode);
 
         if (mode == WANT_VALUE) {
-            emit_fpop(ctx, reg_for_type(node->cast_expr.expr->ctype), getFPWidthFromCType(node->cast_expr.expr->ctype));
+            emit_fpop(ctx, stack_reg_for_type(node->cast_expr.expr->ctype), getFPWidthFromCType(node->cast_expr.expr->ctype));
         }
 
         if (node->cast_expr.expr->ctype->kind == CTYPE_FLOAT) {
@@ -90,7 +149,7 @@ INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, Ev
         }
 
         if (mode == WANT_VALUE) {
-            emit_push(ctx, reg_for_type(node->ctype));
+            emit_push(ctx, stack_reg_for_type(node->ctype));
         }
         return;
     }
@@ -162,7 +221,7 @@ INTERNAL void emit_int_cast_expr_to_rax(EmitterContext * ctx, ASTNode * node, Ev
     }
 }
 
-INTERNAL void emit_int_assignment_expr_to_rax(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
+void emit_int_assignment_expr_to_rax(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
     emit_line(ctx, "; emitting assignment - LHS %s = RHS %s",
         get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
     // eval RHS -> rax then push
@@ -621,7 +680,7 @@ INTERNAL void emit_int_comparison_expr_to_rax(EmitterContext * ctx, ASTNode * no
 }
 
 
-INTERNAL void emit_int_binary_expr_to_rax(EmitterContext * ctx, ASTNode *node, EvalMode mode) {
+void emit_int_binary_expr_to_rax(EmitterContext * ctx, ASTNode *node, EvalMode mode) {
     switch (node->binary.op) {
         case BINOP_EQ:
         case BINOP_NE:
@@ -889,65 +948,10 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     switch (node->type) {
 
         case AST_CAST_EXPR: {
-            emit_line(ctx, "; emitting cast");
-            emit_tree_node(ctx, node->cast_expr.expr);
-            if (node->ctype->kind == CTYPE_DOUBLE) {
-                switch (node->cast_expr.expr->ctype->kind) {
-                    case CTYPE_FLOAT:
-                        if (mode == WANT_VALUE) {
-                            emit_fpop(ctx, "xmm0", FP32);
-                        }
-                        emit_line(ctx, "cvtss2sd %s, %s", "xmm0", "xmm0    ; float -> double");
-                        break;
-                    case CTYPE_INT:
-                        if (mode == WANT_VALUE) {
-                            emit_pop(ctx, "RAX");
-                        }
-                        emit_line(ctx, "cvtsi2sd %s, %s", "xmm0", "eax    ; int -> double");
-
-                        break;
-                    case CTYPE_LONG:
-                        if (mode == WANT_VALUE) {
-                            emit_pop(ctx, "RAX");
-                        }
-
-                        emit_line(ctx, "cvtsi2sd %s, %s", "xmm0", "rax    ; long -> double");
-                        break;
-                    default: error("Unsupported cast expression type %d", node->type);
-                }
-                if (mode == WANT_VALUE) {
-                    emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
-                }
-            }
-            else if (node->ctype->kind == CTYPE_FLOAT) {
-                switch (node->cast_expr.expr->ctype->kind) {
-                    case CTYPE_DOUBLE:
-                        if (mode == WANT_VALUE) {
-                            emit_fpop(ctx, "xmm0", FP64);
-                        }
-                        emit_line(ctx, "cvtsd2ss %s, %s", "xmm0", "xmm0     ; double -> float"    );
-                        break;
-                    case CTYPE_INT:
-                        if (mode == WANT_VALUE) {
-                            emit_pop(ctx, "rax");
-                        }
-                        emit_line(ctx, "cvtsi2ss %s, %s", "xmm0", "eax     ; int -> float");
-                        break;
-                    case CTYPE_LONG:
-                        if (mode == WANT_VALUE) {
-                            emit_pop(ctx, "rax");
-                        }
-                        emit_line(ctx, "cvtsi2ss %s, %s", "xmm0", "rax    ; long -> float");
-                        break;
-                    default: error("Unsupported cast expression type %d", node->type);
-                }
-                if (mode == WANT_VALUE) {
-                    emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
-                }
-
-            }
+             emit_cast_expr(ctx, node, mode);
             break;
         }
+
         case AST_FLOAT_LITERAL:
             emit_line(ctx, "movss xmm0, [rel %s]", node->float_literal.label);  // need label
             if (mode == WANT_VALUE) {

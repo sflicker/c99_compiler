@@ -673,7 +673,26 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_continue_statement(ctx, node);
             break;
 
-        case AST_BINARY_EXPR:
+        case AST_BINARY_EXPR: {
+            if (is_assignment(node)) {
+                if (is_floating_point_type(node->binary.lhs->ctype)) {
+                    emit_fp_binary_expr_to_xmm0(ctx, node, WANT_EFFECT);
+                }
+                else {
+                    emit_int_binary_expr_to_rax(ctx, node, WANT_EFFECT);
+                }
+            }
+            else {
+                if (is_floating_point_type(node->ctype)) {
+                    emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
+                } else {
+                    emit_int_expr_to_rax(ctx, node, WANT_VALUE);
+                }
+            }
+            break;
+        }
+
+
         case AST_UNARY_EXPR:
         case AST_INT_LITERAL:
         case AST_CAST_EXPR:
