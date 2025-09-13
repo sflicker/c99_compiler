@@ -940,6 +940,15 @@ void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode 
 
 }
 
+void emit_binary_expr_to_reg(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    if (is_floating_point_type(node->binary.lhs->ctype)) {
+        emit_fp_binary_expr_to_xmm0(ctx, node, WANT_EFFECT);
+    }
+    else {
+        emit_int_binary_expr_to_rax(ctx, node, WANT_EFFECT);
+    }
+}
+
 void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     if (mode == WANT_ADDRESS) {
         emit_addr_to_rax(ctx, node);
@@ -1100,4 +1109,22 @@ void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             error("Unexpected node type %d", get_ast_node_name(node));
     }
 
+}
+
+void emit_expr_to_reg(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+
+    bool is_floating_point = false;
+    if (node->ctype) {
+        is_floating_point = is_floating_point_type(node->ctype);
+    }
+    else if (is_assignment(node) && is_floating_point_type(node->expr_stmt.expr->binary.lhs->ctype) /*||
+                is_floating_point_type(node->expr_stmt.expr->binary.rhs->ctype) */ ) {
+        is_floating_point = true;
+    }
+
+    if (is_floating_point) {
+        emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
+    } else {
+        emit_int_expr_to_rax(ctx, node, WANT_VALUE);
+    }
 }

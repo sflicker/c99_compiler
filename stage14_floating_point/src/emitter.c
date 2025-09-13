@@ -674,21 +674,32 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             break;
 
         case AST_BINARY_EXPR: {
-            if (is_assignment(node)) {
-                if (is_floating_point_type(node->binary.lhs->ctype)) {
-                    emit_fp_binary_expr_to_xmm0(ctx, node, WANT_EFFECT);
-                }
-                else {
-                    emit_int_binary_expr_to_rax(ctx, node, WANT_EFFECT);
-                }
-            }
-            else {
-                if (is_floating_point_type(node->ctype)) {
-                    emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
-                } else {
-                    emit_int_expr_to_rax(ctx, node, WANT_VALUE);
-                }
-            }
+
+            emit_binary_expr_to_reg(ctx, node, (is_assignment(node) ? WANT_EFFECT : WANT_VALUE));
+            break;
+
+            // if (is_floating_point_type(node->binary.lhs->ctype)) {
+            //     emit_fp_binary_expr_to_xmm0(ctx, node, WANT_EFFECT);
+            // }
+            // else {
+            //     emit_int_binary_expr_to_rax(ctx, node, WANT_EFFECT);
+            // }
+
+            // if (is_assignment(node)) {
+            //     if (is_floating_point_type(node->binary.lhs->ctype)) {
+            //         emit_fp_binary_expr_to_xmm0(ctx, node, WANT_EFFECT);
+            //     }
+            //     else {
+            //         emit_int_binary_expr_to_rax(ctx, node, WANT_EFFECT);
+            //     }
+            // }
+            // else {
+            //     if (is_floating_point_type(node->ctype)) {
+            //         emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
+            //     } else {
+            //         emit_int_expr_to_rax(ctx, node, WANT_VALUE);
+            //     }
+            // }
             break;
         }
 
@@ -700,18 +711,22 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
         case AST_ARRAY_ACCESS:
         case AST_FLOAT_LITERAL:
         case AST_DOUBLE_LITERAL: {
-            if (is_floating_point_type(node->ctype)) {
-                emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
-            } else {
-                emit_int_expr_to_rax(ctx, node, WANT_VALUE);
-            }
+            emit_expr_to_reg(ctx, node, WANT_VALUE);
+            // if (is_floating_point_type(node->ctype)) {
+            //     emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
+            // } else {
+            //     emit_int_expr_to_rax(ctx, node, WANT_VALUE);
+            // }
             break;
         }
 
         case AST_EXPRESSION_STMT: {
             ASTNode * expr = node->expr_stmt.expr;
-            if (is_floating_point_type(node->expr_stmt.expr->binary.lhs->ctype) ||
-                is_floating_point_type(node->expr_stmt.expr->binary.lhs->ctype)) {
+
+//            emit_expr_to_reg(ctx, expr, WANT_EFFECT);
+
+            if (is_floating_point_type(node->expr_stmt.expr->binary.lhs->ctype) /*||
+                is_floating_point_type(node->expr_stmt.expr->binary.rhs->ctype)*/ ) {
                 emit_fp_expr_to_xmm0(ctx, expr, WANT_EFFECT);
             } else {
                 emit_int_expr_to_rax(ctx, expr, WANT_EFFECT);
