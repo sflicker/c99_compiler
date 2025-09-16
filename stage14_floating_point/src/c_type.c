@@ -416,3 +416,10 @@ int sizeof_basetype(CType * ctype) {
     }
 }
 
+CType * get_base_type(CType * ctype) {
+    if (ctype == NULL) return NULL;
+    if (ctype->base_type->kind == CTYPE_ARRAY) {
+        return get_base_type(ctype->base_type);
+    }
+    return ctype->base_type;
+}

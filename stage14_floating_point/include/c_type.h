@@ -63,6 +63,7 @@ CType * copy_type(const CType * src);
 
 int sizeof_ctype(CType * ctype);
 //char * ctype_to_cdecl(CType * ctype);
+CType * get_base_type(CType * ctype);
 
 DEFINE_LINKED_LIST(CType*, CTypePtr_list);
 

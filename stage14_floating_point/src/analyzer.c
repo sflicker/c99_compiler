@@ -365,7 +365,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             if (node->var_decl.init_expr) {
                 if (node->var_decl.init_expr->type == AST_INITIALIZER_LIST) {
                     if (is_array_type(node->ctype)) {
-                        node->var_decl.init_expr->initializer_list.element_type = node->ctype->base_type;
+                        node->var_decl.init_expr->initializer_list.element_type = get_base_type(node->ctype);
                     } else {
                         node->var_decl.init_expr->initializer_list.element_type = node->ctype;
                     }
@@ -556,7 +556,7 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_INITIALIZER_LIST: {
-            assert(node->initializer_list.element_type);
+//            assert(node->initializer_list.element_type);
             for (ASTNode_list_node * n = node->initializer_list.items->head; n; n = n->next) {
                 analyze(ctx, n->value);
                 if (!ctype_equals(n->value->ctype, node->initializer_list.element_type)) {

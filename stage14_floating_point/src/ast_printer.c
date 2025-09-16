@@ -219,6 +219,8 @@ void print_ast(ASTNode * node, int indent) {
                         printf("%s", n->value->string_literal.value);
                     } else if (n->value->type == AST_UNARY_EXPR) {
                         printf("(unary expr)");
+                    } else if (n->value->type == AST_CAST_EXPR) {
+                        printf("Cast");
                     }
                     else {
                         error("Invalid initializer list type");
