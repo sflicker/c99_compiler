@@ -10,6 +10,7 @@
 #include "emitter_helpers.h"
 #include "emit_address.h"
 #include "emit_expression.h"
+#include "emit_stack.h"
 
 #include "error.h"
 
@@ -546,7 +547,7 @@ INTERNAL void emit_int_add_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     }
 }
 
-INTERNAL void emit_fp_add_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+void emit_fp_add_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
     // compute lhs address -> rcx
     emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_ADDRESS);
@@ -1049,6 +1050,22 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
         case AST_FUNCTION_CALL_EXPR:
             emit_function_call_expr(ctx, node, mode);
             break;
+
+        case AST_ARRAY_ACCESS:
+            emit_line(ctx, "; emitting array access");
+            emit_addr_to_rax(ctx, node);
+
+            if (node->ctype->kind != CTYPE_ARRAY) {
+                emit_pop(ctx, "rcx");
+                emit_line(ctx, "; emitting array element value");
+                emit_load_from(ctx, node->ctype, "rcx");                    // load
+                if (mode == WANT_VALUE) {
+                    emit_push_for_type(ctx, node->ctype);
+                }
+            }
+
+            break;
+
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
     }

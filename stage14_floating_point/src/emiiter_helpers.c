@@ -22,7 +22,7 @@
 #include "emit_extensions.h"
 #include "symbol.h"
 #include "emitter_helpers.h"
-
+#include "emit_stack.h"
 
 
 char * escaped_string(const char * s) {
@@ -128,6 +128,7 @@ const char * reg_for_type(CType * ctype) {
         case CTYPE_FLOAT: return "xmm0";
         case CTYPE_DOUBLE: return "xmm0";
         case CTYPE_PTR: return "rax";
+        case CTYPE_ARRAY: return reg_for_type(ctype->base_type);
         default: error("Unsupported type");
     }
     return NULL;
@@ -155,6 +156,7 @@ const char * mov_instruction_for_type(CType * ctype) {
         case CTYPE_FLOAT: return "movss";
         case CTYPE_DOUBLE: return "movsd";
         case CTYPE_PTR: return "mov";
+        case CTYPE_ARRAY: return mov_instruction_for_type(ctype->base_type);
         default: error("Unsupported type");
     }
     return NULL;
@@ -295,59 +297,6 @@ void strip_comments(char *src, char *dst) {
     *dst = '\0';
 }
 
-void emit_push(EmitterContext * ctx, const char * reg) {
-    emit_line(ctx, "push %s          ; stack += 8 (depth now %d)", reg, ctx->stack_depth + 8);
-    ctx->stack_depth += 8;
-}
-
-void emit_fpush(EmitterContext * ctx, const char * xmm, FPWidth width) {
-    emit_line(ctx, "sub rsp, 16      ; fpush %s (reserve 16)", xmm);
-    if (width == FP64) {
-        emit_line(ctx, "movsd [rsp], %s   ; store low 64 bits (double)", xmm);
-    } else {
-        emit_line(ctx, "movss [rsp], %s   ; store low 32 bits (float)", xmm);
-    }
-    ctx->stack_depth += 16;
-    emit_line(ctx, "; Stack depth now %d", ctx->stack_depth);
-}
-
-void emit_pop_for_type(EmitterContext * ctx, CType * ctype) {
-    const char * reg = reg_for_type(ctype);
-    if (is_integer_type(ctype) || (is_pointer_type(ctype) && is_integer_type(ctype->base_type))) {
-        emit_pop(ctx, "rax");
-    } else if (ctype->kind == CTYPE_FLOAT) {
-        emit_fpop(ctx, reg, FP32);
-    } else if (ctype->kind == CTYPE_DOUBLE) {
-        emit_fpop(ctx, reg, FP64);
-    } else {
-        error("Unsupported data type for data directive: %s", ctype->kind);
-    }
-}
-
-void emit_pop(EmitterContext * ctx, const char * reg) {
-    emit_line(ctx, "pop %s           ; stack -= 8 (depth now %d)", reg, ctx->stack_depth - 8);
-    ctx->stack_depth -= 8;
-}
-
-void emit_fpop(EmitterContext * ctx, const char * xmm, FPWidth width) {
-    if (width == FP64) {
-        emit_line(ctx, "movsd %s, [rsp]   ; load low 64 bits (double)", xmm);
-    } else {
-        emit_line(ctx, "movss %s, [rsp]   ; load low 32 bits (float)", xmm);
-    }
-    emit_line(ctx, "add rsp, 16    ; fpop %s (free 16)", xmm);
-    ctx->stack_depth -= 16;
-    emit_line(ctx, "; Stack depth now %d", ctx->stack_depth);
-}
-
-void emit_add_rsp(EmitterContext * ctx, int amount) {
-    emit_line(ctx, "add rsp, %d    ; stack -= %d (depth now %d)", amount, amount, ctx->stack_depth - amount);
-    ctx->stack_depth -= amount;
-}
-void emit_sub_rsp(EmitterContext * ctx, int amount) {
-    emit_line(ctx, "sub rsp, %d    ; stack += %d (depth now %d)", amount, amount, ctx->stack_depth + amount);
-    ctx->stack_depth += amount;
-}
 
 void emit_leave(EmitterContext *ctx) {
     emit_line(ctx, "leave      ; restore rbp; stack -= 8 (depth now %d)", ctx->stack_depth - 8);
@@ -391,7 +340,7 @@ void emit_float_literal(EmitterContext * ctx, const char * label, float value) {
 
     // Emit the labeled constant. NASM/YASM syntax: dd = 32-bit data.
     // We use hex to lock the exact bit pattern. Include a comment for readability.
-    emit_line(ctx, "%s: dd 0x%08X    ; %g", label, bits, (double)value);
+    emit_line(ctx, "%s: dd 0x%08X    ; %f", label, bits, (double)value);
 }
 
 void emit_double_literal(EmitterContext *ctx, const char *label, double value) {
@@ -399,7 +348,7 @@ void emit_double_literal(EmitterContext *ctx, const char *label, double value) {
     memcpy(&bits, &value, sizeof(bits));
 
     emit_line(ctx, "align 8");
-    emit_line(ctx, "%s: dq 0x%016llX    ; %g",
+    emit_line(ctx, "%s: dq 0x%016llX    ; %f",
               label, (unsigned long long)bits, value);
 }
 

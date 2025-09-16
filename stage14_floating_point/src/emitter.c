@@ -9,6 +9,7 @@
 #include "c_type.h"
 #include "ast.h"
 #include "emitter.h"
+#include "emit_stack.h"
 
 #include "token.h"
 #include "util.h"
@@ -335,7 +336,8 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
 
             if (i < flattened_list->count) {
                 ASTNode * init_value = ASTNode_list_get(flattened_list, i);
-                emit_int_expr_to_rax(ctx, init_value, WANT_VALUE);
+                //emit_int_expr_to_rax(ctx, init_value, WANT_VALUE);
+                emit_expr_to_reg(ctx, init_value, WANT_VALUE);
             }
             else {
                 emit_line(ctx, "mov eax, 0");
@@ -347,9 +349,11 @@ void emit_var_declaration(EmitterContext * ctx, ASTNode * node) {
             emit_line(ctx, "lea rcx, [rbp%+d]", offset);
 
 //                emit_line(ctx, "pop rax");
-            emit_pop(ctx, "rax");
+            //emit_pop(ctx, "rax");
+            emit_pop_for_type(ctx, node->ctype->base_type);
 
-            emit_line(ctx, "mov [rcx], eax");
+            emit_line(ctx, "%s [rcx], %s", mov_instruction_for_type(node->ctype),
+                reg_for_type(node->ctype));
         }
     }
     else {

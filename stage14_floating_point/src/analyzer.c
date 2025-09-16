@@ -363,10 +363,17 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             add_symbol(symbol);
             node->symbol = symbol;
             if (node->var_decl.init_expr) {
-                analyze(ctx, node->var_decl.init_expr);
                 if (node->var_decl.init_expr->type == AST_INITIALIZER_LIST) {
-                    //TODO check counts
-                } else if (node->var_decl.init_expr->type == AST_FUNCTION_CALL_EXPR) {
+                    if (is_array_type(node->ctype)) {
+                        node->var_decl.init_expr->initializer_list.element_type = node->ctype->base_type;
+                    } else {
+                        node->var_decl.init_expr->initializer_list.element_type = node->ctype;
+                    }
+                    node->var_decl.init_expr->ctype = node->ctype;
+                }
+                analyze(ctx, node->var_decl.init_expr);
+
+                if (node->var_decl.init_expr->type == AST_FUNCTION_CALL_EXPR) {
                     //TODO
                 } else if (!ctype_equals(node->ctype, node->var_decl.init_expr->ctype)) {
                     node->var_decl.init_expr =
@@ -523,7 +530,8 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             analyze(ctx, node->switch_stmt.stmt);
             break;
 
-        case AST_CAST_EXPR:
+        case AST_CAST_EXPR
+            :
             analyze(ctx, node->cast_expr.expr);
 //            node->ctype = node->cast_expr.target_ctype;
             break;
@@ -547,9 +555,16 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->ctype = base_type->base_type;
             break;
 
-        case AST_INITIALIZER_LIST:
-            // TODO
+        case AST_INITIALIZER_LIST: {
+            assert(node->initializer_list.element_type);
+            for (ASTNode_list_node * n = node->initializer_list.items->head; n; n = n->next) {
+                analyze(ctx, n->value);
+                if (!ctype_equals(n->value->ctype, node->initializer_list.element_type)) {
+                    n->value = create_cast_expr_node(node->initializer_list.element_type, n->value);
+                }
+            }
             break;
+        }
 
         case AST_STRING_LITERAL: {
             ASTNode_list_append(getTranslationUnit(ctx)->translation_unit.string_literals, node);

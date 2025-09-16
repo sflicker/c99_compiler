@@ -5,6 +5,7 @@
 #include "emitter.h"
 #include "emitter_context.h"
 #include "emitter_helpers.h"
+#include "emit_stack.h"
 
 void emit_print_int_extension_function(EmitterContext * ctx) {
     int label_convert = get_label_id(ctx);

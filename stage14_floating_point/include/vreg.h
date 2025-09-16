@@ -5,7 +5,7 @@
 #ifndef _VREG_H
 #define _VREG_H
 #include <stdbool.h>
-#include "c_types.h"
+#include "c_type.h"
 
 typedef enum { W8, W16, W32, W64 } Width;
 typedef enum { ZK_UNKNOWN, ZK_ZEROEXT32, ZK_FULL64 } ZeroKind;

@@ -74,6 +74,7 @@ ASTNode * create_initializer_list(ASTNode_list * list) {
     ASTNode * node = create_ast();
     node->type = AST_INITIALIZER_LIST;
     node->initializer_list.items = list;
+    node->initializer_list.element_type = NULL;
     node->symbol = NULL;
     node->ctype = NULL;
     if (list->count == 0) {

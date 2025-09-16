@@ -8,6 +8,8 @@
 #include "emitter_helpers.h"
 #include "emit_address.h"
 #include "emit_expression.h"
+#include "emit_stack.h"
+
 #include "error.h"
 #include "symbol.h"
 
