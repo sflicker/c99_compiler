@@ -14,6 +14,7 @@
 #include "c_type.h"
 #include "ast.h"
 #include "emitter.h"
+#include "emit_stack.h"
 
 #include "token.h"
 #include "util.h"
