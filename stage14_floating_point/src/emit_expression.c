@@ -960,7 +960,8 @@ void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode 
             emit_int_assignment_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_COMPOUND_ADD_ASSIGN:
-            emit_int_add_assignment_expr_to_rax(ctx, node, mode);
+            emit_fp_add_assignment_expr_to_xmm0(ctx, node, mode);
+//            emit_int_add_assignment_expr_to_rax(ctx, node, mode);
             break;
         case BINOP_COMPOUND_SUB_ASSIGN:
             emit_int_sub_assignment_expr_to_rax(ctx, node, mode);

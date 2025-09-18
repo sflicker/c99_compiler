@@ -256,6 +256,16 @@ void verify_expr(AnalyzerContext * ctx, ASTNode * node) {
     }
 }
 
+void set_element_type(AnalyzerContext * ctx, ASTNode * node, CType * ctype) {
+    assert(node->type == AST_INITIALIZER_LIST);
+    node->initializer_list.element_type = ctype;
+    for (ASTNode_list_node * n = node->initializer_list.items->head; n != NULL; n = n->next) {
+        if (n->value->type == AST_INITIALIZER_LIST) {
+            set_element_type(ctx, n->value, ctype);
+        }
+    }
+}
+
 void analyze(AnalyzerContext * ctx, ASTNode * node) {
     if (!node) return;
 
@@ -364,12 +374,15 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             node->symbol = symbol;
             if (node->var_decl.init_expr) {
                 if (node->var_decl.init_expr->type == AST_INITIALIZER_LIST) {
+                    CType * element_type = NULL;
                     if (is_array_type(node->ctype)) {
-                        node->var_decl.init_expr->initializer_list.element_type = get_base_type(node->ctype);
+                        element_type = get_base_type(node->ctype);
                     } else {
-                        node->var_decl.init_expr->initializer_list.element_type = node->ctype;
+                        element_type = node->ctype;
                     }
                     node->var_decl.init_expr->ctype = node->ctype;
+                    set_element_type(ctx, node->var_decl.init_expr, element_type);
+
                 }
                 analyze(ctx, node->var_decl.init_expr);
 
@@ -556,12 +569,24 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_INITIALIZER_LIST: {
-//            assert(node->initializer_list.element_type);
+            assert(node->initializer_list.element_type);
             for (ASTNode_list_node * n = node->initializer_list.items->head; n; n = n->next) {
                 analyze(ctx, n->value);
-                if (!ctype_equals(n->value->ctype, node->initializer_list.element_type)) {
-                    n->value = create_cast_expr_node(node->initializer_list.element_type, n->value);
-                }
+                // if (n->value->type == AST_INITIALIZER_LIST) {
+                //     if (is_array_type(node->ctype)) {
+                //         node->var_decl.init_expr->initializer_list.element_type = get_base_type(node->ctype);
+                //     } else {
+                //         node->var_decl.init_expr->initializer_list.element_type = node->ctype;
+                //     }
+                //     set_element_type(ctx, element_type);
+                //     node->var_decl.init_expr->ctype = node->ctype;
+                //     analyze(ctx, n->value);
+                // } else {
+                //     analyze(ctx, n->value);
+                //     if (!ctype_equals(n->value->ctype, node->initializer_list.element_type)) {
+                //         n->value = create_cast_expr_node(node->initializer_list.element_type, n->value);
+                //     }
+                // }
             }
             break;
         }

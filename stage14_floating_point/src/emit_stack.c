@@ -2,6 +2,7 @@
 #include "emitter_context.h"
 #include "emit_stack.h"
 #include "emitter_helpers.h"
+#include "c_type.h"
 #include "error.h"
 
 void emit_push(EmitterContext * ctx, const char * reg) {
@@ -69,6 +70,15 @@ void emit_pop_for_type(EmitterContext * ctx, CType * ctype) {
         emit_fpop(ctx, reg, FP32);
     } else if (ctype->kind == CTYPE_DOUBLE) {
         emit_fpop(ctx, reg, FP64);
+    } else if (is_array_type(ctype)) {
+        CType * base_type = get_base_type(ctype);
+        if (is_integer_type(base_type)) {
+            emit_pop(ctx, "rax");
+        } else if (base_type->kind == CTYPE_FLOAT) {
+            emit_fpop(ctx, reg, FP32);
+        } else if (base_type->kind == CTYPE_DOUBLE) {
+            emit_fpop(ctx, reg, FP64);
+        }
     } else {
         error("Unsupported data type for data directive: %s", ctype->kind);
     }
