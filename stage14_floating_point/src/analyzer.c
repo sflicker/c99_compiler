@@ -172,7 +172,10 @@ void verify_expr(AnalyzerContext * ctx, ASTNode * node) {
         case AST_IF_STMT:
             verify_expr(ctx, node->if_stmt.cond);
             verify_expr(ctx, node->if_stmt.then_stmt);
-            verify_expr(ctx, node->if_stmt.else_stmt);
+            if (node->if_stmt.else_stmt) {
+                verify_expr(ctx, node->if_stmt.else_stmt);
+            }
+            break;
 
         case AST_BLOCK_STMT: {
             for (ASTNode_list_node * n = node->block.statements->head; n != NULL; n = n->next) {
@@ -504,10 +507,13 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
         }
 
-        case AST_IF_STMT:
-            analyze(ctx, node->if_stmt.cond);
-            analyze(ctx, node->if_stmt.then_stmt);
-            analyze(ctx, node->if_stmt.else_stmt);
+        case AST_IF_STMT: {
+                analyze(ctx, node->if_stmt.cond);
+                analyze(ctx, node->if_stmt.then_stmt);
+                if (node->if_stmt.else_stmt) {
+                    analyze(ctx, node->if_stmt.else_stmt);
+                }
+            }
             break;
 
         case AST_WHILE_STMT:
