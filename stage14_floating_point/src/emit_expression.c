@@ -593,9 +593,9 @@ void emit_fp_add_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, E
     emit_pop(ctx, "rcx");               // pop rcx off the stack to load the lhs value
     emit_push(ctx, "rcx");              // push rcx back on the stack to latter store the result
     // load lhs into rax
-    emit_line(ctx, "%s xmm0, [rcx]", mov_instruction_for_type(node->ctype));
+    emit_line(ctx, "%s xmm0, [rcx]", mov_instruction_for_type(node->binary.lhs->ctype));
     //    emit_line(ctx, "push rax");
-    emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+    emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->binary.lhs->ctype));
 
 
     // evaluate RHS into eax
@@ -603,15 +603,14 @@ void emit_fp_add_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, E
 
     // restore RHS into ecx
     //    emit_line(ctx, "pop rcx");
-    emit_fpop(ctx, "xmm1", getFPWidthFromCType(node->ctype));
+    emit_fpop(ctx, "xmm1", getFPWidthFromCType(node->binary.rhs->ctype));
 
     // restore LHS into eax
     //    emit_line(ctx, "pop rax");
-    emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
-
+    emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->binary.lhs->ctype));
 
     // add RHS to LHS
-    emit_line(ctx, "%s xmm0, xmm1", get_fp_binop(node));
+    emit_line(ctx, "%s xmm0, xmm1", get_fp_binop(node->binary.lhs));
 
     // restore LHS address
     //    emit_line(ctx, "pop rcx");
@@ -619,10 +618,10 @@ void emit_fp_add_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, E
 
 
     // write back result to LHS
-    emit_line(ctx, "%s [rcx], xmm0", mov_instruction_for_type(node->ctype));
+    emit_line(ctx, "%s [rcx], xmm0", mov_instruction_for_type(node->binary.lhs->ctype));
 
     if (mode == WANT_VALUE) {
-        emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+        emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->binary.lhs->ctype));
     }
 }
 
