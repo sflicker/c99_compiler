@@ -547,6 +547,44 @@ INTERNAL void emit_int_add_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     }
 }
 
+void emit_fp_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_line(ctx, "; emitting assignment - LHS %s = RHS %s",
+    get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
+    // eval RHS -> rax then push
+    if (is_array_type(node->binary.rhs->ctype)) {
+        emit_addr_to_rax(ctx, node->binary.rhs);
+    }
+    else {
+        emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
+    }
+    //    emit_line(ctx, "push rax");
+
+    // eval LHS addr -> rcx
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_ADDRESS);
+
+    // pop LHS into rcx
+    //    emit_line(ctx, "pop rcx");
+    emit_pop(ctx, "rcx");
+
+    // pop RHS in rax
+    //    emit_line(ctx, "pop rax");
+    if (is_array_type(node->binary.rhs->ctype)) {
+        emit_pop(ctx, "rax");
+    }
+    else {
+        emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->binary.rhs->ctype));
+    }
+
+    CType * ctype = node->binary.lhs->ctype;
+
+    emit_line(ctx, "%s %s [rcx], %s",
+        mov_instruction_for_type(ctype),
+        mem_size_for_type(ctype),
+        reg_for_type(ctype));
+
+
+}
+
 void emit_fp_add_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
     // compute lhs address -> rcx
@@ -957,7 +995,7 @@ void emit_fp_binary_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode 
             // or a more general version that handles both
 
         case BINOP_ASSIGNMENT:
-            emit_int_assignment_expr_to_rax(ctx, node, mode);
+            emit_fp_assignment_expr_to_xmm0(ctx, node, mode);
             break;
         case BINOP_COMPOUND_ADD_ASSIGN:
             emit_fp_add_assignment_expr_to_xmm0(ctx, node, mode);
