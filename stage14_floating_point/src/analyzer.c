@@ -218,7 +218,8 @@ void verify_expr(AnalyzerContext * ctx, ASTNode * node) {
             break;
 
         case AST_FUNCTION_DEF:
-            // TODO add verification
+        case AST_FUNCTION_DECL:
+            // TODO add verifications (probably different)
             break;
 
         case AST_CAST_EXPR:
