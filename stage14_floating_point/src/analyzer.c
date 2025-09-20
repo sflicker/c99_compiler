@@ -145,6 +145,7 @@ void verify_expr(AnalyzerContext * ctx, ASTNode * node) {
         case AST_INT_LITERAL: assert(node->ctype); break;
         case AST_FLOAT_LITERAL: assert(node->ctype); break;
         case AST_DOUBLE_LITERAL: assert(node->ctype); break;
+        case AST_STRING_LITERAL: assert(node->ctype); break;
         case AST_UNARY_EXPR: assert(node->ctype); break;
         case AST_BINARY_EXPR: {
             if (!is_assignment(node)) {
@@ -214,6 +215,8 @@ void verify_expr(AnalyzerContext * ctx, ASTNode * node) {
         case AST_CONTINUE_STMT:
         case AST_SWITCH_STMT:
         case AST_DEFAULT_STMT:
+        case AST_ASSERT_EXTENSION_STATEMENT:
+        case AST_PRINT_EXTENSION_STATEMENT:
             // no check
             break;
 
