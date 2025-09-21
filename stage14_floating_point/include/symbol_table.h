@@ -49,6 +49,8 @@ Symbol * lookup_table_symbol(SymbolTable * table, const char * name);
 void add_symbol(Symbol * symbol);
 void add_global_symbol(Symbol * symbol);
 
+void free_global_table();
+
 //Symbol * add_symbol(const char * name, CType * type, ASTNode * node);
 //Symbol * add_symbol_with_offset(const char * name, int offset, Type * type);
 //FunctionSymbol * add_function_symbol(const char * name, CType * returnType, int param_count, CTypePtr_list * param_types);

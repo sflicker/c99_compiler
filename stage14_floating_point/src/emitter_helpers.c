@@ -214,7 +214,9 @@ char * get_data_directive(CType * ctype) {
         case CTYPE_CHAR:   return "db";
         case CTYPE_SHORT:  return "dw";
         case CTYPE_INT:    return "dd";
+        case CTYPE_FLOAT:  return "dd";
         case CTYPE_LONG:   return "dq";
+        case CTYPE_DOUBLE: return "dq";
         case CTYPE_PTR:    return "dq";
         case CTYPE_ARRAY:  return get_data_directive(ctype->base_type);
         default:

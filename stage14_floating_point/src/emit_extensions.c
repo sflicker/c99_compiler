@@ -84,7 +84,9 @@ void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
 void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node) {
     // emit the expression storing it in EAX
     emit_tree_node(ctx, node->expr_stmt.expr);
-    emit_line(ctx, "call print_int");
+    if (is_integer_type(node->expr_stmt.expr->ctype)) {
+        emit_line(ctx, "call print_int");
+    }
     emit_add_rsp(ctx, 8);
     ctx->emit_print_int_extension = true;
 }

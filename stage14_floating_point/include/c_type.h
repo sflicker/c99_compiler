@@ -86,10 +86,14 @@ void ctype_to_cdecl(CType * ctype, char * buf, size_t size);
 
 bool is_integer_type(CType * ctype);
 bool is_floating_point_type(CType * ctype);
+bool is_float_type(CType * ctype);
+bool is_double_type(CType * ctype);
 bool is_array_type(CType * ctype);
 bool is_function_type(CType * ctype);
 bool is_pointer_type(CType * ctype);
-bool is_signed_type(CType * ctype);
+//bool is_signed_type(CType * ctype);
+bool is_signed_integer_type(CType * ctype);
+bool is_unsigned_integer_type(CType * ctype);
 CType * decay_if_array(CType * ctype);
 int sizeof_type(CType * ctype);
 int sizeof_basetype(CType * ctype);

@@ -682,6 +682,123 @@ INTERNAL void emit_int_sub_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     }
 }
 
+void emit_signed_integer_condition_codes(EmitterContext * ctx, BinaryOperator op) {
+    // emit proper setX based on operator type
+    switch (op) {
+        case BINOP_EQ:
+            emit_line(ctx, "sete al");
+            break;
+
+        case BINOP_NE:
+            emit_line(ctx, "setne al");
+            break;
+
+        case BINOP_LT:
+            emit_line(ctx, "setl al");
+            break;
+
+        case BINOP_LE:
+            emit_line(ctx, "setle al");
+            break;
+
+        case BINOP_GT:
+            emit_line(ctx, "setg al");
+            break;
+
+        case BINOP_GE:
+            emit_line(ctx, "setge al");
+            break;
+
+        default:
+            error("Unsupported comparison type in codegen.");
+    }
+
+    // zero-extend result to full eax
+    emit_line(ctx, "movzx eax, al");
+}
+
+void emit_unsigned_integer_condition_codes(EmitterContext * ctx, BinaryOperator op) {
+    // emit proper setX based on operator type
+    switch (op) {
+        case BINOP_EQ:
+            emit_line(ctx, "sete al");
+            break;
+
+        case BINOP_NE:
+            emit_line(ctx, "setne al");
+            break;
+
+        case BINOP_LT:
+            emit_line(ctx, "setb al");
+            break;
+
+        case BINOP_LE:
+            emit_line(ctx, "setbe al");
+            break;
+
+        case BINOP_GT:
+            emit_line(ctx, "seta al");
+            break;
+
+        case BINOP_GE:
+            emit_line(ctx, "setae al");
+            break;
+
+        default:
+            error("Unsupported comparison type in codegen.");
+    }
+
+    // zero-extend result to full eax
+    emit_line(ctx, "movzx eax, al");
+}
+
+void emit_floating_point_condition_codes(EmitterContext * ctx, BinaryOperator op) {
+    // emit proper setX based on operator type
+    switch (op) {
+        case BINOP_EQ:
+            emit_line(ctx, "sete al           ; al = ZF ");
+            emit_line(ctx, "setnp dl          ; dl = !PF ");
+            emit_line(ctx, "and al, dl        ; exclude NaN");
+            break;
+
+        case BINOP_NE:
+            emit_line(ctx, "setne al          ; al = !ZF");
+            emit_line(ctx, "setp dl           ; dl = PF (unordered)");
+            emit_line(ctx, "or al, dl");
+            break;
+
+        case BINOP_LT:
+            emit_line(ctx, "setb al           ; al = CF");
+            emit_line(ctx, "setnp dl          ; dl = !PF (ordered)");
+            emit_line(ctx, "and al, dl        ; al = CF && !PF");
+            break;
+
+        case BINOP_LE:
+            emit_line(ctx, "setbe al          ; al = CF|ZF");
+            emit_line(ctx, "setnp dl          ; dl = !PF");
+            emit_line(ctx, "and al, dl");
+            break;
+
+        case BINOP_GT:
+            emit_line(ctx, "seta al           ; al = !(CF|ZF)");
+            emit_line(ctx, "setnp dl");
+            emit_line(ctx, "and al, dl");
+            break;
+
+        case BINOP_GE:
+            emit_line(ctx, "setae al         ; al = !CF");
+            emit_line(ctx, "setnp dl");
+            emit_line(ctx, "and al, dl");
+            break;
+
+        default:
+            error("Unsupported comparison type in codegen.");
+    }
+
+    // zero-extend result to full eax
+    emit_line(ctx, "movzx eax, al");
+}
+
 INTERNAL void emit_int_comparison_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     // eval left-hand side -> result in eax -> push results onto the stack
     if (is_floating_point_type(node->binary.common_type)) {
@@ -722,38 +839,47 @@ INTERNAL void emit_int_comparison_expr_to_rax(EmitterContext * ctx, ASTNode * no
         emit_line(ctx, "cmp eax, ecx");
     }
 
-    // emit proper setX based on operator type
-    switch (node->binary.op) {
-        case BINOP_EQ:
-            emit_line(ctx, "sete al");
-            break;
+    if (is_signed_integer_type(node->binary.common_type)) {
+        emit_signed_integer_condition_codes(ctx, node->binary.op);
+    } else if (is_unsigned_integer_type(node->binary.common_type)) {
+        emit_unsigned_integer_condition_codes(ctx, node->binary.op);
 
-        case BINOP_NE:
-            emit_line(ctx, "setne al");
-            break;
-
-        case BINOP_LT:
-            emit_line(ctx, "setl al");
-            break;
-
-        case BINOP_LE:
-            emit_line(ctx, "setle al");
-            break;
-
-        case BINOP_GT:
-            emit_line(ctx, "setg al");
-            break;
-
-        case BINOP_GE:
-            emit_line(ctx, "setge al");
-            break;
-
-        default:
-            error("Unsupported comparison type in codegen.");
+    } else if (is_floating_point_type(node->binary.common_type)) {
+        emit_floating_point_condition_codes(ctx, node->binary.op);
     }
 
-    // zero-extend result to full eax
-    emit_line(ctx, "movzx eax, al");
+    // // emit proper setX based on operator type
+    // switch (node->binary.op) {
+    //     case BINOP_EQ:
+    //         emit_line(ctx, "sete al");
+    //         break;
+    //
+    //     case BINOP_NE:
+    //         emit_line(ctx, "setne al");
+    //         break;
+    //
+    //     case BINOP_LT:
+    //         emit_line(ctx, "setl al");
+    //         break;
+    //
+    //     case BINOP_LE:
+    //         emit_line(ctx, "setle al");
+    //         break;
+    //
+    //     case BINOP_GT:
+    //         emit_line(ctx, "setg al");
+    //         break;
+    //
+    //     case BINOP_GE:
+    //         emit_line(ctx, "setge al");
+    //         break;
+    //
+    //     default:
+    //         error("Unsupported comparison type in codegen.");
+    // }
+    //
+    // // zero-extend result to full eax
+    // emit_line(ctx, "movzx eax, al");
     if (mode == WANT_VALUE) {
         emit_push(ctx, "rax");
     }

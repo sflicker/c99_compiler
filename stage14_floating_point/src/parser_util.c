@@ -385,6 +385,7 @@ ASTNode * create_declaration_node(CType * ctype) {
     node->type = AST_DECLARATION_STMT;
     return node;
 }
+
 Declarator * make_declarator() {
     Declarator * declarator = malloc(sizeof(Declarator));
     declarator->name = NULL;
@@ -392,7 +393,6 @@ Declarator * make_declarator() {
     declarator->param_list = NULL;
     return declarator;
 }
-
 
 ASTNode * create_assert_extension_node(ASTNode * expr) {
     ASTNode * node = create_ast();

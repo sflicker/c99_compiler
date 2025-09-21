@@ -16,7 +16,8 @@ Symbol * create_symbol(const char * name, SymbolKind kind, CType * ctype, ASTNod
 }
 
 void free_symbol(Symbol * symbol) {
-
+//    free(symbol->name);
+//    free(symbol);
 }
 
 Symbol * create_storage_param_symbol(const char * name, ASTNode * node, CType * ctype, int *param_offset) {

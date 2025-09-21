@@ -168,6 +168,12 @@ void emit_translation_unit(EmitterContext * ctx, ASTNode * node) {
                 char * literal_label = get_string_literal_label(node, global_var->var_decl.init_expr->string_literal.value);
                 emit_line(ctx, "%s: %s %s", global_var->var_decl.name, data_directive, literal_label);
             }
+            else if (is_float_type(global_var->ctype)) {
+                emit_line(ctx, "%s: %s %f", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->float_literal.value);
+            }
+            else if (is_double_type(global_var->ctype)) {
+                emit_line(ctx, "%s: %s %f", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->double_literal.value);
+            }
             else {
                 emit_line(ctx, "%s: %s %d", global_var->var_decl.name, data_directive, global_var->var_decl.init_expr->int_value);
             }

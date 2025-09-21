@@ -5,6 +5,8 @@
 #include "error.h"
 #include "ast.h"
 
+#include <symbol.h>
+
 int ast_id = 0;
 
 ASTNode * create_ast() {
@@ -15,10 +17,19 @@ ASTNode * create_ast() {
 
 void free_ast(ASTNode * node) {
     if (!node) return;
+
     switch(node->type) {
         case AST_TRANSLATION_UNIT:
             ASTNode_list_free(node->translation_unit.functions);
+            // ASTNode_list_free(node->translation_unit.globals);
+            // ASTNode_list_free(node->translation_unit.string_literals);
+            // ASTNode_list_free(node->translation_unit.float_literals);
+            // ASTNode_list_free(node->translation_unit.double_literals);
             free(node->translation_unit.functions);
+            // free(node->translation_unit.globals);
+            // free(node->translation_unit.string_literals);
+            // free(node->translation_unit.float_literals);
+            // free(node->translation_unit.double_literals);
             break;
 
         case AST_VAR_DECL:
@@ -151,6 +162,9 @@ void free_ast(ASTNode * node) {
             error("Invalid AST Node Type: %s\n", get_ast_node_name(node));
             break;
     }
+    // if (node->symbol) {
+    //     free_symbol(node->symbol);
+    // }
     free(node);
 }
 

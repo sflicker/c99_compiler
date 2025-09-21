@@ -29,6 +29,10 @@ void init_global_table() {
     current_scope->parent = NULL;
 }
 
+void free_global_table() {
+    Symbol_list_free(global_scope->symbols);
+}
+
 void free_symbol_table(SymbolTable * table) {
     SymbolTable * old = table;
     table = table->parent;

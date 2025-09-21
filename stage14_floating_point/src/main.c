@@ -124,6 +124,8 @@ int main(int argc, char ** argv) {
     printf("Beginning Cleanup\n");
     printf("--------------------------------------------\n\n\n");
 
+    //free_global_table();
+
     free_ast(astNode);
     if (output_file_owned) {
         free((void*)output_file);

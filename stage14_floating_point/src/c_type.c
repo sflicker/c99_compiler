@@ -285,6 +285,22 @@ bool is_integer_type(CType * ctype) {
             ctype->kind == CTYPE_CHAR;
 }
 
+bool is_signed_integer_type(CType * ctype) {
+    return (is_integer_type(ctype) && ctype->is_signed);
+}
+
+bool is_unsigned_integer_type(CType * ctype) {
+    return (is_integer_type(ctype) && !ctype->is_signed);
+}
+
+bool is_float_type(CType * ctype) {
+    return ctype->kind == CTYPE_FLOAT;
+}
+
+bool is_double_type(CType * ctype) {
+    return ctype->kind == CTYPE_DOUBLE;
+}
+
 bool is_floating_point_type(CType * ctype) {
     return ctype->kind == CTYPE_FLOAT ||
         ctype->kind == CTYPE_DOUBLE;
@@ -302,9 +318,9 @@ bool is_pointer_type(CType * ctype) {
     return ctype->kind == CTYPE_PTR;
 }
 
-bool is_signed_type(CType * ctype) {
-    return ctype->is_signed;
-}
+// bool is_signed_type(CType * ctype) {
+//     return ctype->is_signed;
+// }
 
 CType * decay_if_array(CType * ctype) {
     if (ctype->kind == CTYPE_ARRAY) {
