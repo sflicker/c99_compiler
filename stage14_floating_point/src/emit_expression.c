@@ -839,7 +839,7 @@ INTERNAL void emit_int_comparison_expr_to_rax(EmitterContext * ctx, ASTNode * no
         emit_line(ctx, "cmp eax, ecx");
     }
 
-    if (is_signed_integer_type(node->binary.common_type)) {
+    if (is_signed_integer_type(node->binary.common_type) || is_pointer_type(node->binary.common_type)) {
         emit_signed_integer_condition_codes(ctx, node->binary.op);
     } else if (is_unsigned_integer_type(node->binary.common_type)) {
         emit_unsigned_integer_condition_codes(ctx, node->binary.op);
