@@ -62,9 +62,13 @@ void emit_print_double_extension_function(EmitterContext * ctx) {
     emit_line(ctx, "extern printf");
     emit_line(ctx, "");
     emit_line(ctx, "print_double:");
-    emit_line(ctx, "mov rdi, dbl_format");
+    emit_line(ctx, "mov r11, rsp");
+    emit_line(ctx, "and rsp, -16");
+    emit_line(ctx, "sub rsp, 8");
+    emit_line(ctx, "mov rdi, [rel dbl_format]");
     emit_line(ctx, "mov rax, 1");
     emit_line(ctx, "call printf");
+    emit_line(ctx, "mov rsp, r11");
     emit_line(ctx, "ret");
 }
 
@@ -100,11 +104,20 @@ void emit_print_extension_call(EmitterContext * ctx, ASTNode * node) {
     // emit the expression storing it in EAX
     emit_tree_node(ctx, node->expr_stmt.expr);
     if (is_integer_type(node->expr_stmt.expr->ctype)) {
+        emit_line(ctx, "mov r11, rsp");
+        emit_line(ctx, "and rsp, -16");
+        emit_line(ctx, "sub rsp, 8");
         emit_line(ctx, "call print_int");
+        emit_line(ctx, "mov rsp, r11");
         ctx->emit_print_int_extension = true;
     }
     else if (is_double_type(node->expr_stmt.expr->ctype)) {
+        emit_line(ctx, "mov r11, rsp");
+        emit_line(ctx, "and rsp, -16");
+        emit_line(ctx, "sub rsp, 8");
         emit_line(ctx, "call print_double");
+        emit_line(ctx, "mov rsp, r11");
+
         ctx->emit_print_double_extension = true;
     }
     else {
