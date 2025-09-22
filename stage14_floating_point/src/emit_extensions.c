@@ -6,6 +6,7 @@
 #include "emitter_context.h"
 #include "emitter_helpers.h"
 #include "emit_stack.h"
+#include "error.h"
 
 void emit_print_int_extension_function(EmitterContext * ctx) {
     int label_convert = get_label_id(ctx);
@@ -43,14 +44,28 @@ void emit_print_int_extension_function(EmitterContext * ctx) {
     emit_jump(ctx, "jnz", "loop", label_loop);
     emit_line(ctx, "");
     emit_label(ctx, "done", label_done);
-    emit_line(ctx, "lea rsi, [rcx + 1]");
+    emit_line(ctx, "lea rsi, [rcx + 1]    ; message buffer address");
     emit_line(ctx, "mov rdx, buffer%d + 20", label_buffer);
-    emit_line(ctx, "sub rdx, rsi");
-    emit_line(ctx, "mov rax, 1");
-    emit_line(ctx, "mov rdi, 1");
+    emit_line(ctx, "sub rdx, rsi          ; message buffer length");
+    emit_line(ctx, "mov rax, 1      ; SYSTEM CALL WRITE");
+    emit_line(ctx, "mov rdi, 1      ; FILE HANDLE stdout");
     emit_line(ctx, "syscall");
     emit_line(ctx, "ret");
 
+}
+
+void emit_print_double_extension_function(EmitterContext * ctx) {
+    emit_line(ctx, "section .data");
+    emit_line(ctx, "dbl_format  db \"%f\", 10, 0");
+    emit_line(ctx, "");
+    emit_line(ctx, "section .text");
+    emit_line(ctx, "extern printf");
+    emit_line(ctx, "");
+    emit_line(ctx, "print_double:");
+    emit_line(ctx, "mov rdi, dbl_format");
+    emit_line(ctx, "mov rax, 1");
+    emit_line(ctx, "call printf");
+    emit_line(ctx, "ret");
 }
 
 void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
@@ -81,12 +96,23 @@ void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
 
 }
 
-void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node) {
+void emit_print_extension_call(EmitterContext * ctx, ASTNode * node) {
     // emit the expression storing it in EAX
     emit_tree_node(ctx, node->expr_stmt.expr);
     if (is_integer_type(node->expr_stmt.expr->ctype)) {
         emit_line(ctx, "call print_int");
+        ctx->emit_print_int_extension = true;
     }
-    emit_add_rsp(ctx, 8);
-    ctx->emit_print_int_extension = true;
+    else if (is_double_type(node->expr_stmt.expr->ctype)) {
+        emit_line(ctx, "call print_double");
+        ctx->emit_print_double_extension = true;
+    }
+    else {
+        error("invalid argument type");
+    }
+    if (is_integer_type(node->expr_stmt.expr->ctype)) {
+        emit_add_rsp(ctx, 8);
+    } else if (is_floating_point_type(node->expr_stmt.expr->ctype)) {
+        emit_add_rsp(ctx, 16);
+    }
 }

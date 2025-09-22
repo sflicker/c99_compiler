@@ -9,8 +9,7 @@
 #include "emitter_context.h"
 
 void emit_print_int_extension_function(EmitterContext * ctx);
+void emit_print_double_extension_function(EmitterContext * ctx);
 void emit_print_extension_statement(EmitterContext * ctx, ASTNode * node);
-void emit_print_int_extension_call(EmitterContext * ctx, ASTNode * node);
-
-
+void emit_print_extension_call(EmitterContext * ctx, ASTNode * node);
 #endif //EMIT_EXTENSIONS_H

@@ -30,6 +30,7 @@ typedef struct EmitterContext {
     char* filename;
     FILE * out;
     bool emit_print_int_extension;
+    bool emit_print_double_extension;
     FunctionExitContext * functionExitStack;
     SwitchContext * switch_stack;
     LoopContext * loop_stack;

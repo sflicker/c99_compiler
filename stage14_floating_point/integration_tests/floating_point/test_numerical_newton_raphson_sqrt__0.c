@@ -18,6 +18,7 @@ int main() {
         if (double_abs(x*x - input) < TOL) break;
         double dfx = input * x;
         x = x - fx /dfx;
+        _print(x);
     }
 
     // test if result is within tol

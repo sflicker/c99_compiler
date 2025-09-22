@@ -19,6 +19,7 @@ EmitterContext * create_emitter_context(const char * filename) {
     ctx->filename = strdup(filename);
     ctx->out = fopen(ctx->filename, "w");
     ctx->emit_print_int_extension = false;
+    ctx->emit_print_double_extension = false;
     ctx->functionExitStack = NULL;
     ctx->switch_stack = NULL;
     ctx->loop_stack = NULL;

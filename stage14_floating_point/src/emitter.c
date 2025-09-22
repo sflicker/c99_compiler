@@ -656,7 +656,7 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
             emit_assert_extension_statement(ctx, node);
             break;
         case AST_PRINT_EXTENSION_STATEMENT:
-            emit_print_int_extension_call(ctx, node);
+            emit_print_extension_call(ctx, node);
             break;
         case AST_BLOCK_STMT:
             emit_block(ctx, node, true);
@@ -793,6 +793,9 @@ void emit(EmitterContext * ctx, ASTNode * translation_unit) {
     // emit referenced private functions
     if (ctx->emit_print_int_extension) {
         emit_print_int_extension_function(ctx);
+    }
+    if (ctx->emit_print_double_extension) {
+        emit_print_double_extension_function(ctx);
     }
 
 }
