@@ -55,21 +55,31 @@ void emit_print_int_extension_function(EmitterContext * ctx) {
 }
 
 void emit_print_double_extension_function(EmitterContext * ctx) {
-    emit_line(ctx, "section .data");
-    emit_line(ctx, "dbl_format  db \"%f\", 10, 0");
-    emit_line(ctx, "");
-    emit_line(ctx, "section .text");
-    emit_line(ctx, "extern printf");
-    emit_line(ctx, "");
-    emit_line(ctx, "print_double:");
-    emit_line(ctx, "mov r11, rsp");
-    emit_line(ctx, "and rsp, -16");
-    emit_line(ctx, "sub rsp, 8");
-    emit_line(ctx, "mov rdi, [rel dbl_format]");
-    emit_line(ctx, "mov rax, 1");
-    emit_line(ctx, "call printf");
-    emit_line(ctx, "mov rsp, r11");
-    emit_line(ctx, "ret");
+    // emit_line(ctx, "section .data");
+    // emit_line(ctx, "dbl_format  db \"%f\", 10, 0");
+    // emit_line(ctx, "");
+    // emit_line(ctx, "section .text");
+    // emit_line(ctx, "extern printf");
+    // emit_line(ctx, "");
+
+    //emit_line(ctx, "print_double:");
+
+    // emit stack alignment
+    // emit_line(ctx, "push r11");
+    // emit_line(ctx, "mov r11, rsp");
+    // emit_line(ctx, "and rsp, 0xfffffffffffffff0");
+    // emit_line(ctx, "sub rsp, 8");
+
+
+    // emit_line(ctx, "mov rdi, [rel dbl_format]");
+    // emit_line(ctx, "mov rax, 1");
+    // emit_line(ctx, "call printf");
+
+    // reset stack to before alignment
+    // emit_line(ctx, "mov rsp, r11");
+    // emit_line(ctx, "pop r11");
+
+//    emit_line(ctx, "ret");
 }
 
 void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
@@ -104,25 +114,37 @@ void emit_print_extension_call(EmitterContext * ctx, ASTNode * node) {
     // emit the expression storing it in EAX
     emit_tree_node(ctx, node->expr_stmt.expr);
     if (is_integer_type(node->expr_stmt.expr->ctype)) {
-        emit_line(ctx, "mov r11, rsp");
-        emit_line(ctx, "and rsp, -16");
-        emit_line(ctx, "sub rsp, 8");
+        // emit_line(ctx, "push r11");
+        // emit_line(ctx, "mov r11, rsp");
+        // emit_line(ctx, "and rsp, 0xfffffffffffffff0");
+        // emit_line(ctx, "sub rsp, 8");
         emit_line(ctx, "call print_int");
-        emit_line(ctx, "mov rsp, r11");
+        // emit_line(ctx, "mov rsp, r11");
+        // emit_line(ctx, "pop r11");
         ctx->emit_print_int_extension = true;
     }
-    else if (is_double_type(node->expr_stmt.expr->ctype)) {
-        emit_line(ctx, "mov r11, rsp");
-        emit_line(ctx, "and rsp, -16");
-        emit_line(ctx, "sub rsp, 8");
-        emit_line(ctx, "call print_double");
-        emit_line(ctx, "mov rsp, r11");
+    else if (is_floating_point_type(node->expr_stmt.expr->ctype)) {
 
-        ctx->emit_print_double_extension = true;
+        emit_line(ctx, "lea rdi, [rel dbl_format]");
+        emit_line(ctx, "mov al, 1");
+        emit_line(ctx, "call printf");
+//        emit_line(ctx, "ret");
+
+        //
+        // emit_line(ctx, "push r11");
+        // emit_line(ctx, "mov r11, rsp");
+        // emit_line(ctx, "and rsp, 0xfffffffffffffff0");
+        // emit_line(ctx, "sub rsp, 8");
+        // emit_line(ctx, "call print_double");
+        // emit_line(ctx, "mov rsp, r11");
+        // emit_line(ctx, "pop r11");
+
+//        ctx->emit_print_double_extension = true;
     }
     else {
         error("invalid argument type");
     }
+
     if (is_integer_type(node->expr_stmt.expr->ctype)) {
         emit_add_rsp(ctx, 8);
     } else if (is_floating_point_type(node->expr_stmt.expr->ctype)) {

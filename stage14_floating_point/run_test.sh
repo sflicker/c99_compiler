@@ -67,7 +67,7 @@ else
 fi
 
 echo "Assemble..."
-if ! nasm -f elf64 -g -F dwarf "$ASM_FILE" -o "$OBJ_FILE"; then
+if ! nasm -felf64 -g -F dwarf "$ASM_FILE" -o "$OBJ_FILE"; then
     echo "Assembler failure."
     exit 98
 fi

@@ -10,7 +10,7 @@
 !CMakeLists.txt
 *.log
 *.dSYM/
-
+core.*
 
 mimic99
 runner

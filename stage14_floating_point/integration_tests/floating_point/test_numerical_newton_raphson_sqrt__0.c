@@ -1,5 +1,7 @@
 // test Newton-Raphson to approximate sqrt(input)
 // pass if |x^2 - 2| < 1e-10
+#include <stdio.h>
+
 double input = 2.0;
 double TOL = 1e-10;
 
@@ -13,12 +15,12 @@ double double_abs(double x) {
 int main() {
     double x = 1.0;        // initial guess
     for (int i = 0;i < 50;i++) {
-        _print(i);
+        printf("%d\n", i);
         double fx = x*x - input;
         if (double_abs(x*x - input) < TOL) break;
         double dfx = input * x;
         x = x - fx /dfx;
-        _print(x);
+        printf("%f\n", x);
     }
 
     // test if result is within tol

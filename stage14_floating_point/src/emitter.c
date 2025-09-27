@@ -31,15 +31,18 @@
 void emit_header(EmitterContext * ctx) {
     emit_line(ctx, "section .text");
     emit_line(ctx, "global main");
+    // emit external declaration that will need to be removed later
+    emit_line(ctx, "extern printf");
     emit_line(ctx, "");
 }
 
 void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals, ASTNode_list * float_literals, ASTNode_list * double_literals) {
     emit_line(ctx, "");
     emit_line(ctx, "section .rodata");
-    emit_line(ctx, "assert_fail_msg: db \"Assertion failed!\", 10");
+    emit_line(ctx, "assert_fail_msg: db \"Assertion failed!\", 10, 0");
     emit_line(ctx, "mask_f32:     dd    0x80000000");
     emit_line(ctx, "mask_f64:     dq    0x8000000000000000");
+    emit_line(ctx, "dbl_format:  db \"Double: %%%%f\", 10, 0");
 
     for (ASTNode_list_node * n = string_literals->head; n; n = n->next) {
         ASTNode * str_literal = n->value;
@@ -69,6 +72,9 @@ void emit_text_section_header(EmitterContext * ctx) {
     emit_line(ctx, "");
     emit_line(ctx, "section .text");
     emit_line(ctx, "global main");
+    // emit external declaration that will need to be removed later
+    emit_line(ctx, "extern printf");
+
     emit_line(ctx, "");
 }
 
