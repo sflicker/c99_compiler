@@ -62,6 +62,15 @@ CType CTYPE_DOUBLE_T = {
     .array_len = 0
 };
 
+CType CTYPE_VOID_T = {
+    .kind = CTYPE_VOID,
+    .base_type = NULL,
+    .size = 0,
+    .is_signed = 0,
+    .rank = RANK_VOID,
+    .array_len = 0
+};
+
 CType * make_type() {
     return calloc(1, sizeof(CType));
 }
@@ -183,6 +192,9 @@ void ctype_to_description(CType * ctype, char * buf, size_t buflen) {
         case CTYPE_FLOAT:
             strncat(buf, "float", buflen - strlen(buf) - 1);
             break;
+        case CTYPE_VOID:
+            strncat(buf, "void", buflen - strlen(buf) - 1);
+            break;
         case CTYPE_DOUBLE:
             strncat(buf, "double", buflen - strlen(buf) - 1);
             break;
@@ -235,6 +247,9 @@ void ctype_to_cdecl(CType * ctype, char * buf, size_t buflen) {
             break;
         case CTYPE_DOUBLE:
             strncat(buf, "double", buflen - strlen(buf) - 1);
+            break;
+        case CTYPE_VOID:
+            strncat(buf, "void", buflen - strlen(buf) - 1);
             break;
         case CTYPE_PTR: {
             char inner[64];

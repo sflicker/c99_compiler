@@ -11,6 +11,7 @@
 #define RANK_LONG 4
 #define RANK_FLOAT 5
 #define RANK_DOUBLE 6
+#define RANK_VOID -1  // rank is not used for void but this is a placeholder
 
 typedef struct CType CType;
 
@@ -21,6 +22,7 @@ typedef enum {
     CTYPE_LONG,
     CTYPE_FLOAT,
     CTYPE_DOUBLE,
+    CTYPE_VOID,
     CTYPE_PTR,
     CTYPE_ARRAY,
     CTYPE_FUNCTION
@@ -47,6 +49,7 @@ extern CType CTYPE_INT_T;
 extern CType CTYPE_LONG_T;
 extern CType CTYPE_FLOAT_T;
 extern CType CTYPE_DOUBLE_T;
+extern CType CTYPE_VOID_T;
 extern CType CTYPE_PTR_INT_T;
 
 CType * make_type();

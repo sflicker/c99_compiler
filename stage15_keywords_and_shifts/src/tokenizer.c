@@ -25,6 +25,7 @@ TokenMapEntry keyword_map[] = {
     { "long", TOKEN_LONG },
     {"float", TOKEN_FLOAT},
     {"double", TOKEN_DOUBLE},
+    {"void", TOKEN_VOID },
     { "return", TOKEN_RETURN },
     { "if", TOKEN_IF },
     { "else", TOKEN_ELSE },

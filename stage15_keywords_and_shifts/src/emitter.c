@@ -744,15 +744,15 @@ void emit_tree_node(EmitterContext * ctx, ASTNode * node) {
 
         case AST_EXPRESSION_STMT: {
             ASTNode * expr = node->expr_stmt.expr;
-
-//            emit_expr_to_reg(ctx, expr, WANT_EFFECT);
-
-            if (is_floating_point_type(node->expr_stmt.expr->binary.lhs->ctype) /*||
-                is_floating_point_type(node->expr_stmt.expr->binary.rhs->ctype)*/ ) {
-                emit_fp_expr_to_xmm0(ctx, expr, WANT_EFFECT);
-            } else {
-                emit_int_expr_to_rax(ctx, expr, WANT_EFFECT);
-            }
+            emit_tree_node(ctx, expr);
+// //            emit_expr_to_reg(ctx, expr, WANT_EFFECT);
+//
+//             if (is_floating_point_type(node->expr_stmt.expr->binary.lhs->ctype) /*||
+//                 is_floating_point_type(node->expr_stmt.expr->binary.rhs->ctype)*/ ) {
+//                 emit_fp_expr_to_xmm0(ctx, expr, WANT_EFFECT);
+//             } else {
+//                 emit_int_expr_to_rax(ctx, expr, WANT_EFFECT);
+//             }
             break;
         }
 

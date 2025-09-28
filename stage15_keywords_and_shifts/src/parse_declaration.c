@@ -32,6 +32,7 @@ CType * parse_type_specifier(ParserContext * ctx) {
         case TOKEN_LONG: advance_parser(ctx); return &CTYPE_LONG_T;
         case TOKEN_FLOAT: advance_parser(ctx); return &CTYPE_FLOAT_T;
         case TOKEN_DOUBLE: advance_parser(ctx); return &CTYPE_DOUBLE_T;
+        case TOKEN_VOID: advance_parser(ctx); return &CTYPE_VOID_T;
         default: error("Invalid Type - %s", token_type_name(type)); return NULL;
     }
 }

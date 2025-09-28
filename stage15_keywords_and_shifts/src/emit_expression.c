@@ -60,7 +60,7 @@ INTERNAL void emit_function_call_expr(EmitterContext * ctx, ASTNode * node, Eval
     }
 
     //    emit_line(ctx, "push rax");
-    if (mode == WANT_VALUE) {
+    if (node->ctype->kind != CTYPE_VOID && mode == WANT_VALUE) {
         if (is_floating_point_type(node->ctype)) {
             emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
         }

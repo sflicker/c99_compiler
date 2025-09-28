@@ -10,6 +10,7 @@ typedef enum {
     TOKEN_LONG,
     TOKEN_FLOAT,
     TOKEN_DOUBLE,
+    TOKEN_VOID,
     TOKEN_RETURN,
     TOKEN_IF,
     TOKEN_ELSE,
