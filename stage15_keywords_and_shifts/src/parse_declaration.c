@@ -143,16 +143,21 @@ Declarator * parse_postfix_declarator(ParserContext * ctx, Declarator * declarat
 
         }
         else if (is_current_token(ctx, TOKEN_LPAREN)) {
-            if (is_next_token(ctx, TOKEN_RPAREN)) {
-                advance_parser(ctx);
+            advance_parser(ctx);
+            if (is_current_token(ctx, TOKEN_RPAREN)) {
                 advance_parser(ctx);
                 declarator->type = make_function_type(declarator->type, NULL);
                 // if (func_type) {
                 //     *func_type = make_function_type(base_type, NULL);
                 // }
             }
-            else {
+            else if (is_current_token(ctx, TOKEN_VOID) && is_next_token(ctx, TOKEN_RPAREN)) {
                 advance_parser(ctx);
+                advance_parser(ctx);
+                declarator->type = make_function_type(declarator->type, NULL);
+            }
+            else {
+//                advance_parser(ctx);
                 ParamInfo_list * param_types = parse_parameter_type_list(ctx/*, out_params*/);
                 expect_token(ctx, TOKEN_RPAREN); //maybe this should be a comma or semicolon ...
                 declarator->type = make_function_type(declarator->type, get_ctype_list(param_types));
