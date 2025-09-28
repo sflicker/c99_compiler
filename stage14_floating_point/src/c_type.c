@@ -301,6 +301,13 @@ bool is_double_type(CType * ctype) {
     return ctype->kind == CTYPE_DOUBLE;
 }
 
+bool is_string_type(CType * ctype) {
+    if (is_array_type(ctype) || is_pointer_type(ctype)) {
+        return ctype->base_type->kind == CTYPE_CHAR;
+    }
+    return false;
+}
+
 bool is_floating_point_type(CType * ctype) {
     return ctype->kind == CTYPE_FLOAT ||
         ctype->kind == CTYPE_DOUBLE;

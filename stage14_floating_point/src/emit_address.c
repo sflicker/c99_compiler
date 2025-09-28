@@ -15,21 +15,25 @@
 
 void emit_array_access_addr(EmitterContext * ctx, ASTNode * node);
 
-void emit_addr_to_rax(EmitterContext * ctx, ASTNode * node) {
+void emit_addr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     switch (node->type) {
         case AST_VAR_DECL:
         case AST_VAR_REF_EXPR: {
 
             if (is_global_var(ctx, node)) {
                 emit_line(ctx, "lea rax, [rel %s]", node->symbol->name);
-                emit_push(ctx, "rax");
+                if (!wantEffect(mode)) {
+                    emit_push(ctx, "rax");
+                }
                 break;
             }
             if (node->symbol->storage == STORAGE_LOCAL) {
 //                int offset = node->symbol->info.var.offset;
                 int offset = get_offset(ctx, node);
                 emit_line(ctx, "lea rax, [rbp%+d]", offset);
-                emit_push(ctx, "rax");
+                if (!wantEffect(mode)) {
+                    emit_push(ctx, "rax");
+                }
                 break;
             }
             // if (node->symbol->ctype->kind == CTYPE_ARRAY) {
@@ -68,7 +72,9 @@ void emit_addr_to_rax(EmitterContext * ctx, ASTNode * node) {
         case AST_STRING_LITERAL: {
             char * label = node->string_literal.label;
             emit_line(ctx, "lea rax, [%s]", label);
-            emit_push(ctx, "rax");
+            if (!wantEffect(mode)) {
+                emit_push(ctx, "rax");
+            }
 
             break;
         }

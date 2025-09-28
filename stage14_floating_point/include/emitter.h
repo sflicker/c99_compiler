@@ -10,6 +10,10 @@ typedef enum {
     WANT_ADDRESS
 } EvalMode;
 
+bool wantValue(EvalMode mode);
+bool wantEffect(EvalMode mode);
+bool wantAddress(EvalMode mode);
+
 typedef enum {FP32, FP64, FPWIDTHUNKN} FPWidth;
 
 const char * get_break_label(EmitterContext * ctx);

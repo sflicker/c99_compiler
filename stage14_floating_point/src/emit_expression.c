@@ -73,7 +73,8 @@ INTERNAL void emit_function_call_expr(EmitterContext * ctx, ASTNode * node, Eval
 
 INTERNAL void emit_cast_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     emit_line(ctx, "; emitting cast");
-    emit_tree_node(ctx, node->cast_expr.expr);
+    //emit_tree_node(ctx, node->cast_expr.expr);
+    emit_expr_to_reg(ctx, node->cast_expr.expr, mode);
     if (node->ctype->kind == CTYPE_DOUBLE) {
         switch (node->cast_expr.expr->ctype->kind) {
             case CTYPE_FLOAT:
@@ -227,7 +228,7 @@ void emit_int_assignment_expr_to_rax(EmitterContext * ctx, ASTNode* node, EvalMo
         get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
     // eval RHS -> rax then push
     if (is_array_type(node->binary.rhs->ctype)) {
-        emit_addr_to_rax(ctx, node->binary.rhs);
+        emit_addr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
     }
     else {
         emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
@@ -552,7 +553,7 @@ void emit_fp_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalM
     get_ast_node_name(node->binary.lhs), get_ast_node_name(node->binary.rhs));
     // eval RHS -> rax then push
     if (is_array_type(node->binary.rhs->ctype)) {
-        emit_addr_to_rax(ctx, node->binary.rhs);
+        emit_addr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
     }
     else {
         emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
@@ -1159,7 +1160,7 @@ void emit_binary_expr_to_reg(EmitterContext * ctx, ASTNode * node, EvalMode mode
 
 void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     if (mode == WANT_ADDRESS) {
-        emit_addr_to_rax(ctx, node);
+        emit_addr_to_rax(ctx, node, mode);
         return;
     }
     switch (node->type) {
@@ -1192,7 +1193,7 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             break;
 
         case AST_VAR_REF_EXPR:
-            emit_addr_to_rax(ctx, node);
+            emit_addr_to_rax(ctx, node, mode);
             if (!is_array_type(node->ctype)) {
                 if (is_floating_point_type(node->ctype)) {
                     //emit_fpop(ctx, "xmm0", FP32);
@@ -1217,7 +1218,7 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
         case AST_ARRAY_ACCESS:
             emit_line(ctx, "; emitting array access");
-            emit_addr_to_rax(ctx, node);
+            emit_addr_to_rax(ctx, node, mode);
 
             if (node->ctype->kind != CTYPE_ARRAY) {
                 emit_pop(ctx, "rcx");
@@ -1239,7 +1240,7 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 // generate code to eval the expression storing the final result in eax or rax
 void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     if (mode == WANT_ADDRESS) {
-        emit_addr_to_rax(ctx, node);
+        emit_addr_to_rax(ctx, node, mode);
         return;
     }
     switch (node->type) {
@@ -1264,7 +1265,7 @@ void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             break;
 
         case AST_VAR_REF_EXPR: {
-            emit_addr_to_rax(ctx, node);
+            emit_addr_to_rax(ctx, node, mode);
             if (!is_array_type(node->ctype)) {
                 if (is_floating_point_type(node->ctype)) {
                     //emit_fpop(ctx, "xmm0", FP32);
@@ -1306,7 +1307,7 @@ void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             break;
         case AST_ARRAY_ACCESS:
             emit_line(ctx, "; emitting array access");
-            emit_addr_to_rax(ctx, node);
+            emit_addr_to_rax(ctx, node, mode);
 
             if (node->ctype->kind != CTYPE_ARRAY) {
                 emit_pop(ctx, "rcx");
@@ -1322,7 +1323,7 @@ void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             emit_int_cast_expr_to_rax(ctx, node, mode);
             break;
         case AST_STRING_LITERAL: {
-            emit_addr_to_rax(ctx, node);
+            emit_addr_to_rax(ctx, node, mode);
             // char * label = node->string_literal.label;
             // emit_line(ctx, "lea rax, [%s]", label);
             // emit_push(ctx, "rax");
@@ -1347,8 +1348,8 @@ void emit_expr_to_reg(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     }
 
     if (is_floating_point) {
-        emit_fp_expr_to_xmm0(ctx, node, WANT_VALUE);
+        emit_fp_expr_to_xmm0(ctx, node, mode);
     } else {
-        emit_int_expr_to_rax(ctx, node, WANT_VALUE);
+        emit_int_expr_to_rax(ctx, node, mode);
     }
 }

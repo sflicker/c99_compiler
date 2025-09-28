@@ -616,10 +616,19 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
             break;
         }
 
+        case AST_PRINT_EXTENSION_STATEMENT: {
+            analyze(ctx, node->expr_stmt.expr);
+            if (is_float_type(node->expr_stmt.expr->ctype)) {
+                node->expr_stmt.expr = create_cast_expr_node(&CTYPE_DOUBLE_T, node->expr_stmt.expr);
+            }
+
+            node->ctype = node->expr_stmt.expr->ctype;
+
+            break;
+        }
 
         case AST_EXPRESSION_STMT:
         case AST_ASSERT_EXTENSION_STATEMENT:
-        case AST_PRINT_EXTENSION_STATEMENT:
             analyze(ctx, node->expr_stmt.expr);
             node->ctype = node->expr_stmt.expr->ctype;
             break;

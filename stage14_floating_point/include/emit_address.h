@@ -4,5 +4,5 @@
 
 #ifndef EMIT_ADDRESS_H
 #define EMIT_ADDRESS_H
-void emit_addr_to_rax(EmitterContext * ctx, ASTNode * node);
+void emit_addr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode);
 #endif //EMIT_ADDRESS_H

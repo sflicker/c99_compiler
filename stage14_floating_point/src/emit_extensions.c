@@ -6,6 +6,7 @@
 #include "emitter_context.h"
 #include "emitter_helpers.h"
 #include "emit_stack.h"
+#include "emit_expression.h"
 #include "error.h"
 
 void emit_print_int_extension_function(EmitterContext * ctx) {
@@ -112,18 +113,31 @@ void emit_assert_extension_statement(EmitterContext * ctx, ASTNode * node) {
 
 void emit_print_extension_call(EmitterContext * ctx, ASTNode * node) {
     // emit the expression storing it in EAX
-    emit_tree_node(ctx, node->expr_stmt.expr);
+    //emit_tree_node(ctx, node->expr_stmt.expr);
+    emit_expr_to_reg(ctx, node->expr_stmt.expr, WANT_EFFECT);
+    // if (is_integer_type(node->expr_stmt.expr->ctype)) {
+    //     emit_add_rsp(ctx, 8);
+    // } else if (is_floating_point_type(node->expr_stmt.expr->ctype)) {
+    //     emit_add_rsp(ctx, 16);
+    // }
+
     if (is_integer_type(node->expr_stmt.expr->ctype)) {
         // emit_line(ctx, "push r11");
         // emit_line(ctx, "mov r11, rsp");
         // emit_line(ctx, "and rsp, 0xfffffffffffffff0");
         // emit_line(ctx, "sub rsp, 8");
-        emit_line(ctx, "call print_int");
+//        emit_line(ctx, "call print_int");
         // emit_line(ctx, "mov rsp, r11");
         // emit_line(ctx, "pop r11");
-        ctx->emit_print_int_extension = true;
+//        ctx->emit_print_int_extension = true;
+
+        // printf 1 integer
+        emit_line(ctx, "lea rdi, [rel int_format]");
+        emit_line(ctx, "mov rsi, rax");
+        emit_line(ctx, "xor eax, eax");
+        emit_line(ctx, "call printf");
     }
-    else if (is_floating_point_type(node->expr_stmt.expr->ctype)) {
+    else if (is_double_type(node->expr_stmt.expr->ctype)) {
 
         emit_line(ctx, "lea rdi, [rel dbl_format]");
         emit_line(ctx, "mov al, 1");
@@ -141,13 +155,15 @@ void emit_print_extension_call(EmitterContext * ctx, ASTNode * node) {
 
 //        ctx->emit_print_double_extension = true;
     }
+    else if (is_string_type(node->expr_stmt.expr->ctype)) {
+        emit_line(ctx, "lea rdi, [rel str_format]");
+        emit_line(ctx, "mov rsi, rax");
+        emit_line(ctx, "xor eax, eax");
+        emit_line(ctx, "call printf");
+    }
     else {
         error("invalid argument type");
     }
 
-    if (is_integer_type(node->expr_stmt.expr->ctype)) {
-        emit_add_rsp(ctx, 8);
-    } else if (is_floating_point_type(node->expr_stmt.expr->ctype)) {
-        emit_add_rsp(ctx, 16);
-    }
+
 }
