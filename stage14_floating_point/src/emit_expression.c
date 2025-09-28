@@ -1197,13 +1197,17 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             if (!is_array_type(node->ctype)) {
                 if (is_floating_point_type(node->ctype)) {
                     //emit_fpop(ctx, "xmm0", FP32);
-                    emit_pop(ctx, "rax");
+                    if (mode == WANT_VALUE) {
+                        emit_pop(ctx, "rax");
+                    }
                     emit_load_from(ctx, node->ctype, "rax");
                     if (mode == WANT_VALUE) {
                         emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
                     }
                 } else {
-                    emit_pop(ctx, "rax");
+                    if (mode == WANT_VALUE) {
+                        emit_pop(ctx, "rax");
+                    }
                     emit_load_from(ctx, node->ctype, "rax");
                     if (mode == WANT_VALUE) {
                         emit_push(ctx, "rax");
@@ -1269,13 +1273,17 @@ void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
             if (!is_array_type(node->ctype)) {
                 if (is_floating_point_type(node->ctype)) {
                     //emit_fpop(ctx, "xmm0", FP32);
-                    emit_pop(ctx, "rax");
+                    if (mode == WANT_VALUE) {
+                        emit_pop(ctx, "rax");
+                    }
                     emit_load_from(ctx, node->ctype, "rax");
                     if (mode == WANT_VALUE) {
                         emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype));
                     }
                 } else {
-                    emit_pop(ctx, "rax");
+                    if (mode == WANT_VALUE) {
+                        emit_pop(ctx, "rax");
+                    }
                     emit_load_from(ctx, node->ctype, "rax");
                     if (mode == WANT_VALUE) {
                         emit_push(ctx, "rax");
