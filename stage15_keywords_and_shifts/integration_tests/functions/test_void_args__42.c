@@ -2,7 +2,7 @@ int get(void) {
     return 42;
 }
 
-int main() {
+int main(void) {
     return get();
 }
 
