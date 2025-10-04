@@ -49,4 +49,5 @@ bool is_next_token_assignment(ParserContext * parserContext);
 CType * get_ctype_from_token(Token* token);
 
 Declarator * make_declarator();
+
 #endif
