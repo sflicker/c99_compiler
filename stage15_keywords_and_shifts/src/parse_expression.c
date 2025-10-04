@@ -40,7 +40,7 @@ ASTNode_list * parse_argument_expression_list(ParserContext * parserContext) {
 
 ASTNode * parse_assignment_expression(ParserContext * parserContext) {
 
-    ASTNode * lhs = parse_logical_or(parserContext);
+    ASTNode * lhs = parse_conditional_expression(parserContext);
 
     if (is_current_token(parserContext, TOKEN_ASSIGN)) {
         expect_token(parserContext, TOKEN_ASSIGN);
@@ -58,6 +58,19 @@ ASTNode * parse_assignment_expression(ParserContext * parserContext) {
         return create_binary_node(lhs, BINOP_COMPOUND_SUB_ASSIGN, rhs);
     }
     return lhs;
+}
+
+ASTNode * parse_conditional_expression(ParserContext * parserContext) {
+    ASTNode * condExpression = parse_logical_or(parserContext);
+    if (is_current_token(parserContext, TOKEN_QUESTION_MARK)) {
+        expect_token(parserContext, TOKEN_QUESTION_MARK);
+        ASTNode * thenExpression = parse_expression(parserContext);
+        expect_token(parserContext, TOKEN_COLON);
+        ASTNode * elseExpression = parse_conditional_expression(parserContext);
+        return create_cond_expr_node(condExpression, thenExpression, elseExpression );
+    }
+
+    return condExpression;
 }
 
 ASTNode * parse_logical_or(ParserContext * parserContext) {

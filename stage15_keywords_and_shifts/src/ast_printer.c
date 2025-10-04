@@ -234,6 +234,16 @@ void print_ast(ASTNode * node, int indent) {
             break;
         }
 
+        case AST_COND_EXPR: {
+            printf("ConditionalExpression: \n");
+            print_indent(indent+1); printf("Conditional:\n");
+            print_ast(node->cond_expr.cond, indent+2);
+            print_indent(indent+1); printf("ThenExpr:\n");
+            print_ast(node->cond_expr.then_expr, indent+2);
+            print_indent(indent+1); printf("ElseExpr:\n");
+            print_ast(node->cond_expr.else_expr, indent+2);
+            break;
+        }
         case AST_INT_LITERAL: {
             ctype_to_cdecl(node->ctype, buf, sizeof(buf));
             printf("IntLiteral: %d - type: %s\n", node->int_value, buf);
