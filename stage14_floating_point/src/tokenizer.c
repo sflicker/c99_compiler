@@ -53,6 +53,7 @@ TokenMapEntry two_char_operator_map[] = {
     { "-=", TOKEN_MINUS_EQUAL },
     { "++", TOKEN_INCREMENT },
     { "--", TOKEN_DECREMENT },
+
     { NULL, 0 }
 };
 
@@ -76,6 +77,7 @@ TokenMapEntry single_char_operator_map[] = {
     { "%", TOKEN_PERCENT },
     { ":", TOKEN_COLON },
     { "&", TOKEN_AMPERSAND },
+    { "?", TOKEN_QUESTION_MARK},
     { NULL, 0 }
 };
 

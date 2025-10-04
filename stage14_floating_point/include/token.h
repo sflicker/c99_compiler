@@ -58,6 +58,7 @@ typedef enum {
     TOKEN_BANG,
     TOKEN_AMPERSAND,
     TOKEN_STRING_LITERAL,
+    TOKEN_QUESTION_MARK,
     TOKEN_EOF
 } TokenType;
 

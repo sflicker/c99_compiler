@@ -118,6 +118,15 @@ ASTNode * create_if_else_statement_node(ASTNode * condExpression, ASTNode * then
     return node;
 }
 
+ASTNode * create_cond_expr(ASTNode * condExpression, ASTNode * thenExpression, ASTNode * elseExpression) {
+    ASTNode * node = create_ast();
+    node->type = AST_COND_EXPR;
+    node->cond_expr.cond = condExpression;
+    node->cond_expr.then_expr = thenExpression;
+    node->cond_expr.else_expr = elseExpression;
+    node->symbol = NULL;
+    return node;
+}
 ASTNode * create_while_statement_node(ASTNode * condExpression, ASTNode * bodyStatement) {
     ASTNode * node = create_ast();
     node->type = AST_WHILE_STMT;
