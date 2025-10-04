@@ -11,6 +11,7 @@ typedef enum {
     TOKEN_FLOAT,
     TOKEN_DOUBLE,
     TOKEN_RETURN,
+    TOKEN_VOID,
     TOKEN_IF,
     TOKEN_ELSE,
     TOKEN_WHILE,
