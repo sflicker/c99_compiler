@@ -99,7 +99,6 @@ typedef enum {
     AST_BINARY_EXPR,
     AST_UNARY_EXPR,
     AST_CAST_EXPR,
-    AST_COND_EXPR,
     AST_ARRAY_ACCESS,
     AST_INITIALIZER_LIST,
     AST_STRING_LITERAL,
@@ -188,14 +187,6 @@ typedef struct ASTNode {
             ASTNode * then_stmt;
             ASTNode * else_stmt;
         } if_stmt;
-
-        struct {
-            ASTNode * cond;
-            ASTNode * then_expr;
-            ASTNode * else_expr;
-            CType * return_type;
-            bool is_lvalue;
-        } cond_expr;
 
         struct {
             ASTNode * cond;
