@@ -43,6 +43,7 @@ ASTNode * create_print_extension_node(ASTNode * expr);
 ASTNode * create_assert_extension_node(ASTNode * expr);
 ASTNode * create_string_literal_node(const char *text);
 ASTNode * create_declaration_node(CType * ctype);
+ASTNode * create_cond_expr_node(ASTNode * condExpression, ASTNode * thenExpression, ASTNode * elseExpression);
 
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
