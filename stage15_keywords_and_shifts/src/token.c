@@ -146,6 +146,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_RBRACKET: return "RBRACKET";
         case TOKEN_SEMICOLON: return "SEMICOLON";
         case TOKEN_COLON: return "COLON";
+        case TOKEN_QUESTION_MARK: return "QUESTION_MARK";
         case TOKEN_STAR: return "STAR";
         case TOKEN_PLUS: return "PLUS";
         case TOKEN_DIV: return "DIV";

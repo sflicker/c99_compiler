@@ -125,7 +125,7 @@ ASTNode * create_cond_expr_node(ASTNode * condExpression, ASTNode * thenExpressi
     node->cond_expr.then_expr = thenExpression;
     node->cond_expr.else_expr = elseExpression;
     node->ctype = NULL;
-    bool is_lvalue = false;
+    node->cond_expr.is_lvalue = false;
     node->symbol = NULL;
     return node;
 }

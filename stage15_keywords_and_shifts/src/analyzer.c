@@ -234,6 +234,13 @@ void verify_expr(AnalyzerContext * ctx, ASTNode * node) {
             assert(node->ctype);
             break;
 
+        case AST_COND_EXPR:
+            assert(node->cond_expr.cond->ctype);
+            assert(node->cond_expr.then_expr->ctype);
+            assert(node->cond_expr.else_expr->ctype);
+            assert(node->ctype);
+        break;
+
         case AST_RETURN_STMT:
             verify_expr(ctx, node->return_stmt.expr);
             assert(ctype_equals(node->ctype, ctx->current_function_return_type));
@@ -515,6 +522,18 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 }
             }
             break;
+
+        case AST_COND_EXPR: {
+            analyze(ctx, node->cond_expr.cond);
+            analyze(ctx, node->cond_expr.then_expr);
+            if (node->cond_expr.else_expr) {
+                analyze(ctx, node->cond_expr.else_expr);
+            }
+
+            //TODO need to verify ctypes are compatible. for now just copy the then_expr ctype to the node
+            node->ctype = node->cond_expr.then_expr->ctype;
+            break;
+        }
 
         case AST_WHILE_STMT:
             analyze(ctx, node->while_stmt.cond);
