@@ -1235,6 +1235,31 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
             break;
 
+        case AST_COND_EXPR: {
+            int id = get_label_id(ctx);
+            emit_line(ctx, "; emitting conditional expression");
+            emit_int_expr_to_rax(ctx, node->cond_expr.cond, mode);
+            emit_pop(ctx, "rax");
+            emit_line(ctx, "cmp eax, 0");
+
+            emit_line(ctx, "je Lelse%d", id);
+            emit_line(ctx, "; emitting then expr");
+            emit_fp_expr_to_xmm0(ctx, node->cond_expr.then_expr, mode);
+            emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+            emit_line(ctx, "jmp Lend%d", id);
+            emit_label(ctx, "else", id);
+            emit_line(ctx, "; emitting else expr");
+            emit_fp_expr_to_xmm0(ctx, node->cond_expr.else_expr, mode);
+            emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+
+            emit_label(ctx, "end", id);
+
+            if (mode == WANT_VALUE) {
+                emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype) );
+            }
+
+            break;
+        }
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
     }

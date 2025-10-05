@@ -100,7 +100,7 @@ void print_ast(ASTNode * node, int indent) {
         case AST_CAST_EXPR:
             ctype_to_cdecl(node->cast_expr.target_ctype, buf, sizeof(buf));
             ctype_to_cdecl(node->ctype, buf2, sizeof(buf2));
-            printf("CastExpr: target_ctype: %s, type: %s\n", buf, buf2);
+            printf("CastExpr: target_ctype: %s, source_ctype: %s\n", buf, buf2);
             print_ast(node->cast_expr.expr, indent+1);
             break;
 
@@ -235,7 +235,9 @@ void print_ast(ASTNode * node, int indent) {
         }
 
         case AST_COND_EXPR: {
-            printf("ConditionalExpression: \n");
+            ctype_to_cdecl(node->ctype, buf, sizeof(buf));
+
+            printf("ConditionalExpression: - type: %s\n", buf);
             print_indent(indent+1); printf("Conditional:\n");
             print_ast(node->cond_expr.cond, indent+2);
             print_indent(indent+1); printf("ThenExpr:\n");
