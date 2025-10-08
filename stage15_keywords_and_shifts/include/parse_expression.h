@@ -10,6 +10,7 @@
 ASTNode * parse_expression(ParserContext * parserContext);
 ASTNode * parse_constant_expression(ParserContext * parserContext);
 ASTNode * parse_assignment_expression(ParserContext * parserContext);
+ASTNode * parse_conditional_expression(ParserContext * parserContext);
 ASTNode * parse_logical_or(ParserContext * parserContext);
 ASTNode * parse_logical_and(ParserContext * parserContext);
 ASTNode * parse_equality_expression(ParserContext * parserContext);

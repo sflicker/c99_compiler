@@ -48,7 +48,7 @@ void emit_rodata(EmitterContext * ctx, ASTNode_list * string_literals, ASTNode_l
     emit_line(ctx, "mask_f64:     dq    0x8000000000000000");
     emit_line(ctx, "dbl_format:  db \"Double: %%f\", 10, 0");
     emit_line(ctx, "str_format:  db \"String: %%s\", 10, 0");
-    emit_line(ctx, "int_format:  db \"Double: %%d\", 10, 0");
+    emit_line(ctx, "int_format:  db \"Integer: %%d\", 10, 0");
 
     for (ASTNode_list_node * n = string_literals->head; n; n = n->next) {
         ASTNode * str_literal = n->value;
