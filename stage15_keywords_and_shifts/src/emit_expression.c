@@ -10,6 +10,7 @@
 #include "emitter_helpers.h"
 #include "emit_address.h"
 #include "emit_expression.h"
+#include "emit_condition.h"
 #include "emit_stack.h"
 
 #include "error.h"
@@ -452,27 +453,32 @@ INTERNAL void emit_int_mod_expr_to_rax(EmitterContext * ctx, ASTNode * node, Eva
 }
 
 INTERNAL void emit_int_logical_and_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    int label_true = get_label_id(ctx);
     int label_false = get_label_id(ctx);
     int label_end = get_label_id(ctx);
 
-    //lhs
-    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
-    emit_pop(ctx, "rax");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "je", "false", label_false);
+    emit_condition(ctx, node, label_true, label_false);
 
-    //rhs
-    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
-    emit_pop(ctx, "rax");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "je", "false", label_false);
+    emit_label(ctx, "Lcond", label_end);
 
-    // both true
-    emit_line(ctx, "mov eax, 1");
-    emit_jump(ctx, "jmp", "end", label_end);
-
-    emit_label(ctx, "false", label_false);
-    emit_line(ctx, "mov eax, 0");
+    // //lhs
+    // emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
+    // emit_pop(ctx, "rax");
+    // emit_line(ctx, "cmp eax, 0");
+    // emit_jump(ctx, "je", "false", label_false);
+    //
+    // //rhs
+    // emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
+    // emit_pop(ctx, "rax");
+    // emit_line(ctx, "cmp eax, 0");
+    // emit_jump(ctx, "je", "false", label_false);
+    //
+    // // both true
+    // emit_line(ctx, "mov eax, 1");
+    // emit_jump(ctx, "jmp", "end", label_end);
+    //
+    // emit_label(ctx, "false", label_false);
+    // emit_line(ctx, "mov eax, 0");
 
     if (mode == WANT_VALUE) {
         emit_push(ctx, "rax");

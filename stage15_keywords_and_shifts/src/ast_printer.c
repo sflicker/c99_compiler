@@ -88,8 +88,10 @@ void print_ast(ASTNode * node, int indent) {
         case AST_BINARY_EXPR:
             ctype_to_cdecl(node->ctype, buf, sizeof(buf));
             printf("BinaryExpr: %s - type: %s\n", get_binary_op_name(node->binary.op), buf);
-            print_ast(node->binary.lhs, indent+1);
-            print_ast(node->binary.rhs, indent+1);
+            print_indent(indent+1); printf("Lhs:\n");
+            print_ast(node->binary.lhs, indent+2);
+            print_indent(indent+1); printf("Rhs:\n");
+            print_ast(node->binary.rhs, indent+2);
             break;
 
         case AST_UNARY_EXPR:
