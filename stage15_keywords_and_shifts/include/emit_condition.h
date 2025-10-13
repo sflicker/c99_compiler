@@ -5,8 +5,9 @@
 #ifndef _EMIT_CONDITION_H
 #define _EMIT_CONDITION_H
 #include "ast.h"
+#include "emitter.h"
 #include "emitter_context.h"
 
-void emit_condition(EmitterContext * ctx, ASTNode * node, int ltrue, int lfalse);
+void emit_condition(EmitterContext * ctx, ASTNode * node, int ltrue, int lfalse, EvalMode mode);
 
 #endif// _EMIT_CONDITION_H

@@ -457,7 +457,14 @@ INTERNAL void emit_int_logical_and_expr_to_rax(EmitterContext * ctx, ASTNode * n
     int label_false = get_label_id(ctx);
     int label_end = get_label_id(ctx);
 
-    emit_condition(ctx, node, label_true, label_false);
+    emit_condition(ctx, node, label_true, label_false, mode);
+
+    emit_label(ctx, "Lcond", label_true);
+    emit_line(ctx, "mov eax, 1");
+    emit_jump(ctx, "jmp", "Lcond", label_end);
+
+    emit_label(ctx, "Lcond", label_false);
+    emit_line(ctx, "xor eax, eax");
 
     emit_label(ctx, "Lcond", label_end);
 
@@ -484,7 +491,7 @@ INTERNAL void emit_int_logical_and_expr_to_rax(EmitterContext * ctx, ASTNode * n
         emit_push(ctx, "rax");
     }
 
-    emit_label(ctx, "end", label_end);
+//    emit_label(ctx, "end", label_end);
 }
 
 INTERNAL void emit_int_logical_or_expr_to_rax(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
