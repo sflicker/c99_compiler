@@ -42,22 +42,30 @@ void emit_condition(EmitterContext * ctx, ASTNode * node, int ltrue, int lfalse,
                     return;
                 }
                 case BINOP_EQ:
-                    case BINOP_NE:
-                    case BINOP_GT:
-                    case BINOP_GE:
-                    case BINOP_LT:
-                    case BINOP_LE: {
+                case BINOP_NE:
+                case BINOP_GT:
+                case BINOP_GE:
+                case BINOP_LT:
+                case BINOP_LE: {
                     emit_expr_to_reg(ctx, node, WANT_VALUE);
                     emit_pop(ctx, "rax");
                     branch_on_truth_intptr(ctx, ltrue, lfalse);
-                     //emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
+                    //emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
                     // emit_pop(ctx, "rax");
                     // emit_line(ctx, "cmp eax, 0");
                     // emit_jump(ctx, "je", "false", label_false);
                     return;
                 }
-
             }
+            default: {
+                emit_expr_to_reg(ctx, node, WANT_VALUE);
+                emit_pop(ctx, "rax");
+                branch_on_truth_intptr(ctx, ltrue, lfalse);
+
+                //branch_on_truth(node, ltrue, lfalse);
+                return;
+            }
+
         }
     }
 }
