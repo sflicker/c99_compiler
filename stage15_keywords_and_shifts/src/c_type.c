@@ -328,6 +328,10 @@ bool is_floating_point_type(CType * ctype) {
         ctype->kind == CTYPE_DOUBLE;
 }
 
+bool is_scalar_type(CType * ctype) {
+    return is_floating_point_type(ctype) || is_integer_type(ctype) || is_pointer_type(ctype);
+}
+
 bool is_array_type(CType * ctype) {
     return ctype->kind == CTYPE_ARRAY;
 }

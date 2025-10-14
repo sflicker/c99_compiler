@@ -537,11 +537,9 @@ INTERNAL void emit_int_add_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
 
     // restore RHS into ecx
-//    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
     // restore LHS into eax
-//    emit_line(ctx, "pop rax");
     emit_pop(ctx, "rax");
 
 
@@ -549,7 +547,6 @@ INTERNAL void emit_int_add_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     emit_line(ctx, "add eax, ecx");
 
     // restore LHS address
-//    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
 
@@ -571,17 +568,14 @@ void emit_fp_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalM
     else {
         emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
     }
-    //    emit_line(ctx, "push rax");
 
     // eval LHS addr -> rcx
     emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_ADDRESS);
 
     // pop LHS into rcx
-    //    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
     // pop RHS in rax
-    //    emit_line(ctx, "pop rax");
     if (is_array_type(node->binary.rhs->ctype)) {
         emit_pop(ctx, "rax");
     }
@@ -650,7 +644,6 @@ INTERNAL void emit_int_sub_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
 
     // push LHS address on stack
     emit_line(ctx, "mov DWORD eax, [rcx]");
-//    emit_line(ctx, "push rax");
     emit_push(ctx, "rax");
 
 
@@ -663,33 +656,21 @@ INTERNAL void emit_int_sub_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     // evaluate RHS into eax
     emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
 
-//    emit_line(ctx, "mov ecx, eax");
 
     // restore RHS into ecx
-//    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
     // restore LHS into eax
-//    emit_line(ctx, "pop rax");
     emit_pop(ctx, "rax");
 
     // sub RHS from LHS
     emit_line(ctx, "sub eax, ecx");
 
     // restore LHS address
-//    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
     // write back result to LHS
     emit_line(ctx, "mov [rcx], eax");
-
-    // char * reference_label  = create_variable_reference(ctx, node->binary.lhs);
-    // emit_tree_node(ctx, node->binary.rhs);
-    // emit_line(ctx, "mov ecx, eax\n");
-    // emit_line(ctx, "mov eax, %s\n", reference_label);
-    // emit_line(ctx, "sub eax, ecx\n");
-    // emit_line(ctx, "mov %s, eax\n", reference_label);
-    // free(reference_label);
 
     if (mode == WANT_VALUE) {
         emit_push(ctx, "rax");

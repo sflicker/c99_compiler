@@ -525,7 +525,9 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
 
         case AST_COND_EXPR: {
             analyze(ctx, node->cond_expr.cond);
-            // TODO check cond is a scalar
+            if (!is_scalar_type(node->cond_expr.cond->ctype)) {
+                error("Cond expr type must be a scalar");
+            }
 
             analyze(ctx, node->cond_expr.then_expr);
             analyze(ctx, node->cond_expr.else_expr);
@@ -537,12 +539,10 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 if (!ctype_equals(lhsCType, rhsCType)) {
                     if (lhsCType->rank > rhsCType->rank) {
                         node->cond_expr.else_expr = create_cast_expr_node(lhsCType, node->cond_expr.else_expr);
-                       // node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
                         node->binary.common_type = lhsCType;
                     }
                     else if (lhsCType->rank < rhsCType->rank) {
                         node->cond_expr.then_expr = create_cast_expr_node(rhsCType, node->cond_expr.then_expr);
-                       // node->ctype = get_binary_expr_return_type(rhsCType, node->binary.op);
                         node->binary.common_type = rhsCType;
                     }
                 }

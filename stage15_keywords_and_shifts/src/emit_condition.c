@@ -50,10 +50,6 @@ void emit_condition(EmitterContext * ctx, ASTNode * node, int ltrue, int lfalse,
                     emit_expr_to_reg(ctx, node, WANT_VALUE);
                     emit_pop(ctx, "rax");
                     branch_on_truth_intptr(ctx, ltrue, lfalse);
-                    //emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
-                    // emit_pop(ctx, "rax");
-                    // emit_line(ctx, "cmp eax, 0");
-                    // emit_jump(ctx, "je", "false", label_false);
                     return;
                 }
             }
@@ -62,7 +58,6 @@ void emit_condition(EmitterContext * ctx, ASTNode * node, int ltrue, int lfalse,
                 emit_pop(ctx, "rax");
                 branch_on_truth_intptr(ctx, ltrue, lfalse);
 
-                //branch_on_truth(node, ltrue, lfalse);
                 return;
             }
 
