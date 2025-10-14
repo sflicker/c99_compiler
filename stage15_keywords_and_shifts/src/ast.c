@@ -158,6 +158,12 @@ void free_ast(ASTNode * node) {
             ASTNode_list_free(node->declaration.init_declarator_list);
             break;
 
+        case AST_COND_EXPR:
+            free_ast(node->cond_expr.cond);
+            free_ast(node->cond_expr.then_expr);
+            free_ast(node->cond_expr.else_expr);
+            break;
+
         default: 
             error("Invalid AST Node Type: %s\n", get_ast_node_name(node));
             break;
@@ -258,6 +264,7 @@ const char * get_ast_node_name(ASTNode * node) {
         case AST_STRING_LITERAL: return "StringLiteral";
         case AST_ASSERT_EXTENSION_STATEMENT: return "AssertExtensionStatement";
         case AST_PRINT_EXTENSION_STATEMENT: return "PrintExtensionStatement";
+        case AST_COND_EXPR: return "CondExpr";
     }
     error("Invalid AST Node Type: %d", node->type);
 

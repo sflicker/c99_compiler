@@ -95,6 +95,7 @@ bool is_array_type(CType * ctype);
 bool is_function_type(CType * ctype);
 bool is_pointer_type(CType * ctype);
 bool is_string_type(CType * ctype);
+bool is_scalar_type(CType * ctype);
 //bool is_signed_type(CType * ctype);
 bool is_signed_integer_type(CType * ctype);
 bool is_unsigned_integer_type(CType * ctype);

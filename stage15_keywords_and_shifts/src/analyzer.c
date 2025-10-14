@@ -234,6 +234,13 @@ void verify_expr(AnalyzerContext * ctx, ASTNode * node) {
             assert(node->ctype);
             break;
 
+        case AST_COND_EXPR:
+            assert(node->cond_expr.cond->ctype);
+            assert(node->cond_expr.then_expr->ctype);
+            assert(node->cond_expr.else_expr->ctype);
+            assert(node->ctype);
+        break;
+
         case AST_RETURN_STMT:
             verify_expr(ctx, node->return_stmt.expr);
             assert(ctype_equals(node->ctype, ctx->current_function_return_type));
@@ -515,6 +522,51 @@ void analyze(AnalyzerContext * ctx, ASTNode * node) {
                 }
             }
             break;
+
+        case AST_COND_EXPR: {
+            analyze(ctx, node->cond_expr.cond);
+            if (!is_scalar_type(node->cond_expr.cond->ctype)) {
+                error("Cond expr type must be a scalar");
+            }
+
+            analyze(ctx, node->cond_expr.then_expr);
+            analyze(ctx, node->cond_expr.else_expr);
+
+            CType * lhsCType = node->cond_expr.then_expr->ctype;
+            CType * rhsCType = node->cond_expr.else_expr->ctype;
+
+            if (is_floating_point_type(lhsCType) || is_floating_point_type(rhsCType)) {
+                if (!ctype_equals(lhsCType, rhsCType)) {
+                    if (lhsCType->rank > rhsCType->rank) {
+                        node->cond_expr.else_expr = create_cast_expr_node(lhsCType, node->cond_expr.else_expr);
+                        node->binary.common_type = lhsCType;
+                    }
+                    else if (lhsCType->rank < rhsCType->rank) {
+                        node->cond_expr.then_expr = create_cast_expr_node(rhsCType, node->cond_expr.then_expr);
+                        node->binary.common_type = rhsCType;
+                    }
+                }
+                else {
+                    node->ctype = get_binary_expr_return_type(lhsCType, node->binary.op);
+                    node->binary.common_type = lhsCType;
+                }
+            }
+            else {
+                CType * promoted_left = is_integer_type(lhsCType)
+                    ? apply_integer_promotions(lhsCType) : lhsCType;
+                CType * promoted_right = is_integer_type(rhsCType)
+                    ? apply_integer_promotions(rhsCType) : rhsCType;
+
+                CType * result_type = usual_arithmetic_conversion(promoted_left, promoted_right);
+                //node->ctype = get_binary_expr_return_type(result_type, node->binary.op);
+                node->binary.common_type = result_type;
+            }
+
+
+            //TODO need to verify ctypes are compatible. for now just copy the then_expr ctype to the node
+            node->ctype = node->cond_expr.then_expr->ctype;
+            break;
+        }
 
         case AST_WHILE_STMT:
             analyze(ctx, node->while_stmt.cond);

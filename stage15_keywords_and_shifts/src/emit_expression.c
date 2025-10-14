@@ -10,6 +10,7 @@
 #include "emitter_helpers.h"
 #include "emit_address.h"
 #include "emit_expression.h"
+#include "emit_condition.h"
 #include "emit_stack.h"
 
 #include "error.h"
@@ -452,33 +453,45 @@ INTERNAL void emit_int_mod_expr_to_rax(EmitterContext * ctx, ASTNode * node, Eva
 }
 
 INTERNAL void emit_int_logical_and_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    int label_true = get_label_id(ctx);
     int label_false = get_label_id(ctx);
     int label_end = get_label_id(ctx);
 
-    //lhs
-    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
-    emit_pop(ctx, "rax");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "je", "false", label_false);
+    emit_condition(ctx, node, label_true, label_false, mode);
 
-    //rhs
-    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
-    emit_pop(ctx, "rax");
-    emit_line(ctx, "cmp eax, 0");
-    emit_jump(ctx, "je", "false", label_false);
-
-    // both true
+    emit_label(ctx, "Lcond", label_true);
     emit_line(ctx, "mov eax, 1");
-    emit_jump(ctx, "jmp", "end", label_end);
+    emit_jump(ctx, "jmp", "Lcond", label_end);
 
-    emit_label(ctx, "false", label_false);
-    emit_line(ctx, "mov eax, 0");
+    emit_label(ctx, "Lcond", label_false);
+    emit_line(ctx, "xor eax, eax");
+
+    emit_label(ctx, "Lcond", label_end);
+
+    // //lhs
+    // emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);
+    // emit_pop(ctx, "rax");
+    // emit_line(ctx, "cmp eax, 0");
+    // emit_jump(ctx, "je", "false", label_false);
+    //
+    // //rhs
+    // emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
+    // emit_pop(ctx, "rax");
+    // emit_line(ctx, "cmp eax, 0");
+    // emit_jump(ctx, "je", "false", label_false);
+    //
+    // // both true
+    // emit_line(ctx, "mov eax, 1");
+    // emit_jump(ctx, "jmp", "end", label_end);
+    //
+    // emit_label(ctx, "false", label_false);
+    // emit_line(ctx, "mov eax, 0");
 
     if (mode == WANT_VALUE) {
         emit_push(ctx, "rax");
     }
 
-    emit_label(ctx, "end", label_end);
+//    emit_label(ctx, "end", label_end);
 }
 
 INTERNAL void emit_int_logical_or_expr_to_rax(EmitterContext * ctx, ASTNode* node, EvalMode mode) {
@@ -524,11 +537,9 @@ INTERNAL void emit_int_add_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
 
     // restore RHS into ecx
-//    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
     // restore LHS into eax
-//    emit_line(ctx, "pop rax");
     emit_pop(ctx, "rax");
 
 
@@ -536,7 +547,6 @@ INTERNAL void emit_int_add_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     emit_line(ctx, "add eax, ecx");
 
     // restore LHS address
-//    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
 
@@ -558,17 +568,14 @@ void emit_fp_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalM
     else {
         emit_fp_expr_to_xmm0(ctx, node->binary.rhs, WANT_VALUE);
     }
-    //    emit_line(ctx, "push rax");
 
     // eval LHS addr -> rcx
     emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_ADDRESS);
 
     // pop LHS into rcx
-    //    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
     // pop RHS in rax
-    //    emit_line(ctx, "pop rax");
     if (is_array_type(node->binary.rhs->ctype)) {
         emit_pop(ctx, "rax");
     }
@@ -637,7 +644,6 @@ INTERNAL void emit_int_sub_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
 
     // push LHS address on stack
     emit_line(ctx, "mov DWORD eax, [rcx]");
-//    emit_line(ctx, "push rax");
     emit_push(ctx, "rax");
 
 
@@ -650,33 +656,21 @@ INTERNAL void emit_int_sub_assignment_expr_to_rax(EmitterContext * ctx, ASTNode 
     // evaluate RHS into eax
     emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);
 
-//    emit_line(ctx, "mov ecx, eax");
 
     // restore RHS into ecx
-//    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
     // restore LHS into eax
-//    emit_line(ctx, "pop rax");
     emit_pop(ctx, "rax");
 
     // sub RHS from LHS
     emit_line(ctx, "sub eax, ecx");
 
     // restore LHS address
-//    emit_line(ctx, "pop rcx");
     emit_pop(ctx, "rcx");
 
     // write back result to LHS
     emit_line(ctx, "mov [rcx], eax");
-
-    // char * reference_label  = create_variable_reference(ctx, node->binary.lhs);
-    // emit_tree_node(ctx, node->binary.rhs);
-    // emit_line(ctx, "mov ecx, eax\n");
-    // emit_line(ctx, "mov eax, %s\n", reference_label);
-    // emit_line(ctx, "sub eax, ecx\n");
-    // emit_line(ctx, "mov %s, eax\n", reference_label);
-    // free(reference_label);
 
     if (mode == WANT_VALUE) {
         emit_push(ctx, "rax");
@@ -1235,6 +1229,31 @@ void emit_fp_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
             break;
 
+        case AST_COND_EXPR: {
+            int id = get_label_id(ctx);
+            emit_line(ctx, "; emitting conditional expression");
+            emit_int_expr_to_rax(ctx, node->cond_expr.cond, mode);
+            emit_pop(ctx, "rax");
+            emit_line(ctx, "cmp eax, 0");
+
+            emit_line(ctx, "je Lelse%d", id);
+            emit_line(ctx, "; emitting then expr");
+            emit_fp_expr_to_xmm0(ctx, node->cond_expr.then_expr, mode);
+            emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+            emit_line(ctx, "jmp Lend%d", id);
+            emit_label(ctx, "else", id);
+            emit_line(ctx, "; emitting else expr");
+            emit_fp_expr_to_xmm0(ctx, node->cond_expr.else_expr, mode);
+            emit_fpop(ctx, "xmm0", getFPWidthFromCType(node->ctype));
+
+            emit_label(ctx, "end", id);
+
+            if (mode == WANT_VALUE) {
+                emit_fpush(ctx, "xmm0", getFPWidthFromCType(node->ctype) );
+            }
+
+            break;
+        }
         default:
             error("Unexpected node type %d", get_ast_node_name(node));
     }
@@ -1330,6 +1349,32 @@ void emit_int_expr_to_rax(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
         case AST_CAST_EXPR:
             emit_int_cast_expr_to_rax(ctx, node, mode);
             break;
+
+        case AST_COND_EXPR: {
+            int id = get_label_id(ctx);
+            emit_line(ctx, "; emitting conditional expression");
+            emit_int_expr_to_rax(ctx, node->cond_expr.cond, mode);
+            emit_pop(ctx, "rax");
+            emit_line(ctx, "cmp eax, 0");
+
+            emit_line(ctx, "je Lelse%d", id);
+            emit_line(ctx, "; emitting then expr");
+            emit_int_expr_to_rax(ctx, node->cond_expr.then_expr, mode);
+            emit_pop(ctx, "rax");
+            emit_line(ctx, "jmp Lend%d", id);
+            emit_label(ctx, "else", id);
+            emit_line(ctx, "; emitting else expr");
+            emit_int_expr_to_rax(ctx, node->cond_expr.else_expr, mode);
+            emit_pop(ctx, "rax");
+
+            emit_label(ctx, "end", id);
+
+            if (mode == WANT_VALUE) {
+                emit_push(ctx, "rax");
+            }
+
+            break;
+        }
         case AST_STRING_LITERAL: {
             emit_addr_to_rax(ctx, node, mode);
             // char * label = node->string_literal.label;
