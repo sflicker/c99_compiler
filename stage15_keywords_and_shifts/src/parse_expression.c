@@ -85,13 +85,45 @@ ASTNode * parse_logical_or(ParserContext * parserContext) {
 }
 
 ASTNode * parse_logical_and(ParserContext * parserContext) {
-    ASTNode * lhs = parse_equality_expression(parserContext);
+    ASTNode * lhs = parse_inclusive_or(parserContext);
 
     while (match_token(parserContext, TOKEN_LOGICAL_AND)) {
-        ASTNode * rhs = parse_equality_expression(parserContext);
+        ASTNode * rhs = parse_inclusive_or(parserContext);
         ASTNode * node = create_binary_node(lhs, BINOP_LOGICAL_AND, rhs);
         lhs = node;
     }
+    return lhs;
+}
+
+ASTNode * parse_inclusive_or(ParserContext * parserContext) {
+    ASTNode * lhs = parse_exclusive_or(parserContext);
+    while (match_token(parserContext, TOKEN_BITWISE_OR)) {
+        ASTNode * rhs = parse_inclusive_or(parserContext);
+        ASTNode * node = create_binary_node(lhs, BINOP_BITWISE_OR, rhs);
+        lhs = node;
+    }
+    return lhs;
+}
+
+ASTNode * parse_exclusive_or(ParserContext * parserContext) {
+    ASTNode * lhs = parse_and_expression(parserContext);
+    while (match_token(parserContext, TOKEN_BITWISE_XOR)) {
+        ASTNode * rhs = parse_and_expression(parserContext);
+        ASTNode * node = create_binary_node(lhs, BINOP_BITWISE_XOR, rhs);
+        lhs = node;
+    }
+
+    return lhs;
+}
+
+ASTNode * parse_and_expression(ParserContext * parserContext) {
+    ASTNode * lhs = parse_equality_expression(parserContext);
+    while (match_token(parserContext, TOKEN_AMPERSAND)) {
+        ASTNode * rhs = parse_equality_expression(parserContext);
+        ASTNode * node = create_binary_node(lhs, BINOP_BITWISE_AND, rhs);
+        lhs = node;
+    }
+
     return lhs;
 }
 

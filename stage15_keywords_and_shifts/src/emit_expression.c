@@ -934,6 +934,12 @@ void emit_int_binary_expr_to_rax(EmitterContext * ctx, ASTNode *node, EvalMode m
         case BINOP_COMPOUND_SUB_ASSIGN:
             emit_int_sub_assignment_expr_to_rax(ctx, node, mode);
             break;
+        case BINOP_BITWISE_AND:
+        case BINOP_BITWISE_OR:
+        case BINOP_BITWISE_XOR:
+            //TODO
+            break;
+
         default:
             error("Unknown binary operator");
     }
