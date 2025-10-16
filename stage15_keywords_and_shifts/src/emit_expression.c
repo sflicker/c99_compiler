@@ -937,7 +937,7 @@ void emit_int_binary_expr_to_rax(EmitterContext * ctx, ASTNode *node, EvalMode m
         case BINOP_BITWISE_AND:
         case BINOP_BITWISE_OR:
         case BINOP_BITWISE_XOR:
-            //TODO
+            emit_bitwise_binary_expr(ctx, node, mode);
             break;
 
         default:
@@ -1411,4 +1411,29 @@ void emit_expr_to_reg(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
     } else {
         emit_int_expr_to_rax(ctx, node, mode);
     }
+}
+
+void emit_bitwise_binary_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
+
+    emit_pop(ctx, "rcx");
+    emit_pop(ctx, "rax");
+
+    switch (node->binary.op) {
+        case BINOP_BITWISE_AND:
+            emit_line(ctx, "and eax, ecx");
+            break;
+        case BINOP_BITWISE_OR:
+            emit_line(ctx, "or eax, ecx");
+            break;
+        case BINOP_BITWISE_XOR:
+            emit_line(ctx, "xor eax, ecx");
+            break;
+    }
+
+    if (mode == WANT_VALUE) {
+        emit_push(ctx, "rax");
+    }
+
 }
