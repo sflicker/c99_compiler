@@ -18,4 +18,5 @@ void emit_fp_add_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, E
 void emit_binary_expr_to_reg(EmitterContext * ctx, ASTNode * node, EvalMode mode);
 void emit_expr_to_reg(EmitterContext * ctx, ASTNode * node, EvalMode mode);
 void emit_fp_assignment_expr_to_xmm0(EmitterContext * ctx, ASTNode * node, EvalMode mode);
+void emit_bitwise_binary_expr(EmitterContext * ctx, ASTNode * left, EvalMode mode);
 #endif //_EMIT_EXPRESSION_H

@@ -78,6 +78,9 @@ TokenMapEntry single_char_operator_map[] = {
     { ":", TOKEN_COLON },
     { "&", TOKEN_AMPERSAND },
     { "?", TOKEN_QUESTION_MARK},
+    { "~", TOKEN_TILDE},
+    { "|", TOKEN_BITWISE_OR},
+    { "^", TOKEN_BITWISE_XOR},
     { NULL, 0 }
 };
 
