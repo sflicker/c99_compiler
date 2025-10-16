@@ -54,6 +54,8 @@ TokenMapEntry two_char_operator_map[] = {
     { "-=", TOKEN_MINUS_EQUAL },
     { "++", TOKEN_INCREMENT },
     { "--", TOKEN_DECREMENT },
+    { "<<", TOKEN_SHIFT_LEFT },
+    { ">>", TOKEN_SHIFT_RIGHT },
     { NULL, 0 }
 };
 
