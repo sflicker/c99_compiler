@@ -1430,6 +1430,8 @@ void emit_bitwise_binary_expr(EmitterContext * ctx, ASTNode * node, EvalMode mod
         case BINOP_BITWISE_XOR:
             emit_line(ctx, "xor eax, ecx");
             break;
+        default:
+            error("invalid bitwise operator");
     }
 
     if (mode == WANT_VALUE) {

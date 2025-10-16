@@ -10,6 +10,7 @@
 
 #include "emitter_helpers.h"
 #include "emit_stack.h"
+#include "error.h"
 
 void branch_on_truth_intptr(EmitterContext * ctx, int ltrue, int lfalse) {
     emit_line(ctx, "test rax, rax");
@@ -60,7 +61,6 @@ void emit_condition(EmitterContext * ctx, ASTNode * node, int ltrue, int lfalse,
 
                 return;
             }
-
         }
     }
 }
