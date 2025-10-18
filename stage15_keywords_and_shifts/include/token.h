@@ -65,6 +65,7 @@ typedef enum {
     TOKEN_BITWISE_XOR,
     TOKEN_SHIFT_LEFT,
     TOKEN_SHIFT_RIGHT,
+    TOKEN_SIZEOF,
     TOKEN_EOF
 } TokenType;
 

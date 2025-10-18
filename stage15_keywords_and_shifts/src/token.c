@@ -174,6 +174,7 @@ const char * token_type_name(TokenType type) {
         case TOKEN_AMPERSAND: return "AMPERSAND";
         case TOKEN_STRING_LITERAL: return "STRING_LITERAL";
         case TOKEN_SHIFT_LEFT: return "SHIFT_LEFT";
+        case TOKEN_SIZEOF: return "SIZEOF";
         case TOKEN_SHIFT_RIGHT: return "SHIFT_RIGHT";
         case TOKEN_ASSERT_EXTENSION: return "_ASSERT";
         case TOKEN_PRINT_EXTENSION: return "_PRINT";

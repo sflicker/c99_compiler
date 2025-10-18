@@ -38,6 +38,7 @@ TokenMapEntry keyword_map[] = {
     { "switch", TOKEN_SWITCH },
     { "case", TOKEN_CASE },
     { "default", TOKEN_DEFAULT },
+    { "sizeof", TOKEN_SIZEOF },
     { "_assert", TOKEN_ASSERT_EXTENSION },
     { "_print", TOKEN_PRINT_EXTENSION },
     { NULL, 0 }
