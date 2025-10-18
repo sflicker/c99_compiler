@@ -185,6 +185,8 @@ BinaryOperator get_binary_operator_from_tok(Token * tok) {
         case TOKEN_GE: return BINOP_GE; break;
         case TOKEN_LT: return BINOP_LT; break;
         case TOKEN_LE: return BINOP_LE; break;
+        case TOKEN_SHIFT_LEFT: return BINOP_SHIFT_LEFT; break;
+        case TOKEN_SHIFT_RIGHT: return BINOP_SHIFT_RIGHT; break;
         default:
             error("Unknown binary operator '%s'\n", tok->text);
             return BINOP_UNASSIGNED_OP;\
@@ -209,6 +211,8 @@ const char * get_binary_op_name(BinaryOperator op) {
         case BINOP_ASSIGNMENT: return "ASN"; break;
         case BINOP_COMPOUND_ADD_ASSIGN: return "ADDASN"; break;
         case BINOP_COMPOUND_SUB_ASSIGN: return "SUBASN"; break;
+        case BINOP_SHIFT_LEFT: return "SHIFT_LEFT"; break;
+        case BINOP_SHIFT_RIGHT: return "SHIFT_RIGHT"; break;
         case BINOP_UNASSIGNED_OP: return "UNASSIGNED"; break;
     }
     return "UNASSIGNED";
@@ -225,6 +229,7 @@ const char * get_unary_op_name(UnaryOperator op) {
         case UNARY_POST_DEC: return "POST_DEC"; break;
         case UNARY_ADDRESS: return "ADDRESS"; break;
         case UNARY_DEREF: return "DEREF"; break;
+        case UNARY_ONES_COMPLEMENT: return "ONES_COMPLEMENT"; break;
         case UNARY_UNASSIGNED_OP: return "UNASSIGNED"; break;
     }
     return "UNKNOWN";
