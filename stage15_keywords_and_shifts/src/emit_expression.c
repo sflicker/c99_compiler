@@ -1048,6 +1048,15 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
             break;
         }
+        case UNARY_BITWISE_NOT:
+            emit_int_expr_to_rax(ctx, node->unary.operand, WANT_VALUE);
+            emit_pop(ctx, "rax");
+            emit_line(ctx, "not eax");
+            if (mode == WANT_VALUE) {
+                emit_push(ctx, "rax");
+            }
+
+            break;
         default:
             error("Unsupported unary op in emitter");
     }
