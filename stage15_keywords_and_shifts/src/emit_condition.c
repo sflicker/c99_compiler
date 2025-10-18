@@ -21,7 +21,7 @@ void branch_on_truth_intptr(EmitterContext * ctx, int ltrue, int lfalse) {
 void emit_condition(EmitterContext * ctx, ASTNode * node, int ltrue, int lfalse, EvalMode mode) {
     switch (node->type) {
         case AST_UNARY_EXPR: {
-            if (node->unary.op == UNARY_NOT) {
+            if (node->unary.op == UNARY_LOGICAL_NOT) {
                 emit_condition(ctx, node->unary.operand, lfalse, ltrue, mode);
                 return;
             }

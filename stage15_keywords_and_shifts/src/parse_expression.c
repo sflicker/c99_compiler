@@ -143,17 +143,35 @@ ASTNode * parse_equality_expression(ParserContext * parserContext) {
 }
 
 ASTNode * parse_relational_expression(ParserContext * parserContext) {
-    ASTNode * root = parse_additive_expression(parserContext);
+    ASTNode * root = parse_shift_expression(parserContext);
 
     while(is_current_token(parserContext, TOKEN_GT) || is_current_token(parserContext, TOKEN_GE)
             || is_current_token(parserContext, TOKEN_LT) || is_current_token(parserContext, TOKEN_LE)) {
         ASTNode * lhs = root;
         Token * op = peek(parserContext);
         advance_parser(parserContext);
-        ASTNode * rhs = parse_additive_expression(parserContext);
+        ASTNode * rhs = parse_shift_expression(parserContext);
         root = create_binary_node(lhs, get_binary_operator_from_tok(op), rhs);
     }
     return root;
+}
+
+ASTNode * parse_shift_expression(ParserContext * parserContext) {
+    ASTNode * lhs = parse_additive_expression(parserContext);
+    if (is_current_token(parserContext, TOKEN_SHIFT_LEFT)) {
+        Token * op = peek(parserContext);
+        advance_parser(parserContext);
+        ASTNode * rhs = parse_additive_expression(parserContext);
+        return create_binary_node(lhs, get_binary_operator_from_tok(op), rhs);
+    }
+    if (is_current_token(parserContext, TOKEN_SHIFT_RIGHT)) {
+        Token * op = peek(parserContext);
+        advance_parser(parserContext);
+        ASTNode * rhs = parse_additive_expression(parserContext);
+        return create_binary_node(lhs, get_binary_operator_from_tok(op), rhs);
+    }
+    return lhs;
+
 }
 
 ASTNode * parse_additive_expression(ParserContext * parserContext) {
@@ -220,7 +238,7 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_BANG)) {
         expect_token(parserContext, TOKEN_BANG);
         ASTNode * operand = parse_cast_expression(parserContext);
-        return create_unary_node(UNARY_NOT, operand);
+        return create_unary_node(UNARY_LOGICAL_NOT, operand);
     }
     if (is_current_token(parserContext, TOKEN_STAR)) {
         expect_token(parserContext, TOKEN_STAR);
@@ -241,6 +259,11 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
         expect_token(parserContext, TOKEN_DECREMENT);
         ASTNode * operand = parse_unary_expression(parserContext);
         return create_unary_node(UNARY_PRE_DEC, operand);
+    }
+    if (is_current_token(parserContext, TOKEN_TILDE)) {
+        expect_token(parserContext, TOKEN_TILDE);
+        ASTNode * operand = parse_cast_expression(parserContext);
+        return create_unary_node(UNARY_BITWISE_NOT, operand);
     }
     return parse_postfix_expression(parserContext);
 

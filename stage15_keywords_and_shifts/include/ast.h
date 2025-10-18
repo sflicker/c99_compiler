@@ -30,7 +30,9 @@ typedef enum {
     BINOP_COMPOUND_SUB_ASSIGN,
     BINOP_BITWISE_AND,
     BINOP_BITWISE_OR,
-    BINOP_BITWISE_XOR
+    BINOP_BITWISE_XOR,
+    BINOP_SHIFT_LEFT,
+    BINOP_SHIFT_RIGHT
 } BinaryOperator;
 
 typedef struct {
@@ -43,13 +45,14 @@ typedef struct {
 typedef enum {
     UNARY_NEGATE,         // -a
     UNARY_PLUS,           // +a    usually this is just a noop
-    UNARY_NOT,            // !a
+    UNARY_LOGICAL_NOT,    // !a
     UNARY_PRE_INC,        // ++a
     UNARY_PRE_DEC,        // --a
     UNARY_POST_INC,       // a++
     UNARY_POST_DEC,       // a--
     UNARY_DEREF,          // *a
     UNARY_ADDRESS,        // &a
+    UNARY_BITWISE_NOT,    // ~a
     UNARY_UNASSIGNED_OP   // op is not assigned. 
 } UnaryOperator;
 

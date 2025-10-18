@@ -939,7 +939,10 @@ void emit_int_binary_expr_to_rax(EmitterContext * ctx, ASTNode *node, EvalMode m
         case BINOP_BITWISE_XOR:
             emit_bitwise_binary_expr(ctx, node, mode);
             break;
-
+        case BINOP_SHIFT_LEFT:
+        case BINOP_SHIFT_RIGHT:
+            emit_shift_expr(ctx, node, mode);
+            break;
         default:
             error("Unknown binary operator");
     }
@@ -966,7 +969,7 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
         case UNARY_PLUS:
             // noop
             break;
-        case UNARY_NOT:
+        case UNARY_LOGICAL_NOT:
             // !x becomes (x == 0) -> 1 else 0
             emit_int_expr_to_rax(ctx, node->unary.operand, WANT_VALUE);
             emit_pop(ctx, "rax");
@@ -1045,6 +1048,15 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
 
             break;
         }
+        case UNARY_BITWISE_NOT:
+            emit_int_expr_to_rax(ctx, node->unary.operand, WANT_VALUE);
+            emit_pop(ctx, "rax");
+            emit_line(ctx, "not eax");
+            if (mode == WANT_VALUE) {
+                emit_push(ctx, "rax");
+            }
+
+            break;
         default:
             error("Unsupported unary op in emitter");
     }
@@ -1432,6 +1444,27 @@ void emit_bitwise_binary_expr(EmitterContext * ctx, ASTNode * node, EvalMode mod
             break;
         default:
             error("invalid bitwise operator");
+    }
+
+    if (mode == WANT_VALUE) {
+        emit_push(ctx, "rax");
+    }
+}
+
+void emit_shift_expr(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
+    emit_int_expr_to_rax(ctx, node->binary.lhs, WANT_VALUE);       // codegen to eval lhs with result in EAX
+    emit_int_expr_to_rax(ctx, node->binary.rhs, WANT_VALUE);       // codegen to eval rhs with result in EAX
+
+    emit_pop(ctx, "rcx");
+    emit_pop(ctx, "rax");
+
+    switch (node->binary.op) {
+        case BINOP_SHIFT_LEFT:
+            emit_line(ctx, "shl eax, cl");
+            break;
+            case BINOP_SHIFT_RIGHT:
+            emit_line(ctx, "sar eax, cl");
+            break;
     }
 
     if (mode == WANT_VALUE) {

@@ -18,6 +18,7 @@ ASTNode * parse_exclusive_or(ParserContext * parserContext);
 ASTNode * parse_and_expression(ParserContext * parserContext);
 ASTNode * parse_equality_expression(ParserContext * parserContext);
 ASTNode * parse_relational_expression(ParserContext * parserContext);
+ASTNode * parse_shift_expression(ParserContext * parserContext);
 ASTNode * parse_additive_expression(ParserContext * parserContext);
 ASTNode * parse_multiplicative_expression(ParserContext * parserContext);
 ASTNode * parse_cast_expression(ParserContext * parserContext);
