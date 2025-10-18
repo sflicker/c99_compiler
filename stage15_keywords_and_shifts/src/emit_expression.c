@@ -969,7 +969,7 @@ INTERNAL void emit_unary(EmitterContext * ctx, ASTNode * node, EvalMode mode) {
         case UNARY_PLUS:
             // noop
             break;
-        case UNARY_NOT:
+        case UNARY_LOGICAL_NOT:
             // !x becomes (x == 0) -> 1 else 0
             emit_int_expr_to_rax(ctx, node->unary.operand, WANT_VALUE);
             emit_pop(ctx, "rax");

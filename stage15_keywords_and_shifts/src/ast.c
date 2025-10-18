@@ -222,14 +222,14 @@ const char * get_unary_op_name(UnaryOperator op) {
     switch(op) {
         case UNARY_NEGATE: return "NEGATE"; break;
         case UNARY_PLUS: return "PLUS"; break;
-        case UNARY_NOT: return "NOT"; break;
+        case UNARY_LOGICAL_NOT: return "LOGICAL_NOT"; break;
         case UNARY_PRE_INC: return "PRE_INC"; break;
         case UNARY_PRE_DEC: return "PRE_DEC"; break;
         case UNARY_POST_INC: return "POST_INC"; break;
         case UNARY_POST_DEC: return "POST_DEC"; break;
         case UNARY_ADDRESS: return "ADDRESS"; break;
         case UNARY_DEREF: return "DEREF"; break;
-        case UNARY_ONES_COMPLEMENT: return "ONES_COMPLEMENT"; break;
+        case UNARY_BITWISE_NOT: return "ONES_COMPLEMENT"; break;
         case UNARY_UNASSIGNED_OP: return "UNASSIGNED"; break;
     }
     return "UNKNOWN";

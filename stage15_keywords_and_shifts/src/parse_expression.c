@@ -238,7 +238,7 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_BANG)) {
         expect_token(parserContext, TOKEN_BANG);
         ASTNode * operand = parse_cast_expression(parserContext);
-        return create_unary_node(UNARY_NOT, operand);
+        return create_unary_node(UNARY_LOGICAL_NOT, operand);
     }
     if (is_current_token(parserContext, TOKEN_STAR)) {
         expect_token(parserContext, TOKEN_STAR);
@@ -263,7 +263,7 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
     if (is_current_token(parserContext, TOKEN_TILDE)) {
         expect_token(parserContext, TOKEN_TILDE);
         ASTNode * operand = parse_cast_expression(parserContext);
-        return create_unary_node(UNARY_ONES_COMPLEMENT, operand);
+        return create_unary_node(UNARY_BITWISE_NOT, operand);
     }
     return parse_postfix_expression(parserContext);
 

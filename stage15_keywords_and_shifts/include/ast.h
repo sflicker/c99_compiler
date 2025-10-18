@@ -45,14 +45,14 @@ typedef struct {
 typedef enum {
     UNARY_NEGATE,         // -a
     UNARY_PLUS,           // +a    usually this is just a noop
-    UNARY_NOT,            // !a
+    UNARY_LOGICAL_NOT,    // !a
     UNARY_PRE_INC,        // ++a
     UNARY_PRE_DEC,        // --a
     UNARY_POST_INC,       // a++
     UNARY_POST_DEC,       // a--
     UNARY_DEREF,          // *a
     UNARY_ADDRESS,        // &a
-    UNARY_ONES_COMPLEMENT, // ~a
+    UNARY_BITWISE_NOT,    // ~a
     UNARY_UNASSIGNED_OP   // op is not assigned. 
 } UnaryOperator;
 

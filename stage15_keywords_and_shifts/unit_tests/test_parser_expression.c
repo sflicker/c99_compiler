@@ -244,10 +244,10 @@ void test_parse_unary_expression__negate() {
 
 }
 
-void test_parse_unary_expression__not() {
+void test_parse_unary_expression__logical_not() {
     ASTNode * expected =
     create_unary_node(
-        UNARY_NOT,
+        UNARY_LOGICAL_NOT,
         create_var_ref_node("a")
     );
     // setup
@@ -688,7 +688,7 @@ int main() {
     RUN_TEST(test_parse_postfix__multi_array_access);
     RUN_TEST(test_parse_unary_expression__plus);
     RUN_TEST(test_parse_unary_expression__negate);
-    RUN_TEST(test_parse_unary_expression__not);
+    RUN_TEST(test_parse_unary_expression__logical_not);
     RUN_TEST(test_parse_unary_expression__increment);
     RUN_TEST(test_parse_unary_expression__decrement);
     RUN_TEST(test_parse_cast_expression);
