@@ -265,6 +265,19 @@ ASTNode * parse_unary_expression(ParserContext * parserContext) {
         ASTNode * operand = parse_cast_expression(parserContext);
         return create_unary_node(UNARY_BITWISE_NOT, operand);
     }
+    if (is_current_token(parserContext, TOKEN_SIZEOF)) {
+        expect_token(parserContext, TOKEN_SIZEOF);
+
+        if (is_current_token(parserContext, TOKEN_LPAREN) && is_next_token_a_ctype(parserContext)) {
+            expect_token(parserContext, TOKEN_LPAREN);
+            CType * ctype = parse_type_specifier(parserContext);
+            expect_token(parserContext, TOKEN_RPAREN);
+            return create_sizeof_node_with_type(ctype);
+        }
+
+        ASTNode * operand = parse_unary_expression(parserContext);
+        return create_sizeof_node_with_expression(operand);
+    }
     return parse_postfix_expression(parserContext);
 
 }

@@ -44,7 +44,8 @@ ASTNode * create_assert_extension_node(ASTNode * expr);
 ASTNode * create_string_literal_node(const char *text);
 ASTNode * create_declaration_node(CType * ctype);
 ASTNode * create_cond_expr_node(ASTNode * condExpression, ASTNode * thenExpression, ASTNode * elseExpression);
-
+ASTNode * create_sizeof_node_with_type(CType * ctype);
+ASTNode * create_sizeof_node_with_expression(ASTNode * operand);
 BinaryOperator binary_op_token_to_ast_binop_type(TokenType tok);
 bool is_next_token_assignment(ParserContext * parserContext);
 CType * get_ctype_from_token(Token* token);

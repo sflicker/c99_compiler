@@ -52,6 +52,19 @@ ASTNode * create_binary_node(ASTNode * lhs, BinaryOperator op, ASTNode *rhs) {
     return node;
 }
 
+ASTNode * create_sizeof_node_with_type(CType * ctype) {
+    ASTNode * node = create_ast();
+    node->type = AST_SIZEOF_EXPR;
+    return node;
+}
+
+ASTNode * create_sizeof_node_with_expression(ASTNode * operand) {
+    ASTNode * node = create_ast();
+    node->type = AST_SIZEOF_EXPR;
+
+    return node;
+};
+
 CType * get_projected_ctype(ASTNode * node) {
 
     CType * ctype = node->ctype;

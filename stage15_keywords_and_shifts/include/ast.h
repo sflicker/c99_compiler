@@ -53,6 +53,7 @@ typedef enum {
     UNARY_DEREF,          // *a
     UNARY_ADDRESS,        // &a
     UNARY_BITWISE_NOT,    // ~a
+    UNARY_SIZEOF,         // sizeof
     UNARY_UNASSIGNED_OP   // op is not assigned. 
 } UnaryOperator;
 
@@ -106,6 +107,7 @@ typedef enum {
     AST_UNARY_EXPR,
     AST_CAST_EXPR,
     AST_COND_EXPR,
+    AST_SIZEOF_EXPR,
     AST_ARRAY_ACCESS,
     AST_INITIALIZER_LIST,
     AST_STRING_LITERAL,
